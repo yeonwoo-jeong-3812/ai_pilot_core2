@@ -1,0 +1,45 @@
+# core-live zoo 상대 'B2_Extender_06' (archetype B2_Extender) 를 core2 어휘로 자동번역.
+# 원본: core-live/src/engine/opponents/zoo/B2_Extender_06.yaml
+# 번역기: translate_zoo.py (일회성 구 도구 — 정리로 삭제, git 이력 보존. 의미론 ground truth=yaml_bt.py).
+# ⚠ 아키타입 행동 등가 이식(틱-동일 아님) — core2 물리로 재계측 대상.
+# 근사 노드:
+#   - APPROX: IsDisengaging→foe_extending(closure<0,range>6000)
+agent_name: B2_Extender_06
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 1200.0
+  - action:
+      pursuit: pure
+      aim_above_ft: 4000.0
+      name: climb
+- sequence:
+  - condition:
+      name: is_defensive
+      aspect_deg: 150
+  - action:
+      pursuit: lag
+      max_g: true
+      name: break
+- sequence:
+  - inverter:
+      condition:
+        name: merged
+        range_ft: 4000
+  - action:
+      pursuit: lag
+      lag_dist_ft: 6000.0
+      aim_above_ft: -200.0
+      name: extend
+- sequence:
+  - condition: foe_extending
+  - action:
+      pursuit: lag
+      lag_dist_ft: 6000.0
+      aim_above_ft: -200.0
+      name: extend
+- action:
+    pursuit: pure
+    aim_above_ft: 0.0
+    name: level

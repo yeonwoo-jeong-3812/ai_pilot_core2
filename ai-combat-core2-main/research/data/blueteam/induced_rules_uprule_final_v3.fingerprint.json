@@ -1,0 +1,133 @@
+{
+ "dump": "obs_dump_finalv2_all.csv",
+ "schedule": {
+  "B1_EnergyFighter_00/red": [
+   31.55,
+   6
+  ],
+  "B1_EnergyFighter_03/red": [
+   31.55,
+   6
+  ],
+  "B1_EnergyFighter_06/red": [
+   31.75,
+   6
+  ],
+  "B1_EnergyFighter_08/red": [
+   31.75,
+   6
+  ],
+  "B1_EnergyFighter_11/red": [
+   31.75,
+   6
+  ],
+  "C1_TwoCircleRate_03/red": [
+   31.95,
+   6
+  ],
+  "C1_TwoCircleRate_04/red": [
+   31.95,
+   6
+  ],
+  "C1_TwoCircleRate_05/red": [
+   31.95,
+   6
+  ],
+  "C2_OneCircleRad_03/red": [
+   31.95,
+   6
+  ],
+  "C2_OneCircleRad_04/red": [
+   31.95,
+   6
+  ],
+  "C2_OneCircleRad_05/red": [
+   31.95,
+   6
+  ],
+  "C3_Lufbery_00/red": [
+   31.55,
+   6
+  ],
+  "C3_Lufbery_02/red": [
+   31.55,
+   6
+  ],
+  "C3_Lufbery_04/red": [
+   31.75,
+   6
+  ],
+  "D1_Reactive_06/red": [
+   35.75,
+   9
+  ],
+  "D1_Reactive_08/red": [
+   35.65,
+   9
+  ],
+  "D1_Reactive_11/red": [
+   35.65,
+   9
+  ],
+  "D3_Scissors_00/red": [
+   25.55,
+   2
+  ],
+  "D3_Scissors_01/red": [
+   25.55,
+   2
+  ],
+  "D3_Scissors_02/red": [
+   25.55,
+   2
+  ],
+  "E1_AdaptiveAce_00/blue": [
+   32.05,
+   4
+  ],
+  "E1_AdaptiveAce_03/blue": [
+   23.95,
+   1
+  ],
+  "E1_AdaptiveAce_03/red": [
+   32.05,
+   4
+  ],
+  "E1_AdaptiveAce_06/blue": [
+   19.95,
+   0
+  ],
+  "E1_AdaptiveAce_08/blue": [
+   31.45,
+   3
+  ],
+  "E1_AdaptiveAce_11/blue": [
+   31.45,
+   3
+  ],
+  "E1_AdaptiveAce_11/red": [
+   31.95,
+   5
+  ],
+  "E2_Passive_00/blue": [
+   24.35,
+   1
+  ],
+  "E2_Passive_00/red": [
+   24.35,
+   1
+  ],
+  "E2_Passive_01/blue": [
+   24.35,
+   1
+  ],
+  "E2_Passive_01/red": [
+   24.35,
+   1
+  ],
+  "anchor_ace/blue": [
+   28.55,
+   7
+  ]
+ }
+}

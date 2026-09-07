@@ -1,0 +1,8 @@
+# AI Pilot SDK — 산출물·개인 파일은 커밋하지 않음
+__pycache__/
+*.pyc
+.venv/
+replays/
+my_agents/*
+!my_agents/.gitkeep
+tmp/

@@ -1,0 +1,255 @@
+
+
+     JSBSim Flight Dynamics Model v1.3.0 [GitHub build 1742/commit 01ea7816288dce9e9f6a1a6dc048014bc65d699e] Apr  9 2026 10:02:36
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+=== 분기탐색 D1_Reactive_06/blue  창[10,33]s step4 durs[4.0, 8.0] ===
+  기준: 패 Δ-21.0 health_zero@37s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 10.0 gun_pure   d= 4.0 → ★승 Δ   +5.5 health_zero@ 65s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 10.0 gun_pure   d= 8.0 → ★승 Δ  +15.2 health_zero@ 86s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 10.0 dive       d= 4.0 → ★승 Δ   +2.7 health_zero@ 61s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 10.0 dive       d= 8.0 → ★승 Δ  +90.7 timeout@300s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 10.0 extend     d= 4.0 → ★승 Δ   +6.9 health_zero@ 97s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 10.0 extend     d= 8.0 →   패 Δ  -10.2 health_zero@ 62s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 10.0 break      d= 4.0 →   패 Δ  -16.7 health_zero@ 38s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 10.0 break      d= 8.0 → ★승 Δ  +12.2 health_zero@ 36s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 14.0 gun_pure   d= 4.0 → ★승 Δ   +0.7 health_zero@140s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 14.0 gun_pure   d= 8.0 → ★승 Δ  +15.1 health_zero@ 70s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 14.0 dive       d= 4.0 →   패 Δ   -4.2 health_zero@ 61s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 14.0 dive       d= 8.0 → ★승 Δ  +57.5 health_zero@ 74s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 14.0 extend     d= 4.0 → ★승 Δ   +5.5 health_zero@ 62s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 14.0 extend     d= 8.0 → ★승 Δ  +52.9 health_zero@104s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 14.0 break      d= 4.0 →   패 Δ  -13.0 health_zero@174s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 14.0 break      d= 8.0 →   패 Δ  -31.4 health_zero@163s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 18.0 gun_pure   d= 4.0 → ★승 Δ   +4.2 health_zero@ 43s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 18.0 gun_pure   d= 8.0 →   패 Δ  -47.3 health_zero@103s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 18.0 dive       d= 4.0 →   패 Δ  -15.1 health_zero@ 58s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 18.0 dive       d= 8.0 → ★승 Δ  +11.3 health_zero@ 92s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 18.0 extend     d= 4.0 →   패 Δ  -14.8 health_zero@ 39s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 18.0 extend     d= 8.0 →   패 Δ  -14.6 health_zero@ 47s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 18.0 break      d= 4.0 → ★승 Δ  +11.4 health_zero@125s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 18.0 break      d= 8.0 → ★승 Δ  +27.5 health_zero@ 88s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 22.0 gun_pure   d= 4.0 →   패 Δ  -21.6 health_zero@ 38s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 22.0 gun_pure   d= 8.0 →   패 Δ  -27.1 health_zero@ 38s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 22.0 dive       d= 4.0 →   패 Δ   -2.5 health_zero@ 62s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 22.0 dive       d= 8.0 → ★승 Δ   +6.9 health_zero@ 51s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 22.0 extend     d= 4.0 → ★승 Δ   +7.9 health_zero@ 46s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 22.0 extend     d= 8.0 → ★승 Δ   +8.6 health_zero@ 46s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 22.0 break      d= 4.0 → ★승 Δ   +6.7 health_zero@112s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 22.0 break      d= 8.0 → ★승 Δ   +0.8 health_zero@ 94s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 26.0 gun_pure   d= 4.0 →   패 Δ  -21.7 health_zero@ 38s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 26.0 gun_pure   d= 8.0 →   패 Δ  -36.9 health_zero@110s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 26.0 dive       d= 4.0 →   패 Δ  -36.9 health_zero@126s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 26.0 dive       d= 8.0 →   패 Δ  -31.4 health_zero@244s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 26.0 extend     d= 4.0 →   패 Δ  -36.9 health_zero@208s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 26.0 extend     d= 8.0 →   패 Δ  -36.9 health_zero@131s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 26.0 break      d= 4.0 →   패 Δ  -36.9 health_zero@103s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 26.0 break      d= 8.0 →   패 Δ  -26.9 health_zero@ 38s ticks160
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 30.0 gun_pure   d= 4.0 →   패 Δ  -36.9 health_zero@110s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 30.0 gun_pure   d= 8.0 →   패 Δ  -36.9 health_zero@ 76s ticks161
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 30.0 dive       d= 4.0 → ★승 Δ   +4.7 health_zero@190s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 30.0 dive       d= 8.0 →   패 Δ   -5.1 health_zero@ 61s ticks161
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 30.0 extend     d= 4.0 →   패 Δ  -36.9 health_zero@ 38s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 30.0 extend     d= 8.0 →   패 Δ  -36.9 health_zero@ 38s ticks161
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 30.0 break      d= 4.0 →   패 Δ  -21.4 health_zero@ 37s ticks80
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  t0= 30.0 break      d= 8.0 →   패 Δ  -21.2 health_zero@ 37s ticks150
+
+  승리 개입 21개: [(10.0, 'gun_pure', 4.0, 5.520833333333412), (10.0, 'gun_pure', 8.0, 15.208333333333172), (10.0, 'dive', 4.0, 2.708333333333622), (10.0, 'dive', 8.0, 90.72916666666629), (10.0, 'extend', 4.0, 6.875000000000388), (10.0, 'break', 8.0, 12.187500000000078), (14.0, 'gun_pure', 4.0, 0.7291666666665125), (14.0, 'gun_pure', 8.0, 15.104166666666517), (14.0, 'dive', 8.0, 57.49999999999981), (14.0, 'extend', 4.0, 5.52083333333354), (14.0, 'extend', 8.0, 52.91666666666679), (18.0, 'gun_pure', 4.0, 4.166666666666644), (18.0, 'dive', 8.0, 11.250000000000103), (18.0, 'break', 4.0, 11.354166666666421), (18.0, 'break', 8.0, 27.500000000000135), (22.0, 'dive', 8.0, 6.875000000000001), (22.0, 'extend', 4.0, 7.916666666666546), (22.0, 'extend', 8.0, 8.64583333333319), (22.0, 'break', 4.0, 6.66666666666655), (22.0, 'break', 8.0, 0.8333333333332289), (30.0, 'dive', 4.0, 4.687499999999856)]

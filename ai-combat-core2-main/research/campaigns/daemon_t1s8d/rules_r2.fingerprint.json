@@ -1,0 +1,133 @@
+{
+ "dump": "obs_dump_daemon_t1s8d_r3.csv",
+ "schedule": {
+  "B1_EnergyFighter_00/red": [
+   25.95,
+   5
+  ],
+  "B1_EnergyFighter_06/red": [
+   32.05,
+   0
+  ],
+  "B1_EnergyFighter_08/red": [
+   32.05,
+   0
+  ],
+  "B1_EnergyFighter_11/red": [
+   32.05,
+   0
+  ],
+  "C1_TwoCircleRate_03/red": [
+   23.95,
+   11
+  ],
+  "C1_TwoCircleRate_04/red": [
+   23.95,
+   11
+  ],
+  "C1_TwoCircleRate_05/red": [
+   23.95,
+   11
+  ],
+  "C2_OneCircleRad_03/red": [
+   23.95,
+   11
+  ],
+  "C2_OneCircleRad_04/red": [
+   23.95,
+   11
+  ],
+  "C2_OneCircleRad_05/red": [
+   23.95,
+   11
+  ],
+  "C3_Lufbery_00/red": [
+   25.95,
+   5
+  ],
+  "C3_Lufbery_04/red": [
+   32.05,
+   0
+  ],
+  "C3_Lufbery_06/red": [
+   33.85,
+   2
+  ],
+  "C3_Lufbery_08/red": [
+   33.85,
+   2
+  ],
+  "D1_Reactive_06/red": [
+   27.85,
+   1
+  ],
+  "D3_Scissors_01/red": [
+   31.55,
+   3
+  ],
+  "D3_Scissors_02/red": [
+   31.55,
+   3
+  ],
+  "E1_AdaptiveAce_00/blue": [
+   25.85,
+   7
+  ],
+  "E1_AdaptiveAce_03/blue": [
+   23.85,
+   4
+  ],
+  "E1_AdaptiveAce_03/red": [
+   25.75,
+   9
+  ],
+  "E1_AdaptiveAce_06/blue": [
+   25.45,
+   5
+  ],
+  "E1_AdaptiveAce_11/blue": [
+   25.55,
+   10
+  ],
+  "E1_AdaptiveAce_11/red": [
+   25.65,
+   9
+  ],
+  "E2_Passive_01/blue": [
+   22.65,
+   2
+  ],
+  "E2_Passive_01/red": [
+   22.65,
+   2
+  ],
+  "anchor_ace/blue": [
+   25.95,
+   8
+  ],
+  "official_controlzone/blue": [
+   25.75,
+   6
+  ],
+  "official_controlzone/red": [
+   25.75,
+   6
+  ],
+  "official_headon/blue": [
+   25.65,
+   12
+  ],
+  "official_headon/red": [
+   25.65,
+   12
+  ],
+  "redteam_allround/blue": [
+   21.65,
+   13
+  ],
+  "redteam_allround/red": [
+   21.65,
+   13
+  ]
+ }
+}

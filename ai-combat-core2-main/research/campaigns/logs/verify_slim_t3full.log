@@ -1,0 +1,7 @@
+기준: research/replays/daemon_t3full/rescore_r3.log (150판) · 구성 서명 없음 — 현재 환경 사용(주의)
+슬림본 전판 재채점…
+다이어트 전후 불일치: 1건 ['anchor_ace/blue']
+  문장#10 단독 슬림 → 이탈 ['anchor_ace/blue']
+범인 문장: [10]
+하이브리드 전판 재채점…
+하이브리드 검증 통과 — 범인 1문장만 원본 축 유지 (총 63축) → research/data/blueteam/induced_rules_t3full_verified.json

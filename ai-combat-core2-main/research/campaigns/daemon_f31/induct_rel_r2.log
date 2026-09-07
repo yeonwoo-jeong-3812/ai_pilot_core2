@@ -1,0 +1,38 @@
+표적 2개, 증인 41개
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  extend 진입틱 E1_AdaptiveAce_06/blue t=28.45 → ✓ Δ+34.3
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  extend 진입틱 E1_AdaptiveAce_03/red t=25.95 → ✗ Δ-55.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  extend 진입틱 E1_AdaptiveAce_06/blue t=28.55 → ✓ Δ+32.5
+[규칙 1] extend d6 ⊃ ['E1_AdaptiveAce_06/blue']
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  extend 진입틱 E1_AdaptiveAce_03/red t=25.85 → ✗ Δ-55.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 E1_AdaptiveAce_03/red t=22.95 → ✓ Δ+39.1
+[규칙 2] dive d6 ⊃ ['E1_AdaptiveAce_03/red']
+
+규칙 2개 저장: C:\Users\USER\Desktop\AI-pilot\core2\research\data\blueteam\daemon_f31_r2_rel.json
+미피복: 없음(전 반례 피복)

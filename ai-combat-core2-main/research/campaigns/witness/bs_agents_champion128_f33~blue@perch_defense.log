@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\AI-pilot\core2\research\branch_search.py", line 236, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "C:\Users\USER\Desktop\AI-pilot\core2\research\branch_search.py", line 185, in main
+    stem, side = case.split("/")
+    ^^^^^^^^^^
+ValueError: too many values to unpack (expected 2, got 3)

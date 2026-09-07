@@ -1,0 +1,517 @@
+=== 루프19 점수-장부 게이트: refuse=auto scope=full (near>1.0 floor8.0 edge12.0 hot45.0 rng4500 pursue<0.6@12s) ===
+  상대/측                          결과      HPΔ     거부     첫발화     장부오차  cond
+
+
+     JSBSim Flight Dynamics Model v1.3.0 [GitHub build 1742/commit 01ea7816288dce9e9f6a1a6dc048014bc65d699e] Apr  9 2026 10:02:36
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_anchor_simple_blue_debrief.png
+  anchor_simple/blue             승    +59.1      0       -     +0.0  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_anchor_simple_red_debrief.png
+  anchor_simple/red              승    +59.2      0       -     +1.9  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_anchor_aggressive_blue_debrief.png
+  anchor_aggressive/blue         승    +59.1      0       -     +0.0  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_anchor_aggressive_red_debrief.png
+  anchor_aggressive/red          승    +59.2      0       -     +1.9  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_anchor_defensive_blue_debrief.png
+  anchor_defensive/blue          승    +15.7     20     21s     +0.6  포기1  health_zero@97s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_anchor_defensive_red_debrief.png
+  anchor_defensive/red           승    +28.6      3     21s     +0.6  포기1  health_zero@62s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_anchor_ace_blue_debrief.png
+  anchor_ace/blue                패    -33.2     19     21s     -0.1  포기1  health_zero@36s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_anchor_ace_red_debrief.png
+  anchor_ace/red                 승     +8.0     18     21s     +0.0  포기1  health_zero@61s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A1_PurePursuer_05_blue_debrief.png
+  A1_PurePursuer_05/blue         승    +59.1      0       -     +0.0  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A1_PurePursuer_05_red_debrief.png
+  A1_PurePursuer_05/red          승    +59.2      0       -     +1.9  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A2_GunTracker_06_blue_debrief.png
+  A2_GunTracker_06/blue          승    +57.2      0       -     -0.6  포기0  health_zero@35s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A2_GunTracker_06_red_debrief.png
+  A2_GunTracker_06/red           승    +57.6      0       -     +0.0  포기0  health_zero@35s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A3_LagAngler_06_blue_debrief.png
+  A3_LagAngler_06/blue           승    +41.5      0       -     -0.6  포기0  health_zero@270s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A3_LagAngler_06_red_debrief.png
+  A3_LagAngler_06/red            승    +65.6      0       -     -0.6  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B1_EnergyFighter_06_blue_debrief.png
+  B1_EnergyFighter_06/blue       승     +5.9     17     21s     -1.2  포기0  health_zero@38s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B1_EnergyFighter_06_red_debrief.png
+  B1_EnergyFighter_06/red        패     -3.2     32     21s     +1.1  포기1  health_zero@98s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B2_Extender_04_blue_debrief.png
+  B2_Extender_04/blue            승    +12.3      3     21s     -0.2  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B2_Extender_04_red_debrief.png
+  B2_Extender_04/red             승    +51.5      1     21s     -0.6  포기0  health_zero@277s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C1_TwoCircleRate_03_blue_debrief.png
+  C1_TwoCircleRate_03/blue       승    +11.1     19     21s     +0.0  포기1  health_zero@64s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C1_TwoCircleRate_03_red_debrief.png
+  C1_TwoCircleRate_03/red        승     +2.8      3     21s     -1.2  포기1  health_zero@61s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C2_OneCircleRad_03_blue_debrief.png
+  C2_OneCircleRad_03/blue        승    +11.1     19     21s     +0.0  포기1  health_zero@64s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C2_OneCircleRad_03_red_debrief.png
+  C2_OneCircleRad_03/red         승     +2.8      3     21s     -1.2  포기1  health_zero@61s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C3_Lufbery_04_blue_debrief.png
+  C3_Lufbery_04/blue             승     +5.9     17     21s     -1.2  포기0  health_zero@38s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C3_Lufbery_04_red_debrief.png
+  C3_Lufbery_04/red              패     -3.2     32     21s     +1.1  포기1  health_zero@98s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D1_Reactive_06_blue_debrief.png
+  D1_Reactive_06/blue            패    -53.6     20     21s     -0.5  포기1  health_zero@223s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D1_Reactive_06_red_debrief.png
+  D1_Reactive_06/red             승    +40.4      3     21s     -0.6  포기1  health_zero@148s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D2_LastDitch_03_blue_debrief.png
+  D2_LastDitch_03/blue           승    +30.6      2     21s     +0.6  포기0  health_zero@60s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D2_LastDitch_03_red_debrief.png
+  D2_LastDitch_03/red            승    +26.1      0       -     +1.2  포기0  health_zero@60s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D3_Scissors_01_blue_debrief.png
+  D3_Scissors_01/blue            승    +10.4      3     21s     +0.6  포기0  health_zero@65s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D3_Scissors_01_red_debrief.png
+  D3_Scissors_01/red             승     +6.9      1     21s     +0.0  포기0  health_zero@64s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_E1_AdaptiveAce_06_blue_debrief.png
+  E1_AdaptiveAce_06/blue         패    -20.1     20     21s     +0.5  포기1  health_zero@36s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_E1_AdaptiveAce_06_red_debrief.png
+  E1_AdaptiveAce_06/red          승     +5.7     17     21s     +0.6  포기1  health_zero@93s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_E2_Passive_01_blue_debrief.png
+  E2_Passive_01/blue             패     -7.3      2     33s     +0.8  포기1  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_E2_Passive_01_red_debrief.png
+  E2_Passive_01/red              패     -3.4      2     34s     +2.2  포기1  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A1_PurePursuer_00_blue_debrief.png
+  A1_PurePursuer_00/blue         승    +59.1      0       -     +0.0  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A1_PurePursuer_00_red_debrief.png
+  A1_PurePursuer_00/red          승    +59.2      0       -     +1.9  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A1_PurePursuer_09_blue_debrief.png
+  A1_PurePursuer_09/blue         승    +59.1      0       -     +0.0  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A1_PurePursuer_09_red_debrief.png
+  A1_PurePursuer_09/red          승    +59.2      0       -     +1.9  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A2_GunTracker_00_blue_debrief.png
+  A2_GunTracker_00/blue          승    +57.2      0       -     -0.6  포기0  health_zero@35s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A2_GunTracker_00_red_debrief.png
+  A2_GunTracker_00/red           승    +57.6      0       -     +0.0  포기0  health_zero@35s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A2_GunTracker_11_blue_debrief.png
+  A2_GunTracker_11/blue          승    +59.1      0       -     -0.6  포기0  health_zero@35s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A2_GunTracker_11_red_debrief.png
+  A2_GunTracker_11/red           승    +59.3      0       -     -0.6  포기0  health_zero@35s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A3_LagAngler_00_blue_debrief.png
+  A3_LagAngler_00/blue           승    +41.5      0       -     -0.6  포기0  health_zero@270s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A3_LagAngler_00_red_debrief.png
+  A3_LagAngler_00/red            승    +65.6      0       -     -0.6  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A3_LagAngler_11_blue_debrief.png
+  A3_LagAngler_11/blue           승    +20.6    302    125s     -1.3  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_A3_LagAngler_11_red_debrief.png
+  A3_LagAngler_11/red            승    +77.5      0       -     +0.0  포기0  health_zero@147s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B1_EnergyFighter_00_blue_debrief.png
+  B1_EnergyFighter_00/blue       패     -5.4     20     21s     -0.4  포기1  health_zero@38s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B1_EnergyFighter_00_red_debrief.png
+  B1_EnergyFighter_00/red        패     -8.3      2     21s     +0.4  포기1  health_zero@38s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B1_EnergyFighter_11_blue_debrief.png
+  B1_EnergyFighter_11/blue       승     +5.9     17     21s     -1.2  포기0  health_zero@38s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B1_EnergyFighter_11_red_debrief.png
+  B1_EnergyFighter_11/red        패     -3.2     32     21s     +1.1  포기1  health_zero@98s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B2_Extender_00_blue_debrief.png
+  B2_Extender_00/blue            승    +25.8      3     21s     -1.9  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B2_Extender_00_red_debrief.png
+  B2_Extender_00/red             승    +32.3      1     21s     +0.0  포기0  health_zero@75s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B2_Extender_08_blue_debrief.png
+  B2_Extender_08/blue            승    +20.9      3     21s     -1.2  포기0  health_zero@178s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_B2_Extender_08_red_debrief.png
+  B2_Extender_08/red             승    +36.5      1     21s     -0.6  포기0  health_zero@194s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C1_TwoCircleRate_00_blue_debrief.png
+  C1_TwoCircleRate_00/blue       승     +9.2     20     21s     -1.9  포기1  health_zero@95s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C1_TwoCircleRate_00_red_debrief.png
+  C1_TwoCircleRate_00/red        승    +16.2      3     21s     +0.0  포기1  health_zero@63s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C1_TwoCircleRate_05_blue_debrief.png
+  C1_TwoCircleRate_05/blue       승    +11.1     19     21s     +0.0  포기1  health_zero@64s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C1_TwoCircleRate_05_red_debrief.png
+  C1_TwoCircleRate_05/red        승     +2.8      3     21s     -1.2  포기1  health_zero@61s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C2_OneCircleRad_00_blue_debrief.png
+  C2_OneCircleRad_00/blue        승     +9.2     20     21s     -1.9  포기1  health_zero@95s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C2_OneCircleRad_00_red_debrief.png
+  C2_OneCircleRad_00/red         승    +16.2      3     21s     +0.0  포기1  health_zero@63s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C2_OneCircleRad_05_blue_debrief.png
+  C2_OneCircleRad_05/blue        승    +11.1     19     21s     +0.0  포기1  health_zero@64s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C2_OneCircleRad_05_red_debrief.png
+  C2_OneCircleRad_05/red         승     +2.8      3     21s     -1.2  포기1  health_zero@61s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C3_Lufbery_00_blue_debrief.png
+  C3_Lufbery_00/blue             패     -5.4     20     21s     -0.4  포기1  health_zero@38s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C3_Lufbery_00_red_debrief.png
+  C3_Lufbery_00/red              패     -8.3      2     21s     +0.4  포기1  health_zero@38s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C3_Lufbery_08_blue_debrief.png
+  C3_Lufbery_08/blue             승    +15.4     18     21s     +0.6  포기0  health_zero@38s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_C3_Lufbery_08_red_debrief.png
+  C3_Lufbery_08/red              승    +18.4      3     21s     +0.0  포기1  health_zero@72s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D1_Reactive_00_blue_debrief.png
+  D1_Reactive_00/blue            승    +10.1     20     21s     -0.2  포기1  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D1_Reactive_00_red_debrief.png
+  D1_Reactive_00/red             승    +52.1      5     21s     -0.6  포기1  health_zero@260s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D1_Reactive_11_blue_debrief.png
+  D1_Reactive_11/blue            패     -6.8     19     21s     -1.1  포기1  health_zero@222s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D1_Reactive_11_red_debrief.png
+  D1_Reactive_11/red             승    +27.3      3     21s     -0.6  포기1  health_zero@148s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D2_LastDitch_00_blue_debrief.png
+  D2_LastDitch_00/blue           승    +37.0      2     21s     +1.2  포기0  health_zero@73s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D2_LastDitch_00_red_debrief.png
+  D2_LastDitch_00/red            승    +37.3      0       -     +0.6  포기0  health_zero@72s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D2_LastDitch_05_blue_debrief.png
+  D2_LastDitch_05/blue           승    +22.2      2     21s     -1.2  포기0  health_zero@62s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D2_LastDitch_05_red_debrief.png
+  D2_LastDitch_05/red            승    +15.3      0       -     +0.6  포기0  health_zero@63s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D3_Scissors_00_blue_debrief.png
+  D3_Scissors_00/blue            승     +4.3      3     21s     -1.9  포기0  health_zero@65s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D3_Scissors_00_red_debrief.png
+  D3_Scissors_00/red             패    -16.4      1     21s     -0.7  포기0  health_zero@75s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D3_Scissors_02_blue_debrief.png
+  D3_Scissors_02/blue            패    -17.1      3     21s     -0.8  포기0  health_zero@73s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_D3_Scissors_02_red_debrief.png
+  D3_Scissors_02/red             승    +11.7      1     21s     -1.2  포기0  health_zero@67s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_E1_AdaptiveAce_00_blue_debrief.png
+  E1_AdaptiveAce_00/blue         승     +1.3     20     21s     -0.6  포기1  health_zero@64s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_E1_AdaptiveAce_00_red_debrief.png
+  E1_AdaptiveAce_00/red          승    +26.6     19     21s     -1.2  포기1  health_zero@63s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_E1_AdaptiveAce_11_blue_debrief.png
+  E1_AdaptiveAce_11/blue         패    -21.0     19     21s     +0.2  포기1  health_zero@37s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_E1_AdaptiveAce_11_red_debrief.png
+  E1_AdaptiveAce_11/red          패    -16.9     17     21s     -0.0  포기1  health_zero@37s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_E2_Passive_00_blue_debrief.png
+  E2_Passive_00/blue             패     -7.3      2     33s     +0.8  포기1  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  debrief   : C:\Users\USER\Desktop\AI-pilot\core2\port_measure\replays\ledger_auto\champ_vs_E2_Passive_00_red_debrief.png
+  E2_Passive_00/red              패     -3.4      2     34s     +2.2  포기1  health_zero@34s
+
+  합계: 65승 0무 19패 / 84
+  전환: 14 ['A3_LagAngler_06/blue', 'A3_LagAngler_06/red', 'B2_Extender_04/red', 'D1_Reactive_06/red', 'D3_Scissors_01/red', 'A2_GunTracker_11/red', 'A3_LagAngler_00/blue', 'A3_LagAngler_00/red', 'B2_Extender_08/blue', 'C1_TwoCircleRate_00/red', 'C2_OneCircleRad_00/red', 'C3_Lufbery_08/blue', 'C3_Lufbery_08/red', 'D1_Reactive_11/red']
+  회귀: 9 ['anchor_ace/blue (Δ-33.2)', 'D1_Reactive_06/blue (Δ-53.6)', 'E1_AdaptiveAce_06/blue (Δ-20.1)', 'B1_EnergyFighter_00/blue (Δ-5.4)', 'C3_Lufbery_00/blue (Δ-5.4)', 'D1_Reactive_11/blue (Δ-6.8)', 'D3_Scissors_00/red (Δ-16.4)', 'D3_Scissors_02/blue (Δ-17.1)', 'E1_AdaptiveAce_11/red (Δ-16.9)']

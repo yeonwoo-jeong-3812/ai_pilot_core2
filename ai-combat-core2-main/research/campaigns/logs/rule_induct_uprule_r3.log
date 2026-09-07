@@ -1,0 +1,17 @@
+표적 1개, 증인 21개
+
+
+     JSBSim Flight Dynamics Model v1.3.0 [GitHub build 1742/commit 01ea7816288dce9e9f6a1a6dc048014bc65d699e] Apr  9 2026 10:02:36
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E1_AdaptiveAce_06/blue t=19.95 → ✓ Δ+37.4
+[규칙 1] break d6 ⊃ ['E1_AdaptiveAce_06/blue']
+
+규칙 1개 저장: C:\Users\USER\Desktop\AI-pilot\core2\port_measure\loop22_labels\induced_rules_uprule_r3.json
+미피복: 없음(전 반례 피복)

@@ -1,0 +1,10 @@
+# Red Team 대항군 — PRESSURE (정면 압박형). 비배포(참가자 미공개).
+#
+# pure 일변도: 항상 적 현재 위치를 조준해 압박한다. 조준 유지에 강해
+# headon 대등 교전에서 baseline 으로 의외로 강하다(리그 실측). 그러나 에너지
+# 관리가 없어 perch·저속 국면에서 급기동으로 실속하기 쉽다 — 스타일 약점.
+selector:
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, aim_above_ft: 4000, name: recover_altitude}
+  - action: {pursuit: pure, name: pure_pressure}

@@ -1,0 +1,36 @@
+# cand_vl — vf 의 재충전을 "첫 교환 이후"로 게이트 (low_health 래치).
+#
+# vf 실측: 무피해 상태의 재충전 이탈은 농사당함(s1 duel 0/100) — 적이 공격
+# 에너지를 보유. 상호 피해 후 저속 스크램블에서는 재충전이 승리 공식(s2·s3).
+# HP 는 회복되지 않으므로 low_health(95) = "교전 개시" 영구 래치로 동작한다.
+# vj 의 energy_advantage 게이트는 경계 플래핑으로 0-10 실패 — 채택 금지.
+
+agent_name: JesterL
+
+selector:
+  # 0) 하드덱 회복 — 예측 발동
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500, lookahead_s: 3.5}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+
+  # 1) 최종 사격권
+  - sequence:
+      - condition: {name: in_gun_envelope}
+      - inverter:
+          condition: {name: nose_far, ata_deg: 12}
+      - action: {pursuit: pure, g_burst: 0.8, name: pure_cone_track}
+
+  # 2) 실속 가드 — 저속 + 이미 피격(교전 개시 래치)일 때만 재충전
+  - sequence:
+      - condition: {name: below_fighting_speed, kcas: 280}
+      - condition: {name: low_health, hp: 95}
+      - action: {pursuit: lead, lead_time_s: 0.5, g_burst: 0.0, name: energy_regain}
+
+  # 3) 조준선 정렬
+  - sequence:
+      - inverter:
+          condition: {name: nose_far, ata_deg: 12}
+      - action: {pursuit: lead, lead_time_s: 0.2, g_burst: 0.8, name: weak_lead_track}
+
+  # 4) 기본 추격
+  - action: {pursuit: lead, g_burst: 0.8, name: lead_chase}

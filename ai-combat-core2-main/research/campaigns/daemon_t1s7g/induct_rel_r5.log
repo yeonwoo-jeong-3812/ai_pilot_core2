@@ -1,0 +1,37 @@
+표적 5개, 증인 109개
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E1_AdaptiveAce_06/blue t=19.95 → ✓ Δ+37.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_controlzone/blue t=13.65 → ✓ Δ+29.3
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_controlzone/red t=13.65 → ✓ Δ+29.8
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_headon/blue t=13.65 → ✓ Δ+36.0
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_headon/red t=13.65 → ✓ Δ+35.9
+[규칙 1] break d6 ⊃ ['E1_AdaptiveAce_06/blue', 'official_controlzone/blue', 'official_controlzone/red', 'official_headon/blue', 'official_headon/red']
+
+규칙 1개 저장: C:\Users\USER\Desktop\AI-pilot\core2\research\data\blueteam\daemon_t1s7g_r5_rel.json
+미피복: 없음(전 반례 피복)

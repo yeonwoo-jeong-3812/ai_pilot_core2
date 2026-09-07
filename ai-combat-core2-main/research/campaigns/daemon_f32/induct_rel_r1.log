@@ -1,0 +1,31 @@
+표적 2개, 증인 51개
+  분리실패 → C3_Lufbery_06/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['C3_Lufbery_00/blue', 'C3_Lufbery_00/red', 'C3_Lufbery_02/blue', 'C3_Lufbery_02/red', 'C3_Lufbery_04/blue', 'C3_Lufbery_04/red', 'C3_Lufbery_06/blue', 'C3_Lufbery_08/blue'] 공동발화 허용 재시도
+  [분리불가] dive ⊃ ['C3_Lufbery_08/red']
+  분리실패 → C3_Lufbery_06/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['C3_Lufbery_00/blue', 'C3_Lufbery_00/red', 'C3_Lufbery_02/blue', 'C3_Lufbery_02/red', 'C3_Lufbery_04/blue', 'C3_Lufbery_04/red', 'C3_Lufbery_06/blue', 'C3_Lufbery_08/blue'] 공동발화 허용 재시도
+  [분리불가] extend ⊃ ['C3_Lufbery_08/red']
+  분리실패 → C3_Lufbery_06/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['C3_Lufbery_00/blue', 'C3_Lufbery_00/red', 'C3_Lufbery_02/blue', 'C3_Lufbery_02/red', 'C3_Lufbery_04/blue', 'C3_Lufbery_04/red', 'C3_Lufbery_06/blue', 'C3_Lufbery_08/blue'] 공동발화 허용 재시도
+  [분리불가] break ⊃ ['C3_Lufbery_08/red']
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 C3_Lufbery_06/red t=39.45 → ✓ Δ+6.6
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 C3_Lufbery_08/red t=39.45 → ✓ Δ+6.6
+[규칙 1] gun_pure d6 ⊃ ['C3_Lufbery_06/red', 'C3_Lufbery_08/red']
+
+규칙 1개 저장: C:\Users\USER\Desktop\AI-pilot\core2\research\data\blueteam\daemon_f32_r1_rel.json
+미피복: 없음(전 반례 피복)

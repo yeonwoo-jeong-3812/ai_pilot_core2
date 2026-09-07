@@ -1,0 +1,40 @@
+# 생성 상대(gen_opponents) — 원본 C2_OneCircleRad_05, 시드 100#6
+# 변이: pursuit lag→pure; pursuit lead→pure
+agent_name: g100_06_C2_OneCircleRad_05
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 1430.77
+  - action:
+      pursuit: pure
+      aim_above_ft: 3616.76
+      name: climb
+- sequence:
+  - condition:
+      name: is_defensive
+      aspect_deg: 140.95
+  - action:
+      pursuit: pure
+      max_g: true
+      name: break
+- sequence:
+  - condition:
+      name: merged
+      range_ft: 1817.13
+  - action:
+      pursuit: lead
+      max_g: true
+      name: one_circle
+- sequence:
+  - condition:
+      name: merged
+      range_ft: 8222.78
+  - action:
+      pursuit: lead
+      max_g: true
+      name: one_circle
+- action:
+    pursuit: pure
+    max_g: true
+    name: one_circle

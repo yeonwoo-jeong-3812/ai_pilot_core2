@@ -1,0 +1,289 @@
+name: Build and Release SDK
+
+# core2(사설 소스) → sdk2(배포 repo) 자동 배포.
+#
+# 태그 v* 푸시 하나가 릴리스 전체를 움직인다 — 순서대로:
+#   ① 컴파일 빌드 → GitHub Release + sdk2 repo 푸시 + SDK zip → web Supabase 버킷
+#   ② 룰북 원본 → web repo 규칙 페이지 동기화
+#   ③ 스키마 점검(미적용이면 중단 — DDL 은 수동) → EC2 의 core2 를 그 태그로 checkout →
+#      **Lambda 이미지 재빌드 → ECR → 함수 갱신·신규 생성** (프로덕션 매치 실행체)
+#      — 한 덩어리다(deploy-engine 잡 참조). 스키마가 준비돼야 엔진이 나간다.
+# 체크아웃만으로는 프로덕션이 안 바뀐다. 큐 처리는 Lambda 단독이고 Lambda 는 core2 를
+# 이미지에 굽기 때문이다 — 이미지 재배포가 없어서 2026-08 이틀 사이 두 번 물렸다.
+#
+#   · 수동 실행(workflow_dispatch) → 컴파일 빌드 + 아티팩트만(드라이런, 릴리스/배포 없음)
+#   · 배포만 다시 하려면 server repo 의 "Deploy Lambda" 워크플로(롤백용 ref 지정 가능)
+# 필요 시크릿: SDK2_DEPLOY_KEY (sdk2 write 배포키의 개인키 — 만료 없음, sdk2 한정)
+#              WEB_DEPLOY_KEY  (ai-combat-web write 배포키 — 룰북 동기화용)
+#              EC2_HOST · EC2_SSH_KEY (대회 서버 SSH)
+#              SUPABASE_URL · SUPABASE_SERVICE_ROLE_KEY (SDK zip 버킷 업로드)
+#              SUPABASE_DB_PASSWORD (스키마 점검용 읽기 — 없으면 점검을 건너뛴다)
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '빌드 버전 (예: v0.2.0)'
+        required: true
+        default: 'v0.2.0'
+
+jobs:
+  build-sdk:
+    runs-on: windows-latest          # .pyd = cp314/win_amd64 (참가자 = Windows)
+    permissions:
+      contents: write
+    env:
+      PYTHONUTF8: "1"                 # 러너 콘솔 cp1252 → 빌드 로그의 한글·이모지 인코딩 오류 방지
+    outputs:
+      tagmsg: ${{ steps.tagmsg.outputs.body }}   # sdk2 태그·릴리스로 전파
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0             # engine_commit 스탬프용 git 이력
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'     # 서버와 동일 버전 고정 (결정성)
+
+      - name: 버전 결정
+        id: ver
+        shell: bash
+        run: echo "version=${{ github.event.inputs.version || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: 빌드 의존성 설치
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install cython setuptools
+
+      - name: SDK 빌드 (컴파일 — 소스 미배포)
+        run: python scripts/build_sdk.py --output ./sdk-release --version ${{ steps.ver.outputs.version }} --compile
+
+      - name: 소스 보호 검증
+        shell: bash
+        run: |
+          leak=$(find sdk-release/aircombat -name '*.py' ! -name '__init__.py')
+          if [ -n "$leak" ]; then echo "❌ 소스(.py) 유출: $leak"; exit 1; fi
+          if [ -e sdk-release/research ]; then echo "❌ research/ 포함됨"; exit 1; fi
+          if [ ! -f sdk-release/LICENSE ]; then echo "❌ LICENSE 누락"; exit 1; fi
+          pyd=$(find sdk-release/aircombat -name '*.pyd' | wc -l)
+          echo "✅ .pyd ${pyd}개, aircombat 소스 없음, lab 제외, LICENSE 포함"
+
+      - name: 아카이브 생성
+        shell: pwsh
+        run: Compress-Archive -Path "sdk-release/*" -DestinationPath "ai-combat-sdk2-${{ steps.ver.outputs.version }}.zip"
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ai-combat-sdk2-${{ steps.ver.outputs.version }}
+          path: sdk-release/
+          include-hidden-files: true       # .gitignore·agents/.gitkeep 보존
+
+      - name: 태그 메시지 추출 (릴리스 본문용)
+        if: startsWith(github.ref, 'refs/tags/')
+        id: tagmsg
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 규율: 태그 메시지는 **참가자 관점**(배포되는 SDK에서 뭐가 바뀌었나)으로 작성할 것.
+          #   이 메시지가 그대로 sdk2 릴리스 노트가 된다. 내부 전용 변경(lab·bridge·
+          #   tests·acmi_viewer 등)은 여기 넣지 말 것 — core2 릴리스엔 아래에 자동 커밋목록이 붙는다.
+          # actions/checkout 이 annotated 태그를 peel 하므로 git 대신 API 로 태그 메시지를 읽는다.
+          REF="repos/${{ github.repository }}/git/refs/tags/${{ github.ref_name }}"
+          typ=$(gh api "$REF" --jq '.object.type'); sha=$(gh api "$REF" --jq '.object.sha')
+          if [ "$typ" = "tag" ]; then
+            msg=$(gh api "repos/${{ github.repository }}/git/tags/$sha" --jq '.message')
+          else
+            msg=$(gh api "repos/${{ github.repository }}/git/commits/$sha" --jq '.message')
+          fi
+          {
+            echo "body<<TAGEOF"
+            printf '%s\n' "$msg"
+            echo "TAGEOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: GitHub Release 생성
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ai-combat-sdk2-${{ steps.ver.outputs.version }}.zip
+          body: ${{ steps.tagmsg.outputs.body }}   # 태그 메시지 + (아래) 자동 커밋목록
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 참가자 웹의 Supabase 버킷에 방금 빌드한 정본 zip 을 직접 올린다 →
+      # 관리자가 /admin 에서 손으로 재업로드할 필요 없이 /downloads 에 즉시 노출.
+      # 파일명의 vX.Y.Z 를 웹이 파싱해 '최신 버전' 배지로 쓴다.
+      # 필요 시크릿: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (버킷: sdk)
+      - name: SDK zip → 웹 Supabase 버킷 업로드
+        # 수동 실행도 허용 — 릴리스를 새로 내지 않고 버킷만 다시 채우거나
+        # 키 교체 후 시크릿을 검증하는 통로(태그 부작용 없이 이 스텝만 돈다).
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        continue-on-error: true   # 편의 기능 — 실패해도 릴리스(sdk2·web·EC2)를 막지 않는다
+        shell: bash
+        env:
+          URL: ${{ secrets.SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FILE: ai-combat-sdk2-${{ steps.ver.outputs.version }}.zip
+        run: |
+          set -euo pipefail
+          if [ -z "${URL:-}" ] || [ -z "${KEY:-}" ]; then
+            echo "SUPABASE_URL/SERVICE_ROLE_KEY 미설정 — 버킷 업로드 건너뜀"; exit 0
+          fi
+          # 신형 sb_secret 키는 Bearer 만으론 storage 가 JWT 로 파싱해 거부한다
+          # ("Invalid Compact JWS") — supabase-js 처럼 apikey 헤더도 함께 보낸다.
+          AUTH=(-H "Authorization: Bearer $KEY" -H "apikey: $KEY")
+          # 버킷의 이전 SDK zip 제거 → 항상 최신 하나만 남긴다
+          old=$(curl -sf -X POST "$URL/storage/v1/object/list/sdk" \
+            "${AUTH[@]}" -H "Content-Type: application/json" \
+            -d '{"prefix":"","limit":100}' \
+            | jq -r '.[].name | select(startswith("ai-combat-sdk2-") and endswith(".zip"))')
+          for n in $old; do
+            [ "$n" = "$FILE" ] && continue
+            curl -sf -X DELETE "$URL/storage/v1/object/sdk/$n" "${AUTH[@]}" >/dev/null
+          done
+          # 새 zip 업로드 (동명이면 덮어씀)
+          curl -sf -X POST "$URL/storage/v1/object/sdk/$FILE" \
+            "${AUTH[@]}" -H "x-upsert: true" \
+            -H "Content-Type: application/zip" --data-binary @"$FILE" >/dev/null
+          echo "업로드 완료: $FILE"
+
+  push-to-sdk2:
+    needs: build-sdk
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: 아티팩트 다운로드
+        uses: actions/download-artifact@v5
+        with:
+          name: ai-combat-sdk2-${{ github.ref_name }}
+          path: sdk-release
+
+      - name: sdk2 배포 repo 체크아웃
+        uses: actions/checkout@v5
+        with:
+          repository: rokafa-daslab/ai-combat-sdk2
+          ssh-key: ${{ secrets.SDK2_DEPLOY_KEY }}   # 배포키로 clone+push (SSH)
+          path: sdk2
+          fetch-depth: 0
+
+      - name: 빌드 산출물 → sdk2 동기화·푸시
+        env:
+          TAG_BODY: ${{ needs.build-sdk.outputs.tagmsg }}   # core2 태그 메시지 → sdk2 태그로 전파
+        run: |
+          printf '%s\n' "$TAG_BODY" > tagmsg.txt            # 워크스페이스 루트(sdk2 밖)
+          # 기존 파일 제거 (.git* 보존 → sdk2 자체 .github/워크플로도 유지) 후 새 빌드 복사
+          find sdk2 -maxdepth 1 -not -name 'sdk2' -not -name '.git*' -exec rm -rf {} +
+          cp -a sdk-release/. sdk2/           # dotfile(.gitignore) 포함 복사
+          cd sdk2
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add --all                       # .pyd 은 .gitignore 대상 아님 → 포함
+          if git diff --cached --quiet; then
+            echo "변경 없음 — 커밋 생략"
+          else
+            git commit -m "Release ${{ github.ref_name }} (core2 자동 배포)"
+            git push origin HEAD:main
+          fi
+          if ! git rev-parse "${{ github.ref_name }}" >/dev/null 2>&1; then
+            git tag -a "${{ github.ref_name }}" -F ../tagmsg.txt   # 전파된 메시지 = sdk2 릴리스 노트
+            git push origin "${{ github.ref_name }}"               # (배포키 push → sdk2 Release 워크플로 트리거)
+          fi
+          echo "✅ sdk2 배포 완료: ${{ github.ref_name }}"
+
+  push-rules-to-web:
+    # 룰북 원본 → 참가자 웹 규칙 페이지. 웹의 content/rules.md 는 **자동 생성물**이며
+    # 손으로 고치면 다음 릴리스에서 덮어써진다(사본 방치로 규정 불일치가 났던 이력).
+    # 태그에서만 돈다 — 룰북·SDK·엔진(EC2)이 릴리스 단위로 함께 움직여야 하기 때문.
+    needs: build-sdk
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: core2
+
+      - name: web repo 체크아웃
+        uses: actions/checkout@v5
+        with:
+          repository: rokafa-daslab/ai-combat-web
+          ssh-key: ${{ secrets.WEB_DEPLOY_KEY }}   # web write 배포키
+          ref: main                                # 필수 — 비우면 checkout 이 기본 브랜치를
+                                                   # REST API 로 조회하는데 그땐 배포키가 아니라
+                                                   # core2 스코프의 GITHUB_TOKEN 을 써서 404 난다
+          path: web
+
+      - name: rules.md 생성·푸시
+        run: |
+          # 조립: 웹 전용 머리말 + 룰북 원본 + 웹 전용 부록
+          # sed ①: 개정 이력은 웹 규칙 페이지에서 뺀다(2026-08-11 사용자 지시). 참가자가
+          #   찾는 것은 "지금 규칙"이다. SDK 원본에는 남긴다 — 규칙이 왜 그렇게 됐는지의
+          #   기록이라 지울 것이 아니다. 웹 사본을 손으로 지우면 다음 릴리스에 되살아나므로
+          #   여기서 잘라내는 것이 유일하게 유지되는 방법이다.
+          #   뒤따르는 -z 는 이력 섹션을 갈라주던 구분선(---)까지 걷어낸다 — 부록이 자기
+          #   구분선을 갖고 있어 그대로 두면 --- 가 두 번 찍힌다.
+          # sed ②: 룰북의 SDK 형제 문서 상대링크([REFERENCE.md](REFERENCE.md) 등)는
+          #   웹에선 /REFERENCE.md 404 가 된다 → 코드 텍스트로 강등한다(SDK 원본은 그대로).
+          { cat web/content/rules.head.md; echo; \
+            sed '/^## 개정 이력$/,$d' core2/sdk/docs/RULEBOOK.md \
+              | sed -z 's|\n*---\n*$|\n|';  echo; \
+            cat web/content/rules.appendix.md; } \
+            | sed 's|\[\([^]]*\)\]([A-Za-z0-9_]*\.md)|SDK 문서 `\1`|g' > web/content/rules.md
+          cd web
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add content/rules.md
+          if git diff --cached --quiet; then
+            echo "룰북 변경 없음 — 커밋 생략"
+          else
+            git commit -m "docs: 룰북 동기화 (core2 ${{ github.ref_name }} 자동 생성)"
+            git push origin HEAD:main
+            echo "✅ web 룰북 갱신: ${{ github.ref_name }}"
+          fi
+
+  deploy-engine:
+    # 대회 서버 엔진 = 참가자 SDK 버전. 태그로만 갱신한다(main 추종 금지 — 결정성 약속).
+    #
+    # **체크아웃만으로는 프로덕션이 안 바뀐다.** 큐 처리는 Lambda 단독이고
+    # (server d74792a — EC2 cron 은 수동 폴백용으로만 남았다) Lambda 는 core2 를
+    # 이미지에 굽는다. 그래서 체크아웃과 이미지 재배포를 **한 SSH 세션**에서 끝낸다 —
+    # 둘 사이에서 실패하면 "엔진은 태그인데 이미지는 구버전"인 상태가 남고, 그게
+    # 2026-08 이틀 사이 두 번 물린 그 상태다(제출 오검증, 디브리프 두부).
+    #
+    # 절차 자체는 server 의 deploy/deploy_lambda.sh 한 곳에만 있다(ENGINE_REF).
+    # 롤백·수동 배포는 server repo 의 "Deploy Lambda" 워크플로가 같은 스크립트를 부른다.
+    concurrency:
+      group: engine-deploy          # 태그 두 개가 연달아 밀려도 빌드가 겹치지 않게
+      cancel-in-progress: false
+    needs: push-to-sdk2
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: 엔진 배포 (스키마 → core2 태그 체크아웃 → Lambda 이미지 재빌드 → 함수 갱신)
+        uses: appleboy/ssh-action@v1
+        env:
+          # 접속 문자열이 아니라 비밀번호를 넘긴다 — 호스트·포트·사용자 규칙은
+          # check_migrations.sh 에 주석과 함께 두어 시크릿에 복제되지 않게 한다.
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 30m      # 도커 빌드 + ECR 푸시 (기본 10m 로는 모자라다)
+          envs: SUPABASE_URL,SUPABASE_DB_PASSWORD   # 스키마 점검용 — 없으면 점검만 건너뛴다
+          # server repo pull 이 먼저다 — 배포 절차(deploy_lambda.sh) 최신본을 받아야 한다.
+          script: |
+            set -e
+            git -C ~/ai-combat-server checkout -q main
+            git -C ~/ai-combat-server pull -q
+            # 스키마 점검 — **적용하지 않는다.** DDL 은 손으로 돌리는 운영 방침이라,
+            # 여기서는 준비 여부만 보고 미적용이면 배포를 멈춘다. 미적용 상태로 새
+            # 코드가 나가면 없는 테이블을 보고 첫 스케줄부터 조용히 실패한다
+            # (2026-08-22 round-tick / rounds·round_entries).
+            bash ~/ai-combat-server/deploy/check_migrations.sh
+            ENGINE_REF=${{ github.ref_name }} bash ~/ai-combat-server/deploy/deploy_lambda.sh

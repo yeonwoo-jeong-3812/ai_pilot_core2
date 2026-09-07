@@ -1,0 +1,20 @@
+# L1 전술 트리 (기본) — aircombat/tactics/dsl.py DEFAULT_SPEC 미러.
+# 우선순위 selector: 방어 > 오버슈트회피 > 연장추격 > 건조준 > 기수당김 > 기본.
+# 조건 이름은 aircombat/tactics/conditions.py 의 CONDITIONS 참조.
+selector:
+  - sequence:
+      - condition: foe_threat
+      - action: {pursuit: lag,  g_burst: 0.8,  name: break_defense}
+  - sequence:
+      - condition: overshoot_risk
+      - action: {pursuit: lag,  g_burst: 0.0, name: lag_reposition}
+  - sequence:
+      - condition: foe_extending
+      - action: {pursuit: lead, g_burst: 0.8,  name: lead_rundown}
+  - sequence:
+      - condition: in_gun_envelope
+      - action: {pursuit: pure, g_burst: 0.0, name: gun_track}
+  - sequence:
+      - condition: nose_far
+      - action: {pursuit: lead, g_burst: 0.0, name: lead_pull}
+  - action: {pursuit: pure, g_burst: 0.0, name: pure_default}

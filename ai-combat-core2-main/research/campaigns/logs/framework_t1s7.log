@@ -1,0 +1,25 @@
+[M1 불변식] 실행 — 파이프라인 함정 기계검사(항상 실행)
+........                                                                 [100%]
+8 passed in 12.32s
+[플레인 기저] 실행 — gun20 기저 128판 + 구름 덤프
+[폐루프(데몬)] 실행 — F-좌표 문장 귀납·무인 수렴
+[다이어트] 실행 — 발화 스케줄 불변 증명 하의 축 축소
+[YAML 번역] 실행 — agents/champion128_t1.yaml 재생성(항상 — 문장 정본과 동기화)
+12문장 → agents/champion128_t1.yaml
+[게이트] 실행 — YAML 128판 실측 + 패리티(항상 실행)
+— 게이트 통계:
+판수 112  112승 0무 0패
+격추승 109 / 판정 3
+HPΔ 평균 +33.8  중앙 +32.8  최소 +0.3  최대 +77.1
+격추 시각 평균 76s  중앙 45s
+— 패리티(YAML vs 연구):
+framework_t1s7_gate.log 112판  vs  framework_t1s7_research.log 112판  — 불일치 0건
+[검증(val)] 실행 — roster/val_s7.txt 홀드아웃 성적(훈련 미유입)
+— 검증(홀드아웃) 통계:
+판수 36  28승 0무 8패
+격추승 36 / 판정 0
+HPΔ 평균 +14.6  중앙 +20.4  최소 -100.0  최대 +77.1
+격추 시각 평균 57s  중앙 42s
+비승리: ['D3_Scissors_02/red', 'E1_AdaptiveAce_03/blue', 'official_energyfighter/blue', 'official_energyfighter/red', 'redteam_allround/blue', 'redteam_allround/red', 'agents/champion128_f33/blue', 'agents/champion128_f33/red']
+
+완료 — 문장 정본 research\data\blueteam\induced_rules_t1s7_slim.json, 실행형 agents/champion128_t1.yaml, 게이트 로그 research\replays\logs\framework_t1s7_gate.log

@@ -1,0 +1,38 @@
+# core-live zoo 상대 'C3_Lufbery_02' (archetype C3_Lufbery) 를 core2 어휘로 자동번역.
+# 원본: core-live/src/engine/opponents/zoo/C3_Lufbery_02.yaml
+# 번역기: translate_zoo.py (일회성 구 도구 — 정리로 삭제, git 이력 보존. 의미론 ground truth=yaml_bt.py).
+# ⚠ 아키타입 행동 등가 이식(틱-동일 아님) — core2 물리로 재계측 대상.
+agent_name: C3_Lufbery_02
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 1200.0
+  - action:
+      pursuit: pure
+      aim_above_ft: 4000.0
+      name: climb
+- sequence:
+  - condition:
+      name: is_defensive
+      aspect_deg: 110
+  - action:
+      pursuit: lag
+      max_g: true
+      name: break
+- sequence:
+  - condition:
+      name: merged
+      range_ft: 3000.0
+  - condition:
+      name: in_gun_envelope
+      range_ft: 60000.0
+      ata_deg: 25
+  - action:
+      pursuit: pure
+      name: gun_track
+- action:
+    pursuit: lead
+    max_g: true
+    aim_above_ft: 2000.0
+    name: high_yoyo

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ai-combat ACMI Viewer</title>
+<link rel="icon" href="data:,"><!-- favicon 404 소음 제거 -->
+<style>
+  /* ── 디자인 토큰 ───────────────────────────────────────────────────
+     **어두운 계기 테마.** 예전에는 반투명 흰 카드였는데, 그러면 UI 가 화면에서
+     가장 밝은 요소가 되어 기체·항적과 주목을 다툰다. 계측 도구는 영상이 주인공이고
+     UI 는 물러나 있어야 한다 — 어두운 크롬이 밝은 하늘과 어두운 바다 **양쪽**에서
+     일정하게 읽히기도 한다(흰 패널은 밝은 하늘 위에서 대비가 무너졌다).
+     간격은 4의 배수, 모서리는 6 하나로 통일한다. */
+  :root {
+    --panel: rgba(13, 17, 24, 0.74);
+    --panel-solid: #0d1118;
+    --border: rgba(255, 255, 255, 0.11);
+    --border-strong: rgba(255, 255, 255, 0.20);
+    --text: #dde5f0;
+    --dim: #8794a8;          /* 라벨·단위 — 값보다 한 단계 뒤로 */
+    --blue: #4d8df5; --red: #f0605e;
+    --warn: #e8a33d;         /* WEZ·사격 */
+    --ok: #4fd18b;
+    --radius: 6px;
+    --gap: 8px;
+    font-size: clamp(13px, 0.85vw, 17px);
+    /* 숫자는 전부 한 서체로 — 폭이 고정돼야 값이 흔들려도 자리가 안 움직인다. */
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0b0f15; color: var(--text); overflow: hidden;
+         font-family: "Segoe UI", system-ui, sans-serif;
+         -webkit-font-smoothing: antialiased; }
+  #scene { position: fixed; inset: 0; }
+  .panel { position: fixed; background: var(--panel); border: 1px solid var(--border);
+           border-radius: var(--radius); padding: 10px 12px;
+           backdrop-filter: blur(10px) saturate(1.1);
+           box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); }
+  /* 좁은 창에서 버튼이 상단바 밖으로 밀려 눌리지 않던 결함 — 줄바꿈을 허용하고
+     오른쪽 여백을 둔다(예전에는 nowrap 이라 소리·1인칭 버튼이 화면 밖에 있었다). */
+  #topbar { top: 10px; left: 10px; right: 10px; display: flex; gap: 8px;
+            align-items: center; flex-wrap: wrap; }
+  /* 컨트롤은 높이를 한 값으로 맞춘다 — 제각각이면 도구가 아니라 폼처럼 보인다. */
+  #topbar select, #topbar button {
+    background: rgba(255, 255, 255, 0.06); color: var(--text);
+    /* 이모지가 컬러(파랑)로 렌더되던 문제 — 텍스트 프레젠테이션 강제 + 단색. */
+    font-variant-emoji: text;
+    border: 1px solid var(--border);
+    border-radius: var(--radius); height: 28px; padding: 0 10px;
+    font: inherit; font-size: .82rem; cursor: pointer;
+    transition: background .12s, border-color .12s; }
+  #topbar select:hover, #topbar button:hover {
+    background: rgba(255, 255, 255, 0.12); border-color: var(--border-strong); }
+  #topbar option { background: var(--panel-solid); color: var(--text); }
+  #rev, #fwd, #play { font-size: 1rem; line-height: 1; padding: 0 12px;
+                      color: var(--text); }
+  #speed-badge { font-family: var(--mono); font-size: .82rem; min-width: 42px;
+                 text-align: center; color: var(--text);
+                 border: 1px solid var(--border); border-radius: var(--radius);
+                 height: 28px; display: inline-flex; align-items: center;
+                 justify-content: center; padding: 0 8px; }
+  #time { min-width: 118px; text-align: center; font-family: var(--mono);
+          font-size: .82rem; font-variant-numeric: tabular-nums; color: var(--text); }
+  /* 스텝 카운터는 값이지 라벨이 아니다 — 모노 칩으로 묶어 오른쪽에 고정. */
+  #step { font-family: var(--mono); font-size: .74rem; color: var(--dim);
+          border: 1px solid var(--border); border-radius: var(--radius);
+          height: 28px; display: inline-flex; align-items: center; padding: 0 8px; }
+  #status { position: fixed; top: 10px; right: 10px; max-width: 340px;
+            pointer-events: none; }
+
+  /* ── 좌우 진영 열 ────────────────────────────────────────────────
+     예전에는 카드·조종간·1인칭이 각자 화면에 절대배치돼 있어서, 창이 짧아지면
+     서로를 덮었다(울트라와이드에서 특히). 이제 진영마다 **하나의 세로 열**이고
+     그 안에서 위→아래로 [수치 카드][조종간][콕핏 뷰] 순서다:
+       · 좌=청 / 우=적 이라는 대응이 화면 전체에서 한 번도 깨지지 않는다
+       · 한 기체의 정보가 한 열에 모여 시선 이동이 짧다
+       · 자리가 모자라면 카드만 줄고 아래 둘은 크기를 지킨다(flex) */
+  /* 폭은 **하한을 둔다**. 예전엔 min(360px,25vw) 라 창이 좁아지면 25vw 가 그대로
+     먹혀 패널이 130px 까지 쪼그라들어 숫자를 읽을 수 없었다. clamp 로 하한·상한을
+     함께 걸고, 두 열이 안 들어가는 폭에서는 아래 미디어쿼리가 비율을 다시 잡는다. */
+  .side { position: fixed; top: 66px; bottom: 62px; width: clamp(340px, 30vw, 620px);
+          display: flex; flex-direction: column; gap: 8px;
+          pointer-events: none; }
+  #side-blue { left: 10px; }
+  #side-red { right: 10px; }
+  .side > * { pointer-events: auto; }
+
+  /* .panel 의 position:fixed 를 되돌린다 — 열 안에서는 flex 흐름을 타야 한다 */
+  .card { position: relative; flex: 0 1 auto; min-height: 0; overflow-y: auto;
+          border-left: 3px solid var(--dim); }
+  .card.blue { border-left-color: var(--blue); }
+  .card.red { border-left-color: var(--red); }
+  /* 열 안의 세 패널이 같은 팀 색 띠를 공유해야 좌=청 / 우=적 대응이 안 끊긴다 */
+  .side.blue canvas.ctrl { border-left: 3px solid var(--blue); }
+  .side.red canvas.ctrl { border-left: 3px solid var(--red); }
+  /* 호출부호는 이름이므로 sans, 값은 전부 mono. 라벨은 한 단계 뒤로 물린다. */
+  .card h2 { font-size: .95rem; font-weight: 600; letter-spacing: .01em;
+             display: flex; justify-content: space-between; align-items: baseline; }
+  .card h2 .hp { font-family: var(--mono); font-size: .88rem; color: var(--dim); }
+  .card.blue h2 { color: var(--blue); }
+  .card.red h2 { color: var(--red); }
+  /* 사격 중 표시 — 계기에서 가장 중요한 상태 변화라 배지로 세운다. */
+  .card .wez { color: #0b0f15; background: var(--warn); font-size: .62rem;
+               font-weight: 700; letter-spacing: .08em; border-radius: 3px;
+               padding: 1px 5px; visibility: hidden; }
+  .card.inwez .wez { visibility: visible; }
+  .hpbar { height: 4px; background: rgba(255, 255, 255, 0.10); border-radius: 2px;
+           margin: 8px 0; overflow: hidden; }
+  .hpbar i { display: block; height: 100%; border-radius: 2px; background: var(--ok);
+             transition: width .1s linear; }
+  /* 값이 주인공, 라벨은 배경. 라벨은 대문자·자간으로 계기 라벨처럼 보이게. */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px 12px;
+           font-family: var(--mono); font-size: .92rem; font-weight: 500;
+           font-variant-numeric: tabular-nums; }
+  .stats b { color: var(--dim); font-weight: 400; font-size: .62rem; display: block;
+             letter-spacing: .06em; text-transform: uppercase;
+             font-family: "Segoe UI", system-ui, sans-serif; }
+  .lblock { margin-top: 10px; padding-top: 8px; font: .7rem/1.55 var(--mono);
+            border-top: 1px solid var(--border);
+            color: #93a2b8; white-space: pre-wrap; word-break: break-all; }
+
+  /* 조종간 — 열 폭을 가로로 다 쓰는 띠. 정사각형이던 시절보다 라벨·범례를 넣을
+     자리가 생겨서 "빈 사각형이 뭐냐" 는 질문이 안 나온다. */
+  /* margin-top:auto → 카드는 위, 조종간+콕핏은 아래에 붙는다. 남는 자리가 가운데로
+     가서 3D 장면이 최대한 열리고, 아래 두 패널의 자리가 창 크기와 무관하게 고정된다. */
+  /* 조종간·1인칭은 **읽으라고 있는 패널**이다 — 작으면 스틱 마커와 계기 눈금이
+     구분되지 않아 존재 이유가 없어진다. 카드(숫자)보다 우선해서 자리를 준다. */
+  canvas.ctrl { margin-top: auto; flex: 0 0 auto; width: 100%; height: 210px;
+                background: var(--panel);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                backdrop-filter: blur(10px) saturate(1.1);
+                box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); }
+  #ctrl-blue { border-left: 3px solid var(--blue); }
+  #ctrl-red { border-left: 3px solid var(--red); }
+
+  /* 1인칭 뷰 — 3D 내용은 WebGL 캔버스가 scissor 뷰포트로 **뒤에** 그린다.
+     따라서 이 요소는 자리(getBoundingClientRect)와 HUD 오버레이만 담당하고
+     배경은 반드시 투명해야 한다. */
+  .pip { flex: 0 0 auto; width: 100%; aspect-ratio: 4 / 3; position: relative;
+         border: 1px solid var(--border); border-radius: var(--radius);
+         background: transparent; pointer-events: none; overflow: hidden; }
+  #pip-blue { border-left: 3px solid var(--blue); }
+  #pip-red { border-left: 3px solid var(--red); }
+  .pip[hidden] { display: none; }
+  .pip canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #step { color: var(--dim); font-variant-numeric: tabular-nums; }
+
+  /* 두 열(각 300px) + 여백이 안 들어가는 폭. 비율로 나눠 갖고 글자를 조금 줄인다.
+     그래도 예전(130px)보다 훨씬 크고, 3D 씬이 가운데에 남는다. */
+  @media (max-width: 900px) {
+    :root { font-size: 12px; }
+    .side { width: calc(50vw - 14px); }
+    canvas.ctrl { height: 150px; }
+    .pip { aspect-ratio: 4 / 3; }
+  }
+  /* 세로가 짧으면(울트라와이드) 1인칭이 잘리므로 조종간을 먼저 줄인다 */
+  @media (max-height: 820px) {
+    canvas.ctrl { height: 150px; }
+  }
+  @media (max-height: 680px) {
+    canvas.ctrl { height: 110px; }
+    .pip { aspect-ratio: 16 / 9; }
+  }
+
+  #bottombar { left: 10px; right: 10px; bottom: 10px; }
+  /* 타임라인 — 트랙을 키우고 북마크를 색으로 갈랐다(피격 amber / 승패 red).
+     예전에는 얇은 기본 슬라이더에 노란 틱만 있어 무엇이 무엇인지 알 수 없었다. */
+  #timeline-wrap { position: relative; height: 34px; }
+  /* 사격 구간 띠 — 북마크(점)만으로는 **WEZ 가 얼마나 지속됐는지** 알 수 없다.
+     빠르게 스크럽할 때 "언제 맞았나"를 눈으로 집게 하려고 구간을 띠로 깐다.
+     위=청 / 아래=적, 진하기는 조준 등급(정조준일수록 데미지가 크다). */
+  #tl-strip { position: absolute; left: 0; right: 0; top: 0; height: 14px;
+              width: 100%; border-radius: 3px; pointer-events: none;
+              background: rgba(255, 255, 255, 0.05); }
+  #timeline { width: 100%; position: absolute; inset: 0; margin: 0;
+              -webkit-appearance: none; appearance: none; background: transparent; }
+  #timeline::-webkit-slider-runnable-track {
+    height: 6px; margin-top: 20px; border-radius: 3px;
+    background: rgba(255, 255, 255, 0.14); }
+  #timeline::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 18px; margin-top: 14px;
+    border-radius: 3px; background: var(--text);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); cursor: pointer; }
+  /* 북마크는 세 종류다: 피격(HIT) · 승패 · 전술 전환. 전부 같은 호박색이면 30여 개가
+     고르게 늘어서 "언제 맞았나" 를 못 집는다. 피격이 주역이므로 가장 눈에 띄게,
+     전술 전환은 맥락이므로 배경으로 물린다. */
+  .bookmark { position: absolute; cursor: pointer; border-radius: 1px; }
+  .bookmark.hit { top: 16px; height: 14px; width: 3px; background: var(--warn); }
+  .bookmark.win { top: 13px; height: 17px; width: 4px; background: var(--red); }
+  .bookmark.tac { top: 24px; height: 6px; width: 2px;
+                  background: rgba(255, 255, 255, 0.28); }
+  .bookmark:hover { filter: brightness(1.7); }
+  .bookmark:hover::after { content: attr(data-text); position: absolute; bottom: 22px;
+    left: -80px; width: 200px; background: var(--panel-solid);
+    border: 1px solid var(--border-strong); color: var(--text);
+    padding: 4px 7px; border-radius: var(--radius); font-size: .72rem;
+    font-family: var(--mono); box-shadow: 0 4px 16px rgba(0,0,0,.5); z-index: 5; }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div id="topbar" class="panel">
+  <select id="replay-select" title="리플레이 선택"></select>
+  <button id="rev" title="느리게 (배속 한 단계 ↓)">&laquo;</button>
+  <button id="play" title="재생/정지 (스페이스)">⏸</button>
+  <button id="fwd" title="빠르게 (배속 한 단계 ↑)">&raquo;</button>
+  <span id="speed-badge" title="현재 배속">1×</span>
+  <span id="time">0.0 / 0.0 s</span>
+  <select id="camera">
+    <option value="both" selected>카메라: 양측</option>
+    <option value="blue">카메라: Blue 추적</option>
+    <option value="red">카메라: Red 추적</option>
+    <option value="free">카메라: 자유</option>
+  </select>
+  <select id="ground" title="지면 — 격자는 지형 무늬가 없어 기하에 집중하기 좋다">
+    <option value="sea">지면: 바다</option>
+    <option value="map">지면: 지도</option>
+    <option value="grid">지면: 격자</option>
+    <option value="plain">지면: 없음</option>
+  </select>
+  <button id="pip-toggle" title="좌·우 하단 1인칭 뷰">1인칭 ON</button>
+  <button id="sound-toggle" title="엔진·기총 소리 (합성 — 음원 파일 없음)">🔇 소리</button>
+  <span id="step" title="시뮬레이션 스텝"></span>
+</div>
+
+<div id="status" class="panel">로딩…</div>
+
+<!-- 진영별 세로 열: [수치 카드] → [조종간] → [1인칭 콕핏 뷰].
+     1인칭 뷰의 3D 는 뒤의 WebGL 캔버스가 scissor 로 그리고, 여기 캔버스에는
+     F-16 식 HUD 만 겹친다(hud.js → pip_hud.js). 피치 사다리·FPM 은 PIP 카메라로
+     실제 투영하므로 FOV 를 바꿔도 각도가 어긋나지 않는다. -->
+<div class="side blue" id="side-blue">
+  <div class="card blue panel" id="card-blue"></div>
+  <canvas id="ctrl-blue" class="ctrl"></canvas>
+  <div class="pip" id="pip-blue"><canvas class="hud"></canvas></div>
+</div>
+<div class="side red" id="side-red">
+  <div class="card red panel" id="card-red"></div>
+  <canvas id="ctrl-red" class="ctrl"></canvas>
+  <div class="pip" id="pip-red"><canvas class="hud"></canvas></div>
+</div>
+
+<div id="bottombar" class="panel">
+  <div id="timeline-wrap">
+    <canvas id="tl-strip" title="사격 구간 — 위=청 / 아래=적. 진할수록 정조준"></canvas>
+    <input id="timeline" type="range" min="0" max="1000" value="0">
+    <div id="bookmarks"></div>
+  </div>
+</div>
+
+<script type="importmap">
+  { "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

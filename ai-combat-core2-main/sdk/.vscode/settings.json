@@ -1,0 +1,9 @@
+{
+  "yaml.schemas": {
+    "./docs/agent.schema.json": [
+      "my_agents/**/*.yaml",
+      "my_agents/**/*.yml",
+      "examples/*.yaml"
+    ]
+  }
+}

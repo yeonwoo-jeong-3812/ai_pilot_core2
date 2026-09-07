@@ -1,0 +1,108 @@
+# cand_vf (JesterF) — 리더보드 1위 FNG 카운터. FNG 골격 + 실속 가드 1개.
+#
+# ★ 이 파일은 **전 파라미터 레퍼런스**다 (2026-08-24). 액션 8개 숫자 키와 doctrine
+#   19필드를 전부 명시했고, 명시값은 코드 기본값이 아니라 **이 에이전트의 설계값**이다.
+#   "어떤 노브가 있고 어디에 쓰는지" 한 파일에서 보려면 여기를 볼 것.
+#   생략 시 적용되는 코드 기본값은 docs/REFERENCE.md 표에 있다(둘은 다르다).
+#
+# ⚠ 아래 실측 수치는 전부 **구 엔진(max_g 시절) 측정값**이다. 2026-08-24 max_g 폐지 +
+#   g_burst 도입·조준점 기준 전환으로 조절 법칙 자체가 바뀌었으므로 **재측정 전까지 무효**다.
+#   (구) duel 23-7 (77%) / neutral 10-20 / 배터리 건틀릿 111점 / 게이트판(JesterL) 117점
+#
+# 기전(구): max_g:true 는 _regulate_g 에서 순간 봉투(g_avail)를 즉시 반환해 지속 봉투 캡
+#   과 energy_backoff 를 전부 우회했다. 차이는 추력이 아니라 **유도항력**이었다.
+# 기전(현): 그 이진 특권은 없어졌다. 천장은 g_burst(지속↔순간 봉투 보간)로 정하고,
+#   지령 G 는 **조준점까지의 각도**에 비례한다(g_full_ata_deg 가 포화 각도). 조준이
+#   맞은 상태에서 고G 를 유지하는 것은 원리적으로 불가능하다 — 그때는 오차가 0 이다.
+#   어느 국면에 얼마를 태울지가 설계 대상이다.
+#   ACMI 실측(구 duel s2): 371kt 머지 상호 교환(100→67HP) → 280kt 통과 시 가드 발화 →
+#   FNG 는 9G 유지하며 103kt 까지 붕괴(실속 판정선 100kt 근접), 이쪽은 345kt 회복 후
+#   ATA 2.7° 로 재진입해 처형. **ACMI 의 CAS 는 m/s 다**(kt 로 읽으면 1.94배 과소 판독).
+#
+# 건드리지 말 것 (구 엔진 기준 — 재측정 대상):
+#   · kcas 280 은 감속 나선 초입이라 날카롭다 — 240 으로 낮추면 duel 7-23 으로 붕괴.
+#   · 이 분기에 거리 조건(rng>3500)을 붙이면 duel 0-30 — 승리 기전이 근접 재충전이다.
+#   · low_health(95) 게이트를 떼면 duel 은 +1경기(노이즈)지만 배터리는 6점 손실.
+#     배터리는 고정 시드라 그 손실은 영구적이다.
+#     원인: 접촉 전에도 언로드해 익스텐더(red_phangman)를 못 붙잡고 no_contact
+#     쌍방패가 난다(neutral seed=1317434038, regain 8% 점유·300초 무피탄).
+#     → **리더보드가 목적이면 maverick_JesterL.yaml(게이트판)을 쓸 것.**
+#   · 거리 게이트는 양 방향 모두 기각: merged(6000)=근접만 duel 11-19·배터리 108,
+#     inverter merged(3500)=원거리만 duel 0-30. 재충전은 분리하며 계속돼야 완결되므로
+#     회복 중 뒤집히는 비단조 조건은 게이트로 쓸 수 없다.
+
+agent_name: JesterF
+
+# ── 교리 setpoint 19필드 (허용 범위는 docs/REFERENCE.md 교리 표) ──
+# 전부 코드 기본값과 동일하게 적어 둔 레퍼런스다 — 값을 바꿔 실험하려면 여기부터.
+doctrine:
+  corner_kcas_lo: 330.0          # 코너 플래토 하단 [KCAS] (4.3.3.7)
+  corner_kcas_hi: 440.0          # 코너 플래토 상단
+  fighting_kts_lo: 325.0         # 파이팅 속도 하한 — L1 below_fighting_speed 기본값과 연동
+  fighting_kts_hi: 375.0         # 파이팅 속도 상한
+  energy_margin_lo: 50.0         # 에너지 우위 하한 [kt] (미달이면 AB)
+  energy_margin_hi: 75.0         # 에너지 우위 상한 (초과면 MIL 유지)
+  slant_ft_lo: 4000.0            # 슬랜트 목표 하한 [ft] (4.4.6.2.1)
+  slant_ft_hi: 6000.0            # 슬랜트 목표 상한 — 머지 진입 판정·AB 진입 기준
+  ata_target_lo: 35.0            # ATA 목표대역 하한 [deg]
+  ata_target_hi: 50.0            # ATA 목표대역 상한
+  entry_kcas: 465.0              # 원거리 진입 속도 [KCAS] (4.4.4.2)
+  lv_above_ft: 750.0             # 리프트벡터 수직여유 [ft] — aim_above_ft 미지정 시 자동 적용
+  initial_pull_g: 7.0            # 머지 초기 당김 [G] (4.4.5.2)
+  g_fraction: 0.95               # 명목 G 상한 = 가용 G × 이 비율 (4.4.7.2)
+  g_min: 1.0                     # 최소 유지 G (비례 조절의 하한)
+  initial_pull_aspect_deg: 120.0  # 초기 당김·LV 자동오프셋 발동 aspect [deg]
+  closure_saddle_ft: 900.0       # 허용 접근율이 0 이 되는 트레일 거리 [ft] (4.4.12.1)
+  energy_backoff_floor: 0.5      # 파이팅 하한 미만 G 감쇠의 바닥 비율
+  cz_close_t_s: 4.0              # control_zone 거리오차 수렴 시상수 [s]
+
+selector:
+  # 0) 하드덱 회복 — 예측 발동(lookahead)으로 FNG(floor 5000, 현재고도)보다 강건.
+  #    급강하에선 실효 바닥이 4500+침하율×3.5s 라 훨씬 일찍 뜬다.
+  #    조준점이 적보다 4,000ft 위라 기수→조준점 각도가 크게 잡히고, 비례 조절이
+  #      그만큼 세게 당긴다 — 별도 하한 노브 없이 회복이 성립한다.
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500, lookahead_s: 3.5}
+      - action: {pursuit: pure, name: recover_altitude,
+                 g_burst: 0.8, g_full_ata_deg: 45,
+                 track_rng_ft: 2500, track_ata_deg: 30,
+                 aim_above_ft: 4000, lead_time_s: 1.5, lag_dist_ft: 1500}
+
+  # 1) 최종 사격권 — FNG 동일 (킬 > 에너지). 실효 조건은 거리<3000ft ∧ ATA≤12°
+  #    (in_gun_envelope 기본 ata_deg 30 은 아래 inverter 에 흡수돼 잉여).
+  #    track 창을 이 분기의 사거리(3,000ft)에 맞춰 열어 둔다 — 그래야 조준선이
+  #    정렬된 상태(ATA↓ → 비례 G↓)에서도 LOS 회전율을 따라가는 G 가 하한으로 걸린다.
+  - sequence:
+      - condition: {name: in_gun_envelope}
+      - inverter:
+          condition: {name: nose_far, ata_deg: 12}
+      - action: {pursuit: pure, name: pure_cone_track,
+                 g_burst: 1.0, g_full_ata_deg: 45,
+                 track_rng_ft: 3000, track_ata_deg: 30,
+                 aim_above_ft: 0, lead_time_s: 1.5, lag_dist_ft: 1500}
+
+  # 2) 실속 가드 — 트리에서 유일하게 에너지를 놓는 분기(g_burst 0 = 지속 봉투).
+  #    조건은 속도<280kt 하나뿐이고, 사격 기회(순위 1)에 밀리는 것은 selector 우선순위가
+  #    보장한다. pursuit:lead 유지 = 이탈이 아니라 제자리 언로드 — 기수는 계속 표적을 문다.
+  - sequence:
+      - condition: {name: below_fighting_speed, kcas: 280}
+      - action: {pursuit: lead, name: energy_regain,
+                 g_burst: 0.0, g_full_ata_deg: 60,
+                 track_rng_ft: 2000, track_ata_deg: 20,
+                 aim_above_ft: 0, lead_time_s: 0.5, lag_dist_ft: 1500}
+
+  # 3) 조준선 정렬 — FNG 동일. ATA≤12° 이고 순위 1 이 안 잡았으므로 거리≥3000ft.
+  #    ATA 가 작으므로 비례 조절 G 는 낮다 — 사격 창(track_*)이 당김을 담당한다.
+  - sequence:
+      - inverter:
+          condition: {name: nose_far, ata_deg: 12}
+      - action: {pursuit: lead, name: weak_lead_track,
+                 g_burst: 0.9, g_full_ata_deg: 40,
+                 track_rng_ft: 2500, track_ata_deg: 30,
+                 aim_above_ft: 0, lead_time_s: 0.2, lag_dist_ft: 1500}
+
+  # 4) 기본 추격 — FNG 동일 (ATA>12°). ATA 가 크므로 비례 조절만으로 충분히 당긴다.
+  - action: {pursuit: lead, name: lead_chase,
+             g_burst: 0.9, g_full_ata_deg: 45,
+             track_rng_ft: 2500, track_ata_deg: 30,
+             aim_above_ft: 0, lead_time_s: 1.5, lag_dist_ft: 1500}

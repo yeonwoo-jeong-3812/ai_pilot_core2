@@ -1,0 +1,70 @@
+# Red Team 대항군 — PRIME (근접 정면 압박형). 비배포.
+# 2026-08-28 agents/falco_prime.yaml(현 maverick_prime.yaml)에서 채택 — 승률 최저였던
+# red_energy 를 대체한다. 파일·agent_name 은 red_falco/RedFalco 로 먼저 등록했다가
+# 같은 날 red_prime/RedPrime 으로 개명했다 — 이름이 참가자 제출물의 출처를 드러냈고,
+# 그 이름이 리플레이 파일명(ACMI)까지 박혀 참가자에게 그대로 노출됐기 때문이다.
+# ⚠ agent_name 은 시드 유도 키다(derive_seed) — 개명으로 이 대항군 칸의 초기조건이
+#   전부 바뀌었고, 기존 red_falco 매치 16건은 archived 후 새 시드로 재실행했다.
+# 출처는 참가자(FNG) 제출물 1db6407d 의 튜닝판이다. 참가자에게 배포되지 않는다.
+#
+# 교체 근거 (운영 DB 실측, 5종 공존 창 824경기 · 참가 5팀):
+#   red_energy 레드승률 11.9%(20승 129패 19무, 무접촉 19건 = 최다) — 5종 중 최저.
+#   adaptive 13.7% 와 차 1.8%p 는 노이즈 안이나 무접촉 최다가 타이브레이크였다.
+#
+# 성향:
+# 에너지를 사격권에서만 태운다. 정면 머지에서 400ft 위로 비껴 물어 교환을 자기 쪽으로
+# 기울이고, 코너속도 아래(280kt)로 떨어지면 g_burst 0 으로 재충전한 뒤 다시 문다.
+# 추격 천장을 0.7 로 낮춰(순간봉투 상시 포화 금지) 머지 때 선회 여력을 남긴다 —
+# 정면을 회피로 넘기거나 코너속도를 못 지키는 트리를 골라낸다.
+#
+# 우선순위(selector, 위가 먼저):
+#   하드덱 예측 회복 > 정면 데스매치(HCA150·4,000ft) > 건 사격(ATA15) >
+#   실속 가드(280kt) > lead 추격(g_burst 0.7)
+#
+# 투입 재측정 (2026-08-28, 9패널 × 6대항군 × 4시나리오 × salt 2 = 432경기.
+# 패널 = 참가 5팀 최신 제출 + examples 4종. ⚠ 참가 3팀 트리는 v3.0.0 에서 로드
+# 불가라 max_g:true→g_burst:0.8 로 변환했다 — 거동 동일이 아니므로 08-18 의
+# ICC 0.454 와 직접 비교 불가):
+#   · 본 트리: 레드승률 72.2%(배터리 최강), 무접촉 5건(6종 중 최저 — 교체 대상
+#     red_energy 는 22건으로 최다), 타임아웃 11건(최저), σ²_a 8.
+#   · 배터리 전체 교체 전→후: 40경기 승점 분산 873→896, 최저팀 32→29점,
+#     **전패팀 0 — 우려한 바닥 효과(σ²=0)는 일어나지 않았다.**
+#     참가자 순위 스피어만 rho=0.983 (8·9위만 자리 교환).
+#   · 단, **경기당 변별력은 개선되지 않았다**: 단판 ICC 0.278→0.259.
+#     팀 간 분산 σ²_a 0.512→0.523 은 그대로인데 경기 내 잡음 σ²_e 가
+#     1.332→1.498 로 늘었다. 이 교체의 이득은 변별력이 아니라 **무접촉 감소**다.
+# ⚠ 트리 본체는 측정값 유지를 위해 원본에서 한 줄도 고치지 않았다 — 손대면 재측정해야 한다.
+#
+# 사용: python scripts/run_match.py --blue redteams/red_prime.yaml ...
+agent_name: RedPrime
+
+selector:
+  # 1. Emergency Survival — 하드덱 예측 회복 (aim_above + g_burst 병용 필수)
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500, lookahead_s: 3.5}
+      - action: {pursuit: pure, g_burst: 1.0, aim_above_ft: 4000, name: crash_recovery}
+
+  # 2. Head-On Deathmatch — 정면 머지 시 400ft 위로 비껴 문다
+  - sequence:
+      - condition: {name: is_head_on, hca_deg: 150}
+      - condition: {name: merged, range_ft: 4000}
+      - action: {pursuit: pure, mode: stable, g_burst: 1.0, g_full_ata_deg: 20,
+                 track_rng_ft: 3000, track_ata_deg: 20, aim_above_ft: 400,
+                 name: headon_deathmatch}
+
+  # 3. Guns Track & Fire — 사격권에서만 에너지를 태운다
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 15}
+      - action: {pursuit: pure, g_burst: 1.0, g_full_ata_deg: 45,
+                 track_rng_ft: 3000, track_ata_deg: 30, name: guns_lethal}
+
+  # 4. 실속 가드 — 사격 기회에 밀리는 저속 재충전 (지속 봉투)
+  - sequence:
+      - condition: {name: below_fighting_speed, kcas: 280}
+      - action: {pursuit: lead, g_burst: 0.0, g_full_ata_deg: 60,
+                 track_rng_ft: 2000, track_ata_deg: 20, lead_time_s: 0.5,
+                 name: energy_regain}
+
+  # 5. Pursuit — 코너속도 유지가 목적. 사격 진입 당김은 track 창이 담당.
+  - action: {pursuit: lead, g_burst: 0.7, g_full_ata_deg: 35, lead_time_s: 1.0,
+             track_rng_ft: 3000, track_ata_deg: 30, name: extreme_pursuit}

@@ -1,0 +1,74 @@
+# 아키타입: Attacker(공세 압박형) — 새 어휘 사용례 겸 스파링 상대.
+#
+# 성향: 헤드온은 공세적으로 정면 승부, 오버슈트는 high yo-yo 로 처리하며,
+# 후방 반구(control zone)를 잡으면 존을 유지(mode: control_zone)하다 attack cue 에 사격.
+#
+# 우선순위(selector, 위가 먼저):
+#   하드덱 회피 > 헤드온 머지(HABFM) > 방어 브레이크(DBFM) > high yo-yo >
+#   control zone 유지(OBFM) > 건 조준(cue) > 후방 압박 > 기수 당김 > 기본 pure
+#
+# 사용: python scripts/run_match.py --blue examples/attacker.yaml ...
+agent_name: Attacker
+selector:
+  # 0) 하드덱 회피 — 최우선. 고도가 위험(4,500ft 이하)하면 교전을 접고 상승 회복.
+  #    (하드덱 1,000ft 위반 = 즉시 패이므로 어떤 공세보다 먼저 산다)
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, aim_above_ft: 4000, name: recover_altitude}
+  # 1) 헤드온 머지(HABFM): 대향(hca>150) + 접근 → 공세적 pure 추격.
+  #    (기본 유도의 리프트벡터 롤 + ATA비례 G 로 최대 데미지 우선. 안정 노즈온 mode: stable
+  #    시연은 examples/textbook_headon.yaml — 공세 아키타입은 데미지 우선이라 미채택.)
+  - sequence:
+      - condition: {name: is_head_on, hca_deg: 150}
+      - condition: {name: closing, min_fps: 200}
+      - action: {pursuit: pure, name: headon_merge}
+  # 2) 방어(DBFM): 적 기수가 나를 조준(aspect>150) + 근접(6,000ft) → 브레이크.
+  #    거리 게이트 없으면 원거리 헤드온 접근에도 발동해 방어 고착(레이트파이트 스테일메이트)
+  - sequence:
+      - condition: {name: is_defensive, aspect_deg: 150}
+      - condition: {name: merged, range_ft: 6000}
+      - action: {pursuit: lag, max_g: true, name: break_defense}
+  # 3) 오버슈트 위험 → high yo-yo (BEM 4.4.6.2.3 / 4.4.7.2, 구 presets/high_yoyo.yaml 인라인)
+  #    국면1: 후방 추적 중 과접근 → 조준점을 적 기동면 위로(수직 소산).
+  #    국면2: 정점(후방+적이 아래+접근율 정리) → 리드로 재강하 공격.
+  #    behind_foe 게이트가 없으면 헤드온 머지마다 오발동해 사격 창을 잠식한다.
+  - commit:
+      name: high_yoyo
+      duration_s: 4.0        # 요요 1회 예산 — 4~5s 초과 시 에너지 소산 과다
+      cooldown_s: 3.0        # 연속 요요 방지(chattering)
+      child:
+        selector:
+          - sequence:
+              - condition: {name: behind_foe, aspect_deg: 90}
+              - condition: {name: foe_below, min_ft: 800}   # 진짜 요요 정점에서만
+              - inverter:
+                  condition: {name: closing, min_fps: 60}
+              - action: {pursuit: lead, name: yoyo_down, aim_above_ft: -300, lead_time_s: 1.5}
+          - sequence:
+              - condition: {name: behind_foe, aspect_deg: 90}
+              - condition: {name: overshoot_risk, closure_fps: 160, range_ft: 2200}
+              - action: {pursuit: lag, name: yoyo_up, aim_above_ft: 750, lag_dist_ft: 2000}
+  # 4) control zone 유지(OBFM): 완전 후방 + 근접 → 적 뒤 900ft 트레일 유지.
+  #    mode: control_zone 이 접근율을 조절(존 체류)해 적기 앞 이탈(오버슈트)을 막고
+  #    attack cue(다음 분기) 를 기다린다 — 추적 직후 WEZ 돌입 튕겨나감 방지(조종사 피드백).
+  - sequence:
+      - condition: {name: is_offensive, aspect_deg: 45}
+      - condition: {name: merged, range_ft: 2500}
+      - action: {pursuit: lag, mode: control_zone, name: hold_control_zone, lag_dist_ft: 900}
+  # 5) attack cue: 건 사거리 + 조준각 + 과속접근 아님 → 종말 추적 사격.
+  #    (control zone 에서 이 cue 가 서면 사격, 아니면 존 유지로 복귀)
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3500, ata_deg: 45}
+      - inverter: {condition: {name: closing, min_fps: 250}}
+      - action: {pursuit: pure, name: gun_track}
+  # 6) 후방 반구 점유 → 리드 당겨 압박
+  - sequence:
+      - condition: {name: is_offensive, aspect_deg: 60}
+      - action: {pursuit: pure, name: press_attack}
+  # 7) 기수 이탈 → 리드로 회수
+  - sequence:
+      - condition: nose_far
+      # 재조준 국면(기수 60°+ 이탈)은 길다 — +150ft 상향 바이어스로 하강 나선 억제
+      - action: {pursuit: lead, name: lead_pull, aim_above_ft: 150}
+  # 8) 기본: pure
+  - action: {pursuit: pure, name: pure_default}

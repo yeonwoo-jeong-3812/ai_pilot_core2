@@ -1,0 +1,86 @@
+# Red Team 대항군 — ADAPTIVE ACE (국면 적응형). 비배포.
+# 2026-08-18 roster/E1_AdaptiveAce_06.yaml 에서 채택 — 공개 examples 복사본이던 red_textbook 를 대체한다.
+# SDK 에 실리는 examples/ 와 달리 roster/ 는 배포 대상이 아니라 참가자가 파일을 갖지
+# 못한다. 참가자 5팀 패널 × 40경기 측정에서 변별력 σ²_a 1698 (교체 대상 1024).
+# ⚠ 원본은 core-live zoo 아키타입의 자동번역본이다(행동 등가, 틱-동일 아님).
+#   트리 본체는 측정값을 유지하기 위해 한 줄도 고치지 않았다 — 손대면 재측정해야 한다.
+#
+# 성향:
+# 배터리 상대 중 분기가 가장 많다(9개). 공/수를 나눠 공세면 lead·lag 를 거리로
+# 가르고, 수세면 브레이크와 high yo-yo 를 쓰며, 2,000ft 안쪽에서는 one-circle 로
+# 맞선다. 한 가지 국면만 대비한 트리를 골라낸다.
+#
+# 우선순위(selector, 위가 먼저):
+#   하드덱 회피 > 건 조준(ATA 12°) > 방어 브레이크(aspect 130°) > 방어 high yo-yo >
+#   공세 lead(5,000ft) > 공세 lag > 근접 one-circle(2,000ft) > 저고도 high yo-yo > pure
+#
+# 사용: python scripts/run_match.py --blue redteams/red_adaptive.yaml ...
+agent_name: RedAdaptive
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 1200.0
+  - action:
+      pursuit: pure
+      aim_above_ft: 4000.0
+      name: climb
+- sequence:
+  - condition:
+      name: merged
+      range_ft: 3500
+  - condition:
+      name: in_gun_envelope
+      range_ft: 60000.0
+      ata_deg: 12
+  - action:
+      pursuit: pure
+      name: gun_track
+- sequence:
+  - condition:
+      name: is_defensive
+      aspect_deg: 130
+  - action:
+      pursuit: lag
+      g_burst: 0.8
+      name: break
+- sequence:
+  - condition: is_defensive
+  - action:
+      pursuit: lead
+      g_burst: 0.8
+      aim_above_ft: 2000.0
+      name: high_yoyo
+- sequence:
+  - condition: is_offensive
+  - condition:
+      name: merged
+      range_ft: 5000
+  - action:
+      pursuit: lead
+      name: lead
+- sequence:
+  - condition: is_offensive
+  - action:
+      pursuit: lag
+      name: lag
+- sequence:
+  - condition:
+      name: merged
+      range_ft: 2000.0
+  - action:
+      pursuit: lead
+      g_burst: 0.8
+      name: one_circle
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 11000.0
+  - action:
+      pursuit: lead
+      g_burst: 0.8
+      aim_above_ft: 2000.0
+      name: high_yoyo
+- action:
+    pursuit: pure
+    name: pursue

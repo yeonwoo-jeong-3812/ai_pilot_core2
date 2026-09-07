@@ -1,0 +1,349 @@
+[
+ {
+  "box": {
+   "es_rel": [
+    -3206.86,
+    -956.8599
+   ],
+   "dalt": [
+    -399.56,
+    -219.56
+   ],
+   "clos": [
+    -620.73,
+    -516.73
+   ],
+   "pursue": [
+    -0.1001,
+    0.2001
+   ]
+  },
+  "act": "extend",
+  "dur": 6.0,
+  "covers": [
+   "official_controlzone/blue"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "es_rel": [
+    -1511.71,
+    -11.71
+   ],
+   "rng": [
+    1362.41,
+    2122.41
+   ],
+   "fdmg": [
+    66.4999,
+    78.5001
+   ],
+   "hp_lead": [
+    -2.5801,
+    3.4201
+   ],
+   "pursue": [
+    -0.1501,
+    0.1501
+   ]
+  },
+  "act": "gun_pure",
+  "dur": 6.0,
+  "covers": [
+   "official_controlzone/blue"
+  ],
+  "cofire": [
+   "official_headon/blue"
+  ]
+ },
+ {
+  "box": {
+   "clos": [
+    -512.74,
+    -392.74
+   ],
+   "hp_lead": [
+    9.91,
+    13.21
+   ],
+   "pursue": [
+    -0.1201,
+    0.1801
+   ]
+  },
+  "act": "gun_pure",
+  "dur": 6.0,
+  "covers": [
+   "official_twocircle/blue"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    1802.41,
+    2282.41
+   ],
+   "fdmg": [
+    66.4999,
+    78.5001
+   ],
+   "hp_lead": [
+    -2.5801,
+    3.4201
+   ],
+   "pursue": [
+    -0.1501,
+    0.1501
+   ]
+  },
+  "act": "gun_pure",
+  "dur": 6.0,
+  "covers": [
+   "official_controlzone/red"
+  ],
+  "cofire": [
+   "official_headon/red"
+  ]
+ },
+ {
+  "box": {
+   "rng": [
+    5672.25,
+    7424.4
+   ],
+   "es_rel": [
+    -1158.32,
+    431.54
+   ],
+   "dalt": [
+    530.75,
+    726.59
+   ],
+   "eclimb": [
+    306.02,
+    484.03
+   ],
+   "hp_lead": [
+    3.82,
+    8.49
+   ]
+  },
+  "act": "break",
+  "dur": 6.0,
+  "covers": [
+   "E1_AdaptiveAce_00/blue",
+   "E1_AdaptiveAce_08/blue",
+   "E1_AdaptiveAce_11/blue",
+   "E1_AdaptiveAce_11/red",
+   "anchor_ace/blue"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "agap": [
+    -299.55,
+    2565.28
+   ],
+   "rng": [
+    6071.83,
+    7140.09
+   ],
+   "eclimb": [
+    294.95,
+    357.65
+   ],
+   "clos": [
+    341.16,
+    385.75
+   ],
+   "hp_lead": [
+    5.54,
+    11.54
+   ]
+  },
+  "act": "break",
+  "dur": 6.0,
+  "covers": [
+   "B1_EnergyFighter_03/red",
+   "B1_EnergyFighter_06/red",
+   "B1_EnergyFighter_08/red",
+   "B1_EnergyFighter_11/red",
+   "C3_Lufbery_00/red",
+   "C3_Lufbery_02/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    6924.58,
+    7604.58
+   ],
+   "eclimb": [
+    364.06,
+    463.06
+   ],
+   "clos": [
+    -257.66,
+    -239.66
+   ],
+   "pursue": [
+    -0.1301,
+    0.1701
+   ]
+  },
+  "act": "break",
+  "dur": 6.0,
+  "covers": [
+   "C1_TwoCircleRate_03/red",
+   "C1_TwoCircleRate_04/red",
+   "C2_OneCircleRad_03/red",
+   "C2_OneCircleRad_04/red",
+   "C2_OneCircleRad_05/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "agap": [
+    -1568.41,
+    2248.07
+   ],
+   "rng": [
+    4910.29,
+    7998.42
+   ],
+   "ata": [
+    89.3199,
+    126.32
+   ],
+   "hp_lead": [
+    -2.5801,
+    4.95
+   ]
+  },
+  "act": "break",
+  "dur": 6.0,
+  "covers": [
+   "E1_AdaptiveAce_06/blue",
+   "official_headon/blue",
+   "official_headon/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    7701.49,
+    8001.49
+   ],
+   "eclimb": [
+    204.62,
+    243.62
+   ],
+   "eata": [
+    81.89,
+    111.89
+   ],
+   "hp_lead": [
+    5.54,
+    11.54
+   ]
+  },
+  "act": "extend",
+  "dur": 6.0,
+  "covers": [
+   "D1_Reactive_06/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    1364.7,
+    2564.7
+   ],
+   "dalt": [
+    -37.33,
+    142.6701
+   ],
+   "eata": [
+    135.3,
+    165.3
+   ],
+   "hp_lead": [
+    6.9,
+    10.2
+   ]
+  },
+  "act": "extend",
+  "dur": 6.0,
+  "covers": [
+   "official_twocircle/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    1140.6,
+    4014.78
+   ],
+   "dalt": [
+    -482.57,
+    -71.68
+   ],
+   "clos": [
+    -944.71,
+    -649.4
+   ],
+   "eclimb": [
+    37.51,
+    248.34
+   ],
+   "hp_lead": [
+    -1.4401,
+    8.94
+   ]
+  },
+  "act": "gun_pure",
+  "dur": 6.0,
+  "covers": [
+   "C3_Lufbery_06/red",
+   "C3_Lufbery_08/red",
+   "E2_Passive_01/blue",
+   "E2_Passive_01/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    5942.08,
+    7142.08
+   ],
+   "eclimb": [
+    -484.25,
+    -310.25
+   ],
+   "clos": [
+    -760.9,
+    -640.9
+   ],
+   "hp_lead": [
+    5.54,
+    11.54
+   ]
+  },
+  "act": "gun_pure",
+  "dur": 6.0,
+  "covers": [
+   "D3_Scissors_00/red",
+   "D3_Scissors_01/red"
+  ],
+  "cofire": []
+ }
+]

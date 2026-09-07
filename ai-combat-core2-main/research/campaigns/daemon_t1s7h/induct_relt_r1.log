@@ -1,0 +1,72 @@
+표적 3개, 증인 32개
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_controlzone/blue t=25.95 → ✗ Δ+0.0
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_controlzone/red t=25.95 → ✗ Δ+0.0
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_twocircle/blue t=29.95 → ✓ Δ+15.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_twocircle/blue t=29.55 → ✗ Δ-14.2
+  분리실패 → official_twocircle/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['official_default/blue', 'official_default/red', 'official_headon/blue', 'official_headon/red', 'official_twocircle/red'] 공동발화 허용 재시도
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  extend 진입틱 official_controlzone/blue t=21.95 → ✗ Δ-27.9
+  분리실패 → official_twocircle/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['official_default/blue', 'official_default/red', 'official_headon/blue', 'official_headon/red', 'official_twocircle/red'] 공동발화 허용 재시도
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 official_controlzone/blue t=21.95 → ✓ Δ+27.0
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 official_headon/blue t=21.95 → ✓ Δ+27.9
+[규칙 1] gun_pure d6 ⊃ ['official_controlzone/blue']
+  분리실패 → official_controlzone/red 제외 재시도
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 official_twocircle/blue t=25.55 → ✓ Δ+61.8
+[규칙 2] gun_pure d6 ⊃ ['official_twocircle/blue']
+  분리불가 → 승리 쌍둥이 ['official_default/blue', 'official_default/red', 'official_headon/blue', 'official_headon/red', 'official_twocircle/red'] 공동발화 허용 재시도
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 official_controlzone/red t=21.95 → ✓ Δ+27.0
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 official_headon/red t=21.95 → ✓ Δ+27.9
+[규칙 3] gun_pure d6 ⊃ ['official_controlzone/red']
+
+규칙 3개 저장: C:\Users\USER\Desktop\AI-pilot\core2\research\data\blueteam\daemon_t1s7h_r1_relt.json
+미피복: 없음(전 반례 피복)

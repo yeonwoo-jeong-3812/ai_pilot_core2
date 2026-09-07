@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\USER\Desktop\AI-pilot\core2\research\rule_induct.py", line 52, in <module>
+    assert set(FEATS) <= set(PAD0), f"미지 특징: {set(FEATS)-set(PAD0)}"
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 미지 특징: {'eroff', 'roff'}

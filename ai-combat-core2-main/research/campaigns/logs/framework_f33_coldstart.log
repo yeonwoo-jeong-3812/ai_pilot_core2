@@ -1,0 +1,20 @@
+[M1 불변식] 실행 — 파이프라인 함정 기계검사(항상 실행)
+........                                                                 [100%]
+8 passed in 12.34s
+[플레인 기저] 실행 — gun20 기저 128판 + 구름 덤프
+[폐루프(데몬)] 실행 — F-좌표 문장 귀납·무인 수렴
+[다이어트] 실행 — 발화 스케줄 불변 증명 하의 축 축소
+[YAML 번역] 실행 — agents/champion128_f33.yaml 재생성(항상 — 문장 정본과 동기화)
+12문장 → agents/champion128_f33.yaml
+[게이트] 실행 — YAML 128판 실측 + 패리티(항상 실행)
+— 게이트 통계:
+판수 128  128승 0무 0패
+격추승 125 / 판정 3
+HPΔ 평균 +33.1  중앙 +29.2  최소 +0.2  최대 +77.1
+격추 시각 평균 70s  중앙 44s
+— 패리티(YAML vs 연구):
+framework_f33_gate.log 128판  vs  framework_f33_research.log 128판  — 불일치 0건
+[LOFO] 실행 — 14가족 이월·회귀 행렬
+— LOFO: 이월 12/32 = 37.5%  회귀 0
+
+완료 — 문장 정본 research\data\blueteam\induced_rules_f33_slim.json, 실행형 agents/champion128_f33.yaml, 게이트 로그 research\replays\logs\framework_f33_gate.log

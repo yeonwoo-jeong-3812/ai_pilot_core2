@@ -1,0 +1,83 @@
+표적 7개, 증인 665개
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 C1_TwoCircleRate_03/red t=50.65 → ✗ Δ-18.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 C1_TwoCircleRate_04/red t=50.65 → ✗ Δ-18.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 C1_TwoCircleRate_05/red t=50.65 → ✗ Δ-18.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 C2_OneCircleRad_03/red t=50.65 → ✗ Δ-18.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 C2_OneCircleRad_04/red t=50.65 → ✗ Δ-18.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 C2_OneCircleRad_05/red t=50.65 → ✗ Δ-18.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E1_AdaptiveAce_03/red t=25.95 → ✓ Δ+12.2
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E1_AdaptiveAce_03/red t=25.85 → ✓ Δ+23.5
+[규칙 1] break d6 ⊃ ['E1_AdaptiveAce_03/red']
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  climb 진입틱 C1_TwoCircleRate_03/red t=27.95 → ✓ Δ+20.7
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  climb 진입틱 C1_TwoCircleRate_04/red t=27.95 → ✓ Δ+20.7
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  climb 진입틱 C1_TwoCircleRate_05/red t=27.95 → ✓ Δ+20.7
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  climb 진입틱 C2_OneCircleRad_03/red t=27.95 → ✓ Δ+20.7
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  climb 진입틱 C2_OneCircleRad_04/red t=27.95 → ✓ Δ+20.7
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  climb 진입틱 C2_OneCircleRad_05/red t=27.95 → ✓ Δ+20.7
+[규칙 2] climb d6 ⊃ ['C1_TwoCircleRate_03/red', 'C1_TwoCircleRate_04/red', 'C1_TwoCircleRate_05/red', 'C2_OneCircleRad_03/red', 'C2_OneCircleRad_04/red', 'C2_OneCircleRad_05/red']
+
+규칙 2개 저장: C:\Users\USER\Desktop\AI-pilot\core2\research\data\blueteam\daemon_t3full_r2_rel.json
+미피복: 없음(전 반례 피복)

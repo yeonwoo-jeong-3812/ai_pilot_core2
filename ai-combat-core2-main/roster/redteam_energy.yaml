@@ -1,0 +1,14 @@
+# Red Team 대항군 — ENERGY (에너지 보존형). 비배포(참가자 미공개).
+#
+# lag 일변도: 적 뒤(trail)를 조준해 급기동을 피하고 에너지를 지킨다. 사격은
+# 약하지만(lag 는 WEZ 원뿔 밖) 상대가 급기동으로 실속하도록 유도한다.
+# 리그 실측(2026-07-04): perch 시나리오에서 pure 추격 상대를 실속으로 이긴다.
+#
+# ※ red 세트는 "난이도 사다리"가 아니라 "스타일 세트"다 — 최적 전술이 시나리오에
+#   의존해(headon=pure 유리, perch=lag 유리) 단일 강함 순서가 성립하지 않는다.
+#   컷오프 게이트의 하한은 대회 시나리오 구성으로 리그를 돌려 실측 지정한다.
+selector:
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, aim_above_ft: 4000, name: recover_altitude}
+  - action: {pursuit: lag, name: trail_conserve}

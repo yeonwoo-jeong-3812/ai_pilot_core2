@@ -1,0 +1,76 @@
+name,family,source,loop
+A1_PurePursuer_00,A1_PurePursuer,core-live 이식(translate_zoo),이식
+A1_PurePursuer_02,A1_PurePursuer,core-live 이식(translate_zoo),이식
+A1_PurePursuer_05,A1_PurePursuer,core-live 이식(translate_zoo),이식
+A1_PurePursuer_07,A1_PurePursuer,core-live 이식(translate_zoo),이식
+A1_PurePursuer_09,A1_PurePursuer,core-live 이식(translate_zoo),이식
+A2_GunTracker_00,A2_GunTracker,core-live 이식(translate_zoo),이식
+A2_GunTracker_03,A2_GunTracker,core-live 이식(translate_zoo),이식
+A2_GunTracker_06,A2_GunTracker,core-live 이식(translate_zoo),이식
+A2_GunTracker_08,A2_GunTracker,core-live 이식(translate_zoo),이식
+A2_GunTracker_11,A2_GunTracker,core-live 이식(translate_zoo),이식
+A3_LagAngler_00,A3_LagAngler,core-live 이식(translate_zoo),이식
+A3_LagAngler_03,A3_LagAngler,core-live 이식(translate_zoo),이식
+A3_LagAngler_06,A3_LagAngler,core-live 이식(translate_zoo),이식
+A3_LagAngler_08,A3_LagAngler,core-live 이식(translate_zoo),이식
+A3_LagAngler_11,A3_LagAngler,core-live 이식(translate_zoo),이식
+B1_EnergyFighter_00,B1_EnergyFighter,core-live 이식(translate_zoo),이식
+B1_EnergyFighter_03,B1_EnergyFighter,core-live 이식(translate_zoo),이식
+B1_EnergyFighter_06,B1_EnergyFighter,core-live 이식(translate_zoo),이식
+B1_EnergyFighter_08,B1_EnergyFighter,core-live 이식(translate_zoo),이식
+B1_EnergyFighter_11,B1_EnergyFighter,core-live 이식(translate_zoo),이식
+B2_Extender_00,B2_Extender,core-live 이식(translate_zoo),이식
+B2_Extender_02,B2_Extender,core-live 이식(translate_zoo),이식
+B2_Extender_04,B2_Extender,core-live 이식(translate_zoo),이식
+B2_Extender_06,B2_Extender,core-live 이식(translate_zoo),이식
+B2_Extender_08,B2_Extender,core-live 이식(translate_zoo),이식
+C1_TwoCircleRate_00,C1_TwoCircleRate,core-live 이식(translate_zoo),이식
+C1_TwoCircleRate_01,C1_TwoCircleRate,core-live 이식(translate_zoo),이식
+C1_TwoCircleRate_03,C1_TwoCircleRate,core-live 이식(translate_zoo),이식
+C1_TwoCircleRate_04,C1_TwoCircleRate,core-live 이식(translate_zoo),이식
+C1_TwoCircleRate_05,C1_TwoCircleRate,core-live 이식(translate_zoo),이식
+C2_OneCircleRad_00,C2_OneCircleRad,core-live 이식(translate_zoo),이식
+C2_OneCircleRad_01,C2_OneCircleRad,core-live 이식(translate_zoo),이식
+C2_OneCircleRad_03,C2_OneCircleRad,core-live 이식(translate_zoo),이식
+C2_OneCircleRad_04,C2_OneCircleRad,core-live 이식(translate_zoo),이식
+C2_OneCircleRad_05,C2_OneCircleRad,core-live 이식(translate_zoo),이식
+C3_Lufbery_00,C3_Lufbery,core-live 이식(translate_zoo),이식
+C3_Lufbery_02,C3_Lufbery,core-live 이식(translate_zoo),이식
+C3_Lufbery_04,C3_Lufbery,core-live 이식(translate_zoo),이식
+C3_Lufbery_06,C3_Lufbery,core-live 이식(translate_zoo),이식
+C3_Lufbery_08,C3_Lufbery,core-live 이식(translate_zoo),이식
+D1_Reactive_00,D1_Reactive,core-live 이식(translate_zoo),이식
+D1_Reactive_03,D1_Reactive,core-live 이식(translate_zoo),이식
+D1_Reactive_06,D1_Reactive,core-live 이식(translate_zoo),이식
+D1_Reactive_08,D1_Reactive,core-live 이식(translate_zoo),이식
+D1_Reactive_11,D1_Reactive,core-live 이식(translate_zoo),이식
+D2_LastDitch_00,D2_LastDitch,core-live 이식(translate_zoo),이식
+D2_LastDitch_01,D2_LastDitch,core-live 이식(translate_zoo),이식
+D2_LastDitch_03,D2_LastDitch,core-live 이식(translate_zoo),이식
+D2_LastDitch_04,D2_LastDitch,core-live 이식(translate_zoo),이식
+D2_LastDitch_05,D2_LastDitch,core-live 이식(translate_zoo),이식
+D3_Scissors_00,D3_Scissors,core-live 이식(translate_zoo),이식
+D3_Scissors_01,D3_Scissors,core-live 이식(translate_zoo),이식
+D3_Scissors_02,D3_Scissors,core-live 이식(translate_zoo),이식
+E1_AdaptiveAce_00,E1_AdaptiveAce,core-live 이식(translate_zoo),이식
+E1_AdaptiveAce_03,E1_AdaptiveAce,core-live 이식(translate_zoo),이식
+E1_AdaptiveAce_06,E1_AdaptiveAce,core-live 이식(translate_zoo),이식
+E1_AdaptiveAce_08,E1_AdaptiveAce,core-live 이식(translate_zoo),이식
+E1_AdaptiveAce_11,E1_AdaptiveAce,core-live 이식(translate_zoo),이식
+E2_Passive_00,E2_Passive,core-live 이식(translate_zoo),이식
+E2_Passive_01,E2_Passive,core-live 이식(translate_zoo),이식
+anchor_ace,anchor,core-live 이식(translate_zoo),이식
+anchor_aggressive,anchor,core-live 이식(translate_zoo),이식
+anchor_defensive,anchor,core-live 이식(translate_zoo),이식
+anchor_simple,anchor,core-live 이식(translate_zoo),이식
+official_attacker,official,공식 main 자산,T1
+official_energyfighter,official,공식 main 자산,T1
+official_twocircle,official,공식 main 자산,T1
+official_controlzone,official,공식 main 자산,T1
+official_headon,official,공식 main 자산,T1
+redteam_allround,redteam,공식 main 자산,T1
+redteam_energy,redteam,공식 main 자산,T1
+redteam_pressure,redteam,공식 main 자산,T1
+official_default,official,공식 main 자산,T1
+agents/champion128,champ,framework 수렴해(경로-슬롯),T1
+agents/champion128_f33,champ,framework 수렴해(경로-슬롯),T1

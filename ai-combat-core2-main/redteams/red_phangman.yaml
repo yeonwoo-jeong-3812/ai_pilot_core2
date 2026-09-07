@@ -1,0 +1,123 @@
+# Red Team 대항군 — PHANG-MAN (논문 계층형 정책 선택기의 BT 이식). 비배포.
+#
+# 2026-08-01 examples/phangman.yaml 에서 이동 — 예선 배터리 상대는 SDK 로 배포하지
+# 않는다. 채택 근거(56경기, 참가자 7종 × 4시나리오 × salt 2): 무교전 12%(전 상대
+# 중 2위), 격추 45%, 자멸 1건, 참가자 승점 1.61/경기(중간 난이도).
+# 홀드아웃 red_knife 와 참가자 순위 상관 +0.22 — 서로 다른 능력을 잰다.
+#
+# 출처: Pope et al., "Hierarchical Reinforcement Learning for Air-to-Air Combat",
+#   ICUAS 2021 (Lockheed Martin, AlphaDogfight Trials 종합 2위).
+#   research/docs/references/Hierarchical Reinforcement Learning for Air-to-Air.pdf
+#
+# 논문 구조: 상위 정책선택기(10Hz)가 하위 3개 SAC 정책 중 하나를 문맥에 따라 고른다.
+#   · CZ (Control Zone)        — 적 후방 통제구역 점유. 가장 넓은 IC 로 학습, 주력.
+#   · AS (Aggressive Shooter)  — 측면·정면에서도 공격적 사격. 피격 위험을 감수한다.
+#   · CS (Conservative Shooter)— 원·근 사격을 동등 가치로 봄 → 돌진 대신 사격 위치 유지.
+#   + R_tooclose 보상항 — 추격 중 최소거리 침범을 벌점화(오버슈트 억제).
+#
+# 이식 시 성립하는 것 / 안 하는 것 (정직하게):
+#   · 성립: 세 정책의 **역할 분담**과 R_tooclose. selector 우선순위로 근사한다.
+#   · 불성립 1 — 논문의 선택기는 상대별로 학습된 문맥 스위칭(Fig.8: 자기대전 vs
+#     랜덤봇에서 정책 사용률이 유의하게 달라짐)이다. BT 는 고정 우선순위라 이건
+#     **근사이지 재현이 아니다**. 이 트리는 "학습된 선택기"가 아니라 그 산물인
+#     역할 분담만 가져온다.
+#   · 불성립 2 — 논문 WEZ 는 거리계수(3000−r)/2500 라 가까울수록 데미지가 크다.
+#     그래서 AS=근접 선호, CS=거리 무차별이 갈렸다. 본 엔진 WEZ 는 500~3,000ft
+#     **균일**이고 대신 ATA tier(<2°=1.0/<10°=.75/<20°=.5/<30°=.25)로 차등한다
+#     (aircombat/geometry/wez.py). 따라서 AS/CS 의 구분축을 거리 → **조준각**으로
+#     옮겼다: CS=조인 각(ATA<12°)에서 고티어 정밀 사격, AS=느슨한 각(<35°)도 쏜다.
+#
+# 차별점(2026-08-01 examples/·redteams/ 전 트리 grep 대조):
+#   · **폐쇄율 무관 과접근 이탈(R_tooclose)** — 오버슈트 회피 자체는 red_attacker·
+#     red_textbook 에 있으나 둘 다 overshoot_risk(= 접근율 + 근거리) 게이트라
+#     "느리게 붙어 500ft 안쪽에 머무는" 국면을 못 잡는다. 본 엔진에서 <500ft 는
+#     데미지 0 이므로(geometry/wez.py) 이 구간 체류는 순손실이다. 여기선 거리만
+#     보고 뺀다.
+#   · **사격 분기 2단(정밀/난사)** — 다른 트리는 전부 in_gun_envelope 1개.
+#   · **커밋된 사격**(commit 1.5s) — commit 을 쓰는 3종(energy_fighter·red_attacker
+#     =요요, red_two_circle=머지)은 전부 기동 커밋이다. 사격에 건 트리는 없다.
+#     논문 SMDP 옵션(선택된 정책을 일정 시간 유지)의 BT 대응물.
+#
+# 우선순위(selector, 위가 먼저):
+#   하드덱 회피 > 실속 자멸 차단 > 과접근 이탈 > CS 정밀사격 > AS 난사(커밋) >
+#   방어 브레이크 > CZ 유지 > CZ 진입 > 기본 pure
+#
+# 설계 주:
+#   · 방어 분기를 **사격 분기 뒤**에 둔다. 논문 결승전 기록 그대로의 성향 —
+#     머지에서 서로 쏘는 교환을 회피하지 않는다("did not survive the initial
+#     exchange of nose-to-nose gun snaps"). 부수적으로, 방어를 앞에 두면 헤드온
+#     접근(AA≈180)이 상시 브레이크로 빠져 조준을 포기하는 기존 실측 함정도 피한다.
+#   · 헤드온 전용 분기가 없다 — 헤드온은 ATA≈0 이므로 CS 정밀사격 분기가 그대로
+#     받는다. 논문의 대인전 기술("aggressive shots from head on and the side")과
+#     일치한다.
+#   · **의도된 약점**: 과접근 이탈은 500~900ft 의 유효 사격까지 포기한다. 논문
+#     저자들이 결승 패인으로 자인한 성향("our agent would disengage its offense
+#     inside of 800 ft in favor of better positioning")을 그대로 남긴 것이다 —
+#     근접에서 물러서지 않고 밀어붙이는 참가자(= Heron 역할)에게 뚫린다.
+#   · 실속 임계 170kt 는 파이팅 하한(280)보다 한참 아래 — 자멸만 막는다(공짜 승점
+#     방지). 논문에 대응물 없음, 본 저장소 실측 대응(red_pressure 주석 참조).
+#   · 하드덱 회복에 g_burst: 0.8 — 없으면 ATA≈0 강하에서 1G 회복이 나온다(2026-08-01).
+#
+# 실측 (2026-08-01, 16경기 = 4시나리오 × textbook_headon·bem_control_zone(폐지)·
+# energy_fighter·red_knife, blue=본 트리):
+#   · 최종안 7승 7패 2무 (ΔHP 합 −128.4).
+#   · CS 에 `inverter closing(250)` 과속접근 거부를 두면 **분기가 통째로 죽는다** —
+#     사거리 안에서 ATA 가 조이는 국면은 대부분 고폐쇄 머지라 전 경기 미발화였고,
+#     제거 후 5승 9패(ΔHP −291.9) → 7승 7패(−128.4)로 개선. 각도 게이트 12→20°
+#     단독 변경은 프레임 단위로 결과 무변화(= 각도가 아니라 폐쇄율 게이트가 원인).
+#   · cz_hold 에 merged(4000) 거리 게이트를 추가하면 1승 6패 7무로 붕괴(no_contact
+#     무승부 양산, cz_regain_nose 점유 50~88%). 넣지 말 것.
+#   · perch_defense·neutral 8판에서는 최종안도 CS 미발화(v1 과 프레임 동일) —
+#     그 국면에서 ATA<12° 가 성립하지 않는다는 뜻. 개선 여지는 여기에 있다.
+agent_name: RedPhangMan
+selector:
+  # 0) 하드덱 회피 — 최우선(1,000ft 위반 = 즉시 패). 논문 R_deck 대응.
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+  # 1) 최후 에너지 회복 — 실속(<100kt 누적 10s) 자멸만 차단
+  - cooldown:
+      name: last_ditch_recover
+      wait_s: 5.0
+      child:
+        sequence:
+          - condition: {name: below_fighting_speed, kcas: 170}
+          - action: {pursuit: lag, name: last_ditch_recover, lag_dist_ft: 4000,
+                     aim_above_ft: -300}
+  # 2) R_tooclose — 추격 중 과접근(<900ft) → 사격을 포기하고 CZ 로 물러난다.
+  #    <500ft 는 데미지 0 이고 900ft 는 오버슈트 직전이다. max_g 없음(이탈이 아니라 재배치).
+  - sequence:
+      - condition: {name: is_offensive, aspect_deg: 90}
+      - condition: {name: merged, range_ft: 900}
+      - action: {pursuit: lag, mode: control_zone, lag_dist_ft: 2500, name: too_close_reset}
+  # 3) CS(보수적 사수) — 조인 각(ATA<12°)의 고티어 사격. pure+stable 로 포인팅만 유지,
+  #    max_g 없음 = 돌진하지 않는다(논문 CS 의 "사격 위치 유지"). 과속접근 거부 게이트는
+  #    두지 않는다 — 넣었더니 분기가 통째로 죽었다(아래 실측 주 참조).
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 12}
+      - action: {pursuit: pure, mode: stable, name: cs_precision_shot}
+  # 4) AS(공격적 사수) — 느슨한 각도 쏜다. 1.5s 커밋으로 스냅샷을 끝까지 당긴다
+  #    (조건이 순간 풀려도 직전 명령 유지 = 논문의 옵션 지속).
+  - commit:
+      name: as_snap
+      duration_s: 1.5
+      cooldown_s: 1.0
+      child:
+        sequence:
+          - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 35}
+          - action: {pursuit: lead, g_burst: 0.8, lead_time_s: 0.3, name: as_gun_snap}
+  # 5) 방어 — 근접에서만 브레이크(논문 AS 성향: 원거리 피격은 상대적으로 덜 회피)
+  - sequence:
+      - condition: {name: is_defensive, aspect_deg: 150}
+      - condition: {name: merged, range_ft: 4000}
+      - action: {pursuit: lag, g_burst: 0.8, name: break_defense}
+  # 6) CZ 유지 — 사격 기회 없는 공세 국면: 통제구역(2,500ft) 체류. 돌진하지 않는다.
+  - sequence:
+      - condition: {name: is_offensive, aspect_deg: 70}
+      - action: {pursuit: lag, mode: control_zone, lag_dist_ft: 2500, name: cz_hold}
+  # 7) CZ 진입 — 기수가 크게 벗어난 중립/패스 직후: 선회 원 안쪽을 잘라 재접근
+  - sequence:
+      - condition: {name: nose_far, ata_deg: 60}
+      - action: {pursuit: lead, g_burst: 0.8, name: cz_regain_nose}
+  # 8) 기본: pure
+  - action: {pursuit: pure, name: pure_default}

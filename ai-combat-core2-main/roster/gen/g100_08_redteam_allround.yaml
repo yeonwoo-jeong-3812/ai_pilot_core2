@@ -1,0 +1,44 @@
+# 생성 상대(gen_opponents) — 원본 redteam_allround, 시드 100#8
+# 변이: 수직편향 +2000; 수직편향 +2000; 수직편향 +4000
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 3858.57
+  - action:
+      pursuit: pure
+      aim_above_ft: 3205.15
+      name: recover_altitude
+- sequence:
+  - condition:
+      name: foe_threat
+      aspect_deg: 164.11
+  - condition:
+      name: merged
+      range_ft: 6488.32
+  - action:
+      pursuit: lag
+      max_g: true
+      name: break_defense
+      aim_above_ft: 2000
+- sequence:
+  - condition:
+      name: in_gun_envelope
+      range_ft: 3274.08
+      ata_deg: 30.74
+  - action:
+      pursuit: pure
+      name: gun_track
+- sequence:
+  - condition:
+      name: behind_foe
+      aspect_deg: 72.14
+  - action:
+      pursuit: pure
+      name: press_attack
+      aim_above_ft: 2000
+- action:
+    pursuit: pure
+    name: pure_default
+    aim_above_ft: 4000
+agent_name: g100_08_redteam_allround

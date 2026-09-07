@@ -1,0 +1,109 @@
+# 생성 상대(gen_opponents) — 원본 official_attacker, 시드 100#9
+# 변이: pursuit lag→pure; pursuit lag→lead; 수직편향 +2000; pursuit pure→lead; pursuit lead→pure
+agent_name: g100_09_official_attacker
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 3799.88
+  - action:
+      pursuit: pure
+      aim_above_ft: 4581.11
+      name: recover_altitude
+- sequence:
+  - condition:
+      name: is_head_on
+      hca_deg: 154.74
+  - condition:
+      name: closing
+      min_fps: 177.85
+  - action:
+      pursuit: pure
+      name: headon_merge
+- sequence:
+  - condition:
+      name: is_defensive
+      aspect_deg: 162.5
+  - condition:
+      name: merged
+      range_ft: 6865.79
+  - action:
+      pursuit: pure
+      max_g: true
+      name: break_defense
+- commit:
+    name: high_yoyo
+    duration_s: 3.87
+    cooldown_s: 3.08
+    child:
+      selector:
+      - sequence:
+        - condition:
+            name: behind_foe
+            aspect_deg: 89.3
+        - condition:
+            name: foe_below
+            min_ft: 860.49
+        - inverter:
+            condition:
+              name: closing
+              min_fps: 55.05
+        - action:
+            pursuit: lead
+            name: yoyo_down
+            aim_above_ft: -306.6
+            lead_time_s: 1.7
+      - sequence:
+        - condition:
+            name: behind_foe
+            aspect_deg: 77.29
+        - condition:
+            name: overshoot_risk
+            closure_fps: 189.71
+            range_ft: 2248.1
+        - action:
+            pursuit: lead
+            name: yoyo_up
+            aim_above_ft: 821.01
+            lag_dist_ft: 1903.54
+- sequence:
+  - condition:
+      name: is_offensive
+      aspect_deg: 51.99
+  - condition:
+      name: merged
+      range_ft: 2104.14
+  - action:
+      pursuit: lag
+      mode: control_zone
+      name: hold_control_zone
+      lag_dist_ft: 1023.28
+      aim_above_ft: 2000
+- sequence:
+  - condition:
+      name: in_gun_envelope
+      range_ft: 4080.47
+      ata_deg: 41.07
+  - inverter:
+      condition:
+        name: closing
+        min_fps: 273.84
+  - action:
+      pursuit: pure
+      name: gun_track
+- sequence:
+  - condition:
+      name: is_offensive
+      aspect_deg: 48.84
+  - action:
+      pursuit: lead
+      name: press_attack
+- sequence:
+  - condition: nose_far
+  - action:
+      pursuit: pure
+      name: lead_pull
+      aim_above_ft: 164.24
+- action:
+    pursuit: pure
+    name: pure_default

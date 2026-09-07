@@ -1,0 +1,764 @@
+#CONFIG basefn=gun20 surgical=1 rulebox=rules_r0.json rulesel=0 refuse=auto
+=== 루프19 점수-장부 게이트: refuse=auto scope=subset (near>1.0 floor8.0 edge12.0 hot45.0 rng4500 pursue<0.6@12s) ===
+  상대/측                          결과      HPΔ     거부     첫발화     장부오차  cond
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A1_PurePursuer_00/blue         패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A1_PurePursuer_00/red          승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A1_PurePursuer_02/blue         패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A1_PurePursuer_02/red          승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A1_PurePursuer_05/blue         패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A1_PurePursuer_05/red          승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A1_PurePursuer_07/blue         패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A1_PurePursuer_07/red          승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A1_PurePursuer_09/blue         패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A1_PurePursuer_09/red          승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A2_GunTracker_00/blue          패   -100.0      0       -     +0.0  포기0  health_zero@39s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A2_GunTracker_00/red           승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A2_GunTracker_03/blue          패   -100.0      0       -     +0.0  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A2_GunTracker_03/red           승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A2_GunTracker_06/blue          패   -100.0      0       -     +0.0  포기0  health_zero@41s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A2_GunTracker_06/red           승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A2_GunTracker_08/blue          패   -100.0      0       -     +0.0  포기0  health_zero@41s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A2_GunTracker_08/red           승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A2_GunTracker_11/blue          패   -100.0      0       -     +0.0  포기0  health_zero@39s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A2_GunTracker_11/red           승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A3_LagAngler_00/blue           패    -58.1      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A3_LagAngler_00/red            승    +19.5      0       -     +0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A3_LagAngler_03/blue           패    -58.1      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A3_LagAngler_03/red            승    +19.5      0       -     +0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A3_LagAngler_06/blue           패    -58.1      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A3_LagAngler_06/red            승    +19.5      0       -     +0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A3_LagAngler_08/blue           패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A3_LagAngler_08/red            승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A3_LagAngler_11/blue           패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  A3_LagAngler_11/red            승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B1_EnergyFighter_00/blue       패   -100.0      0       -     +0.0  포기0  health_zero@105s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B1_EnergyFighter_00/red        승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B1_EnergyFighter_03/blue       패   -100.0      0       -     +0.0  포기0  health_zero@105s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B1_EnergyFighter_03/red        승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B1_EnergyFighter_06/blue       패   -100.0      0       -     +0.0  포기0  health_zero@124s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B1_EnergyFighter_06/red        승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B1_EnergyFighter_08/blue       패   -100.0      0       -     +0.0  포기0  health_zero@122s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B1_EnergyFighter_08/red        승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B1_EnergyFighter_11/blue       패   -100.0      0       -     +0.0  포기0  health_zero@122s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B1_EnergyFighter_11/red        승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B2_Extender_00/blue            승    +99.5      0       -     +1.2  포기0  health_zero@254s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B2_Extender_00/red             승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B2_Extender_02/blue            패   -100.0      0       -     +0.0  포기0  health_zero@75s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B2_Extender_02/red             승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B2_Extender_04/blue            패   -100.0      0       -     +0.0  포기0  health_zero@105s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B2_Extender_04/red             승    +56.7      0       -     -0.2  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B2_Extender_06/blue            승   +100.0      0       -     -1.9  포기0  health_zero@111s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B2_Extender_06/red             승   +100.0      0       -     +0.6  포기0  health_zero@92s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B2_Extender_08/blue            패    -98.7      0       -     +0.0  포기0  health_zero@74s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  B2_Extender_08/red             승   +100.0      0       -     -0.6  포기0  health_zero@83s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C1_TwoCircleRate_00/blue       패   -100.0      0       -     +0.0  포기0  health_zero@15s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C1_TwoCircleRate_00/red        승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C1_TwoCircleRate_01/blue       패   -100.0      0       -     +0.0  포기0  health_zero@15s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C1_TwoCircleRate_01/red        승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C1_TwoCircleRate_03/blue       패   -100.0      0       -     +0.0  포기0  health_zero@15s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C1_TwoCircleRate_03/red        승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C1_TwoCircleRate_04/blue       패   -100.0      0       -     +0.0  포기0  health_zero@15s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C1_TwoCircleRate_04/red        승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C1_TwoCircleRate_05/blue       패   -100.0      0       -     +0.0  포기0  health_zero@15s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C1_TwoCircleRate_05/red        승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C2_OneCircleRad_00/blue        패   -100.0      0       -     +0.0  포기0  health_zero@15s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C2_OneCircleRad_00/red         승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C2_OneCircleRad_01/blue        패   -100.0      0       -     +0.0  포기0  health_zero@15s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C2_OneCircleRad_01/red         승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C2_OneCircleRad_03/blue        패   -100.0      0       -     +0.0  포기0  health_zero@15s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C2_OneCircleRad_03/red         승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C2_OneCircleRad_04/blue        패   -100.0      0       -     +0.0  포기0  health_zero@15s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C2_OneCircleRad_04/red         승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C2_OneCircleRad_05/blue        패   -100.0      0       -     +0.0  포기0  health_zero@15s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C2_OneCircleRad_05/red         승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C3_Lufbery_00/blue             패   -100.0      0       -     +0.0  포기0  health_zero@105s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C3_Lufbery_00/red              승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C3_Lufbery_02/blue             패   -100.0      0       -     +0.0  포기0  health_zero@127s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C3_Lufbery_02/red              승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C3_Lufbery_04/blue             패   -100.0      0       -     +0.0  포기0  health_zero@122s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C3_Lufbery_04/red              승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C3_Lufbery_06/blue             패   -100.0      0       -     +0.0  포기0  health_zero@124s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C3_Lufbery_06/red              승   +100.0      0       -     +0.0  포기0  health_zero@45s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C3_Lufbery_08/blue             패   -100.0      0       -     +0.0  포기0  health_zero@122s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  C3_Lufbery_08/red              승   +100.0      0       -     +0.0  포기0  health_zero@45s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D1_Reactive_00/blue            패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D1_Reactive_00/red             승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D1_Reactive_03/blue            패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D1_Reactive_03/red             승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D1_Reactive_06/blue            패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D1_Reactive_06/red             승    +37.1      0       -     +0.2  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D1_Reactive_08/blue            패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D1_Reactive_08/red             승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D1_Reactive_11/blue            패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D1_Reactive_11/red             승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D2_LastDitch_00/blue           패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D2_LastDitch_00/red            승     +4.2      8    156s     +0.4  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D2_LastDitch_01/blue           패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D2_LastDitch_01/red            승     +4.2      8    156s     +0.4  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D2_LastDitch_03/blue           패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D2_LastDitch_03/red            승   +100.0      0       -     +1.2  포기0  health_zero@141s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D2_LastDitch_04/blue           패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D2_LastDitch_04/red            무     +0.0      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D2_LastDitch_05/blue           패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D2_LastDitch_05/red            무     +0.0      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D3_Scissors_00/blue            패   -100.0     90     39s     +0.0  포기1  health_zero@125s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D3_Scissors_00/red             승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D3_Scissors_01/blue            패    -81.8     90     39s     +0.1  포기1  health_zero@124s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D3_Scissors_01/red             승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D3_Scissors_02/blue            패    -31.3     90     39s     -0.0  포기1  health_zero@99s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  D3_Scissors_02/red             승    +56.1      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E1_AdaptiveAce_00/blue         패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E1_AdaptiveAce_00/red          승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E1_AdaptiveAce_03/blue         패   -100.0      0       -     +0.0  포기0  health_zero@51s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E1_AdaptiveAce_03/red          승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E1_AdaptiveAce_06/blue         패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E1_AdaptiveAce_06/red          승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E1_AdaptiveAce_08/blue         패   -100.0      0       -     +0.0  포기0  health_zero@51s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E1_AdaptiveAce_08/red          승    +23.6      0       -     -0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E1_AdaptiveAce_11/blue         패   -100.0      0       -     +0.0  포기0  health_zero@51s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E1_AdaptiveAce_11/red          승    +20.6      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E2_Passive_00/blue             패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E2_Passive_00/red              패     -1.0      0       -     -1.0  포기0  health_zero@124s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E2_Passive_01/blue             패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  E2_Passive_01/red              패     -1.0      0       -     -1.0  포기0  health_zero@124s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  anchor_ace/blue                패   -100.0      0       -     +0.0  포기0  health_zero@47s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  anchor_ace/red                 승    +37.1      0       -     +0.2  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  anchor_aggressive/blue         패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  anchor_aggressive/red          승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  anchor_defensive/blue          패   -100.0      0       -     +0.0  포기0  health_zero@34s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  anchor_defensive/red           승    +34.5      0       -     +0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  anchor_simple/blue             패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  anchor_simple/red              승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_attacker/blue         승    +33.9      0       -     -0.6  포기0  health_zero@86s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_attacker/red          승   +100.0      0       -     -0.6  포기0  health_zero@111s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_energyfighter/blue    패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_energyfighter/red     승   +100.0      0       -     -1.2  포기0  health_zero@73s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_twocircle/blue        패   -100.0      0       -     +0.0  포기0  health_zero@43s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_twocircle/red         승    +23.8      0       -     +0.0  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_controlzone/blue      승    +82.9      0       -     -0.2  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_controlzone/red       승   +100.0      0       -     +0.6  포기0  health_zero@47s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_headon/blue           승     +8.9      0       -     +0.0  포기0  health_zero@84s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_headon/red            승    +90.2      0       -     +0.2  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  redteam_allround/blue          패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  redteam_allround/red           승    +90.2      0       -     +0.2  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  redteam_energy/blue            승    +46.5      0       -     -0.6  포기0  health_zero@292s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  redteam_energy/red             승    +17.6      0       -     -0.5  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  redteam_pressure/blue          패   -100.0      0       -     +0.0  포기0  health_zero@48s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  redteam_pressure/red           승   +100.0      0       -     +0.0  포기0  health_zero@50s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_default/blue          패   -100.0      0       -     +0.0  포기0  health_zero@80s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  official_default/red           승    +34.5      0       -     +0.1  포기0  timeout@300s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  agents/champion128/blue        패   -100.0      0       -     +0.0  포기0  health_zero@27s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  agents/champion128/red         승   +100.0      0       -     +0.6  포기0  health_zero@27s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  agents/champion128_f33/blue    패   -100.0      0       -     +0.0  포기0  health_zero@27s
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  agents/champion128_f33/red     승   +100.0      0       -     +0.6  포기0  health_zero@27s
+
+  합계: 77승 2무 71패 / 150
+  전환: 15 ['A2_GunTracker_11/red', 'A3_LagAngler_00/red', 'A3_LagAngler_06/red', 'B1_EnergyFighter_00/red', 'B1_EnergyFighter_06/red', 'B1_EnergyFighter_11/red', 'B2_Extender_04/red', 'C1_TwoCircleRate_00/red', 'C2_OneCircleRad_00/red', 'C3_Lufbery_00/red', 'C3_Lufbery_04/red', 'C3_Lufbery_08/red', 'D1_Reactive_06/red', 'D1_Reactive_11/red', 'D3_Scissors_01/red']
+  회귀: 64 ['A1_PurePursuer_00/blue (Δ-100.0)', 'A1_PurePursuer_02/blue (Δ-100.0)', 'A1_PurePursuer_05/blue (Δ-100.0)', 'A1_PurePursuer_07/blue (Δ-100.0)', 'A1_PurePursuer_09/blue (Δ-100.0)', 'A2_GunTracker_00/blue (Δ-100.0)', 'A2_GunTracker_03/blue (Δ-100.0)', 'A2_GunTracker_06/blue (Δ-100.0)', 'A2_GunTracker_08/blue (Δ-100.0)', 'A2_GunTracker_11/blue (Δ-100.0)', 'A3_LagAngler_03/blue (Δ-58.1)', 'A3_LagAngler_08/blue (Δ-100.0)', 'A3_LagAngler_11/blue (Δ-100.0)', 'B1_EnergyFighter_00/blue (Δ-100.0)', 'B1_EnergyFighter_03/blue (Δ-100.0)', 'B1_EnergyFighter_06/blue (Δ-100.0)', 'B1_EnergyFighter_08/blue (Δ-100.0)', 'B1_EnergyFighter_11/blue (Δ-100.0)', 'B2_Extender_02/blue (Δ-100.0)', 'B2_Extender_04/blue (Δ-100.0)', 'C1_TwoCircleRate_00/blue (Δ-100.0)', 'C1_TwoCircleRate_01/blue (Δ-100.0)', 'C1_TwoCircleRate_03/blue (Δ-100.0)', 'C1_TwoCircleRate_04/blue (Δ-100.0)', 'C1_TwoCircleRate_05/blue (Δ-100.0)', 'C2_OneCircleRad_00/blue (Δ-100.0)', 'C2_OneCircleRad_01/blue (Δ-100.0)', 'C2_OneCircleRad_03/blue (Δ-100.0)', 'C2_OneCircleRad_04/blue (Δ-100.0)', 'C2_OneCircleRad_05/blue (Δ-100.0)', 'C3_Lufbery_00/blue (Δ-100.0)', 'C3_Lufbery_02/blue (Δ-100.0)', 'C3_Lufbery_04/blue (Δ-100.0)', 'C3_Lufbery_06/blue (Δ-100.0)', 'D1_Reactive_00/blue (Δ-100.0)', 'D1_Reactive_03/blue (Δ-100.0)', 'D1_Reactive_06/blue (Δ-100.0)', 'D1_Reactive_08/blue (Δ-100.0)', 'D1_Reactive_11/blue (Δ-100.0)', 'D2_LastDitch_00/blue (Δ-100.0)', 'D2_LastDitch_01/blue (Δ-100.0)', 'D2_LastDitch_03/blue (Δ-100.0)', 'D2_LastDitch_04/blue (Δ-100.0)', 'D2_LastDitch_04/red (Δ+0.0)', 'D2_LastDitch_05/blue (Δ-100.0)', 'D2_LastDitch_05/red (Δ+0.0)', 'D3_Scissors_00/blue (Δ-100.0)', 'D3_Scissors_01/blue (Δ-81.8)', 'D3_Scissors_02/blue (Δ-31.3)', 'E1_AdaptiveAce_00/blue (Δ-100.0)', 'E1_AdaptiveAce_03/blue (Δ-100.0)', 'E1_AdaptiveAce_06/blue (Δ-100.0)', 'E1_AdaptiveAce_08/blue (Δ-100.0)', 'anchor_ace/blue (Δ-100.0)', 'anchor_aggressive/blue (Δ-100.0)', 'anchor_defensive/blue (Δ-100.0)', 'anchor_simple/blue (Δ-100.0)', 'official_energyfighter/blue (Δ-100.0)', 'official_twocircle/blue (Δ-100.0)', 'redteam_allround/blue (Δ-100.0)', 'redteam_pressure/blue (Δ-100.0)', 'official_default/blue (Δ-100.0)', 'agents/champion128/blue (Δ-100.0)', 'agents/champion128_f33/blue (Δ-100.0)']

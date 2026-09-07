@@ -1,0 +1,30 @@
+표적 3개, 증인 59개
+  분리실패 → E1_AdaptiveAce_06/blue 제외 재시도
+  분리실패 → E1_AdaptiveAce_03/red 제외 재시도
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 anchor_ace/blue t=28.75 → ✓ Δ+1.5
+[규칙 1] break d6 ⊃ ['anchor_ace/blue']
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E1_AdaptiveAce_06/blue t=25.75 → ✓ Δ+3.6
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E1_AdaptiveAce_03/red t=25.95 → ✓ Δ+12.2
+[규칙 2] break d6 ⊃ ['E1_AdaptiveAce_06/blue', 'E1_AdaptiveAce_03/red']
+
+규칙 2개 저장: C:\Users\USER\Desktop\AI-pilot\core2\research\data\blueteam\daemon_f31_r1_rel.json
+미피복: 없음(전 반례 피복)

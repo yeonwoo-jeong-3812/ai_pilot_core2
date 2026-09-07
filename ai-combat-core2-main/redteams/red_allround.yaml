@@ -1,0 +1,35 @@
+# Red Team 대항군 — ALLROUND (균형형 / held-out 후보). 비배포.
+#
+# pure 조준의 강함 + 피격 방지(방어) + 사격 최적화. 복잡한 요요 분기는 배제.
+# 2026-07-17 재튜닝(D7 종축 기하·DPS 50·perch 6kft):
+#   · headon 안정 분기를 방어 분기 **앞에** — 구판은 headon 접근(AA≈180)에서
+#     break_defense 가 상시 발동해 조준을 포기, pure 상대에게 일방 피격(97:0 실측).
+#   · gun_track ata 35→45 + lead — 종축 ATA 기준에서 35 게이트는 전 매치 미발동.
+#   · 공세 접근에 control_zone 조절기 — perch 6kft 무접촉 해소 + 오버슈트 억제.
+agent_name: RedAllround
+selector:
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+  # 헤드온 → 조준 안정 (방어 분기보다 먼저 — headon 을 방어로 오판하지 않게)
+  - sequence:
+      - condition: {name: is_head_on, hca_deg: 150}
+      - action: {pursuit: pure, mode: stable, name: headon_stable}
+  # 방어: 적이 내 후미 조준 + 근접 → 브레이크 (피격 방지)
+  - sequence:
+      - condition: {name: is_defensive, aspect_deg: 150}
+      - condition: {name: merged, range_ft: 6000}
+      - action: {pursuit: lag, g_burst: 0.8, name: break_defense}
+  # 건 사거리 + 조준각 → lead 추적 사격
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 45}
+      - action: {pursuit: lead, g_burst: 0.8, lead_time_s: 0.5, name: gun_track}
+  # 공세(적 후미) → 접근율 조절하며 압박 (돌진-오버슈트 진자 억제)
+  - sequence:
+      - condition: {name: is_offensive, aspect_deg: 70}
+      - action: {pursuit: pure, mode: control_zone, name: press_attack}
+  # 기수 크게 이탈 → lead+max_g 재조준 (거리 풍선 억제)
+  - sequence:
+      - condition: {name: nose_far, ata_deg: 60}
+      - action: {pursuit: lead, g_burst: 0.8, name: regain_nose}
+  - action: {pursuit: pure, name: pure_default}

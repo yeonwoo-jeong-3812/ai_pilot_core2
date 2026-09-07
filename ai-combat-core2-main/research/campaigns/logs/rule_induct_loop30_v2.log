@@ -1,0 +1,792 @@
+표적 127개, 증인 2984개
+  분리실패 → B1_EnergyFighter_11/red@s2 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_05/red@s2 제외 재시도
+  분리실패 → C3_Lufbery_04/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_03/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_04/red@s2 제외 재시도
+  분리실패 → D3_Scissors_01/red@s2 제외 재시도
+  분리실패 → C3_Lufbery_08/red@s2 제외 재시도
+  분리실패 → D2_LastDitch_05/red@s2 제외 재시도
+  분리실패 → D2_LastDitch_04/red@s2 제외 재시도
+  분리실패 → E2_Passive_01/blue@s2 제외 재시도
+  분리실패 → E2_Passive_00/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s2 제외 재시도
+  분리실패 → E1_AdaptiveAce_11/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_04/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_05/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_03/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/blue@s3 제외 재시도
+  분리실패 → E2_Passive_01/blue@s3 제외 재시도
+  분리실패 → E2_Passive_00/blue@s3 제외 재시도
+  분리실패 → A2_GunTracker_00/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_06/blue@s1 제외 재시도
+  분리실패 → E2_Passive_00/red@s2 제외 재시도
+  분리실패 → E2_Passive_01/red@s2 제외 재시도
+  분리실패 → D2_LastDitch_05/blue@s2 제외 재시도
+  분리실패 → D2_LastDitch_04/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_00/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_03/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_06/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_11/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_03/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_06/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_08/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_00/red@s2 제외 재시도
+  분리실패 → anchor_defensive/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_06/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_01/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_08/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_00/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_00/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_11/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_00/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_03/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_11/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_08/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_00/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_03/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_04/blue@s3 제외 재시도
+  분리실패 → B2_Extender_08/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_02/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_06/blue@s3 제외 재시도
+  분리실패 → B2_Extender_02/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_01/blue@s3 제외 재시도
+  분리실패 → B2_Extender_04/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_00/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_08/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_00/blue@s3 제외 재시도
+  분리실패 → A3_LagAngler_08/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/blue@s2 제외 재시도
+  분리실패 → E2_Passive_00/red@s1 제외 재시도
+  분리실패 → E2_Passive_01/red@s1 제외 재시도
+  분리실패 → A2_GunTracker_11/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_06/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_00/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_03/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s1 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s1 제외 재시도
+  분리실패 → A1_PurePursuer_07/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_09/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_05/blue@s1 제외 재시도
+  분리실패 → anchor_aggressive/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_00/blue@s1 제외 재시도
+  분리실패 → anchor_simple/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_02/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_08/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_11/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_03/blue@s1 제외 재시도
+  분리실패 → C2_OneCircleRad_00/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_04/red@s3 제외 재시도
+  분리실패 → C3_Lufbery_00/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_01/red@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_03/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_03/red@s3 제외 재시도
+  분리실패 → anchor_defensive/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_05/red@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_00/red@s3 제외 재시도
+  분리실패 → C3_Lufbery_02/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_00/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_01/red@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_11/red@s3 제외 재시도
+  분리실패 → A3_LagAngler_03/blue@s3 제외 재시도
+  분리실패 → A3_LagAngler_06/blue@s3 제외 재시도
+  분리실패 → A3_LagAngler_00/blue@s3 제외 재시도
+  분리실패 → D2_LastDitch_03/blue@s3 제외 재시도
+  분리실패 → A3_LagAngler_06/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_03/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_08/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_00/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_11/blue@s1 제외 재시도
+  분리실패 → E2_Passive_00/blue@s1 제외 재시도
+  분리실패 → E2_Passive_01/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_03/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_06/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_08/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_00/red@s3 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s3 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_09/red@s3 제외 재시도
+  분리실패 → anchor_aggressive/red@s3 제외 재시도
+  분리실패 → anchor_simple/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_02/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_00/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_07/red@s3 제외 재시도
+  분리불가 → 승리 쌍둥이 ['A1_PurePursuer_00/blue', 'A1_PurePursuer_00/blue@s2', 'A1_PurePursuer_00/blue@s3', 'A1_PurePursuer_00/red', 'A1_PurePursuer_00/red@s1', 'A1_PurePursuer_00/red@s2', 'A1_PurePursuer_02/blue', 'A1_PurePursuer_02/blue@s2', 'A1_PurePursuer_02/blue@s3', 'A1_PurePursuer_02/red', 'A1_PurePursuer_02/red@s1', 'A1_PurePursuer_02/red@s2', 'A1_PurePursuer_05/blue', 'A1_PurePursuer_05/blue@s2', 'A1_PurePursuer_05/blue@s3', 'A1_PurePursuer_05/red', 'A1_PurePursuer_05/red@s1', 'A1_PurePursuer_05/red@s2', 'A1_PurePursuer_07/blue', 'A1_PurePursuer_07/blue@s2', 'A1_PurePursuer_07/blue@s3', 'A1_PurePursuer_07/red', 'A1_PurePursuer_07/red@s1', 'A1_PurePursuer_07/red@s2', 'A1_PurePursuer_09/blue', 'A1_PurePursuer_09/blue@s2', 'A1_PurePursuer_09/blue@s3', 'A1_PurePursuer_09/red', 'A1_PurePursuer_09/red@s1', 'A1_PurePursuer_09/red@s2'] 공동발화 허용 재시도
+  [분리불가] break ⊃ ['A1_PurePursuer_05/red@s3']
+  분리실패 → E2_Passive_01/blue@s2 제외 재시도
+  분리실패 → E2_Passive_00/blue@s2 제외 재시도
+  분리실패 → C3_Lufbery_08/red@s2 제외 재시도
+  분리실패 → D2_LastDitch_05/red@s2 제외 재시도
+  분리실패 → D2_LastDitch_04/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_00/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_03/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_06/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_11/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_05/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_03/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_04/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_11/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_03/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_06/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_08/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_00/red@s2 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/red@s2 제외 재시도
+  분리실패 → C3_Lufbery_04/red@s2 제외 재시도
+  분리실패 → D3_Scissors_01/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_08/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/blue@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_01/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_00/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_00/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_03/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_08/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_04/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_00/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_05/blue@s3 제외 재시도
+  분리실패 → B2_Extender_08/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_02/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_01/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_00/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_00/blue@s3 제외 재시도
+  분리실패 → A2_GunTracker_11/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_06/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_03/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_08/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_00/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_11/blue@s1 제외 재시도
+  분리실패 → D2_LastDitch_05/blue@s2 제외 재시도
+  분리실패 → D2_LastDitch_04/blue@s2 제외 재시도
+  분리실패 → E2_Passive_00/red@s2 제외 재시도
+  분리실패 → E2_Passive_01/red@s2 제외 재시도
+  분리실패 → anchor_defensive/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_06/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_11/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_08/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_11/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_00/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_11/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_04/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_06/blue@s3 제외 재시도
+  분리실패 → B2_Extender_02/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_03/blue@s3 제외 재시도
+  분리실패 → B2_Extender_04/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_08/blue@s3 제외 재시도
+  분리실패 → A2_GunTracker_11/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_06/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_00/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_03/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_08/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_00/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_06/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_03/blue@s1 제외 재시도
+  분리실패 → C3_Lufbery_00/red@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_03/red@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_00/red@s3 제외 재시도
+  분리실패 → C3_Lufbery_02/red@s3 제외 재시도
+  분리실패 → E2_Passive_01/blue@s3 제외 재시도
+  분리실패 → E2_Passive_00/blue@s3 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s1 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s1 제외 재시도
+  분리실패 → E2_Passive_00/red@s1 제외 재시도
+  분리실패 → E2_Passive_01/red@s1 제외 재시도
+  분리실패 → A2_GunTracker_03/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_06/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_08/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_00/red@s3 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s3 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_09/red@s3 제외 재시도
+  분리실패 → anchor_aggressive/red@s3 제외 재시도
+  분리실패 → anchor_simple/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_02/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_00/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_07/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_05/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_07/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_09/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_05/blue@s1 제외 재시도
+  분리실패 → anchor_aggressive/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_00/blue@s1 제외 재시도
+  분리실패 → anchor_simple/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_02/blue@s1 제외 재시도
+  분리실패 → C2_OneCircleRad_00/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_04/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_01/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_03/red@s3 제외 재시도
+  분리실패 → anchor_defensive/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_05/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_00/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_01/red@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_11/red@s3 제외 재시도
+
+
+     JSBSim Flight Dynamics Model v1.3.0 [GitHub build 1742/commit 01ea7816288dce9e9f6a1a6dc048014bc65d699e] Apr  9 2026 10:02:36
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 A3_LagAngler_03/blue@s3 t=21.95 → ✗ Δ-48.1
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 D2_LastDitch_03/blue@s3 t=21.95 → ✗ Δ-16.2
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 A3_LagAngler_06/blue@s3 t=21.95 → ✗ Δ-48.1
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 A3_LagAngler_00/blue@s3 t=21.95 → ✗ Δ-48.1
+[미해결 반례] E2_Passive_01/blue@s3 — 증인 소진
+[미해결 반례] E2_Passive_00/blue@s3 — 증인 소진
+  분리실패 → C1_TwoCircleRate_05/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_05/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_03/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_04/red@s2 제외 재시도
+  분리실패 → D3_Scissors_01/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_11/red@s2 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/red@s2 제외 재시도
+  분리실패 → C3_Lufbery_04/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red@s2 제외 재시도
+  분리실패 → C3_Lufbery_08/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_06/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_03/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_08/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_00/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_11/blue@s1 제외 재시도
+  분리실패 → E2_Passive_01/blue@s2 제외 재시도
+  분리실패 → E2_Passive_00/blue@s2 제외 재시도
+  분리실패 → D2_LastDitch_05/red@s2 제외 재시도
+  분리실패 → D2_LastDitch_04/red@s2 제외 재시도
+  분리실패 → anchor_defensive/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_01/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_11/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_00/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_11/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_00/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_08/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_04/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_05/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_06/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_03/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_01/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_00/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_08/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_00/blue@s3 제외 재시도
+  분리실패 → A3_LagAngler_00/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_03/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_06/red@s2 제외 재시도
+  분리실패 → E2_Passive_00/red@s2 제외 재시도
+  분리실패 → E2_Passive_01/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_11/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_03/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_06/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_08/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_00/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_06/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_08/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_00/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_03/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_11/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_00/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_04/blue@s3 제외 재시도
+  분리실패 → B2_Extender_08/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_02/blue@s3 제외 재시도
+  분리실패 → B2_Extender_02/blue@s3 제외 재시도
+  분리실패 → B2_Extender_04/blue@s3 제외 재시도
+  분리실패 → A2_GunTracker_08/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_03/blue@s1 제외 재시도
+  분리실패 → D2_LastDitch_05/blue@s2 제외 재시도
+  분리실패 → D2_LastDitch_04/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_08/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_11/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_06/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_00/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_03/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s1 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s1 제외 재시도
+  분리실패 → E2_Passive_00/red@s1 제외 재시도
+  분리실패 → E2_Passive_01/red@s1 제외 재시도
+  분리실패 → D2_LastDitch_03/blue@s3 제외 재시도
+  분리실패 → A2_GunTracker_11/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_00/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_06/blue@s1 제외 재시도
+  분리실패 → C2_OneCircleRad_00/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_04/red@s3 제외 재시도
+  분리실패 → C3_Lufbery_00/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_01/red@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_03/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_03/red@s3 제외 재시도
+  분리실패 → anchor_defensive/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_05/red@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_00/red@s3 제외 재시도
+  분리실패 → C3_Lufbery_02/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_00/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_01/red@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_11/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_07/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_09/blue@s1 제외 재시도
+  분리실패 → E2_Passive_00/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_05/blue@s1 제외 재시도
+  분리실패 → anchor_aggressive/blue@s1 제외 재시도
+  분리실패 → E2_Passive_01/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_00/blue@s1 제외 재시도
+  분리실패 → anchor_simple/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_02/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_03/blue@s3 제외 재시도
+  분리실패 → A3_LagAngler_06/blue@s3 제외 재시도
+  분리실패 → A3_LagAngler_00/blue@s3 제외 재시도
+  분리실패 → A2_GunTracker_03/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_06/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_08/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_00/red@s3 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s3 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_09/red@s3 제외 재시도
+  분리실패 → anchor_aggressive/red@s3 제외 재시도
+  분리실패 → anchor_simple/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_02/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_00/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_07/red@s3 제외 재시도
+  분리불가 → 승리 쌍둥이 ['A1_PurePursuer_00/blue', 'A1_PurePursuer_00/blue@s2', 'A1_PurePursuer_00/blue@s3', 'A1_PurePursuer_00/red', 'A1_PurePursuer_00/red@s1', 'A1_PurePursuer_00/red@s2', 'A1_PurePursuer_02/blue', 'A1_PurePursuer_02/blue@s2', 'A1_PurePursuer_02/blue@s3', 'A1_PurePursuer_02/red', 'A1_PurePursuer_02/red@s1', 'A1_PurePursuer_02/red@s2', 'A1_PurePursuer_05/blue', 'A1_PurePursuer_05/blue@s2', 'A1_PurePursuer_05/blue@s3', 'A1_PurePursuer_05/red', 'A1_PurePursuer_05/red@s1', 'A1_PurePursuer_05/red@s2', 'A1_PurePursuer_07/blue', 'A1_PurePursuer_07/blue@s2', 'A1_PurePursuer_07/blue@s3', 'A1_PurePursuer_07/red', 'A1_PurePursuer_07/red@s1', 'A1_PurePursuer_07/red@s2', 'A1_PurePursuer_09/blue', 'A1_PurePursuer_09/blue@s2', 'A1_PurePursuer_09/blue@s3', 'A1_PurePursuer_09/red', 'A1_PurePursuer_09/red@s1', 'A1_PurePursuer_09/red@s2'] 공동발화 허용 재시도
+  [분리불가] extend ⊃ ['A1_PurePursuer_05/red@s3']
+[미해결 반례] A2_GunTracker_11/red@s2 — 증인 소진
+[미해결 반례] A2_GunTracker_08/blue@s1 — 증인 소진
+[미해결 반례] A2_GunTracker_03/red@s2 — 증인 소진
+[미해결 반례] A2_GunTracker_11/blue@s1 — 증인 소진
+[미해결 반례] A2_GunTracker_00/blue@s1 — 증인 소진
+[미해결 반례] E2_Passive_00/red@s1 — 증인 소진
+[미해결 반례] E2_Passive_00/red@s2 — 증인 소진
+[미해결 반례] E2_Passive_01/red@s2 — 증인 소진
+[미해결 반례] E2_Passive_01/red@s1 — 증인 소진
+[미해결 반례] A2_GunTracker_06/blue@s1 — 증인 소진
+[미해결 반례] A2_GunTracker_03/blue@s1 — 증인 소진
+  분리실패 → A2_GunTracker_06/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_00/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_05/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_03/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_04/red@s2 제외 재시도
+  분리실패 → E2_Passive_00/blue@s1 제외 재시도
+  분리실패 → E2_Passive_01/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_07/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_09/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_05/blue@s1 제외 재시도
+  분리실패 → anchor_aggressive/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_00/blue@s1 제외 재시도
+  분리실패 → anchor_simple/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_02/blue@s1 제외 재시도
+  분리실패 → D2_LastDitch_05/red@s2 제외 재시도
+  분리실패 → D2_LastDitch_04/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_08/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_11/red@s2 제외 재시도
+  분리실패 → C3_Lufbery_08/red@s2 제외 재시도
+  분리실패 → C3_Lufbery_04/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red@s2 제외 재시도
+  분리실패 → A1_PurePursuer_09/red@s3 제외 재시도
+  분리실패 → anchor_aggressive/red@s3 제외 재시도
+  분리실패 → anchor_simple/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_02/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_00/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_07/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_05/red@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/red@s2 제외 재시도
+  분리실패 → D3_Scissors_01/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_00/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_03/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_06/red@s2 제외 재시도
+  분리실패 → D2_LastDitch_05/blue@s2 제외 재시도
+  분리실패 → D2_LastDitch_04/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_08/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_11/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s2 제외 재시도
+  분리실패 → E2_Passive_01/blue@s2 제외 재시도
+  분리실패 → E2_Passive_00/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_06/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_03/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_00/blue@s1 제외 재시도
+  분리실패 → anchor_defensive/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_06/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_01/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_11/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_08/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_00/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_00/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_11/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_00/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_03/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_11/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_08/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_04/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_00/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_03/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_04/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_05/blue@s3 제외 재시도
+  분리실패 → B2_Extender_08/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_02/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_06/blue@s3 제외 재시도
+  분리실패 → B2_Extender_02/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_03/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_01/blue@s3 제외 재시도
+  분리실패 → B2_Extender_04/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_00/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_08/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_00/blue@s3 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s1 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s1 제외 재시도
+  분리실패 → A2_GunTracker_06/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_00/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_03/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_08/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_11/blue@s1 제외 재시도
+  분리실패 → C2_OneCircleRad_00/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_04/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_01/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_03/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_05/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_00/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_01/red@s3 제외 재시도
+  분리실패 → D2_LastDitch_03/blue@s3 제외 재시도
+  분리실패 → anchor_defensive/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_03/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_06/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_08/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_00/red@s3 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s3 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s3 제외 재시도
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 A3_LagAngler_03/blue@s3 t=21.85 → ✓ Δ+69.7
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 C3_Lufbery_00/red@s3 t=33.45 → ✗ Δ-27.5
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 B1_EnergyFighter_03/red@s3 t=33.45 → ✗ Δ-27.5
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 A3_LagAngler_06/blue@s3 t=21.85 → ✓ Δ+69.7
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 A3_LagAngler_00/blue@s3 t=21.85 → ✓ Δ+69.7
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 B1_EnergyFighter_00/red@s3 t=33.45 → ✗ Δ-27.5
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 C3_Lufbery_02/red@s3 t=33.45 → ✗ Δ-27.5
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 E1_AdaptiveAce_11/red@s3 t=33.65 → ✓ Δ+48.2
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  gun_pure 진입틱 E1_AdaptiveAce_11/red@s3 t=33.85 → ✓ Δ+48.0
+[규칙 1] gun_pure d6 ⊃ ['A3_LagAngler_03/blue@s3', 'A3_LagAngler_06/blue@s3', 'A3_LagAngler_00/blue@s3', 'E1_AdaptiveAce_11/red@s3']
+  분리실패 → A2_GunTracker_06/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_00/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_05/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_03/red@s2 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/red@s2 제외 재시도
+  분리실패 → C2_OneCircleRad_04/red@s2 제외 재시도
+  분리실패 → E2_Passive_00/blue@s1 제외 재시도
+  분리실패 → E2_Passive_01/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_07/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_09/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_05/blue@s1 제외 재시도
+  분리실패 → anchor_aggressive/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_00/blue@s1 제외 재시도
+  분리실패 → anchor_simple/blue@s1 제외 재시도
+  분리실패 → A1_PurePursuer_02/blue@s1 제외 재시도
+  분리실패 → D2_LastDitch_05/red@s2 제외 재시도
+  분리실패 → D2_LastDitch_04/red@s2 제외 재시도
+  분리실패 → A2_GunTracker_08/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_11/red@s2 제외 재시도
+  분리실패 → C3_Lufbery_08/red@s2 제외 재시도
+  분리실패 → C3_Lufbery_04/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red@s2 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red@s2 제외 재시도
+  분리실패 → A1_PurePursuer_09/red@s3 제외 재시도
+  분리실패 → anchor_aggressive/red@s3 제외 재시도
+  분리실패 → anchor_simple/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_02/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_00/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_07/red@s3 제외 재시도
+  분리실패 → A1_PurePursuer_05/red@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/red@s2 제외 재시도
+  분리실패 → D3_Scissors_01/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_08/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_00/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_03/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_06/red@s2 제외 재시도
+  분리실패 → D2_LastDitch_05/blue@s2 제외 재시도
+  분리실패 → D2_LastDitch_04/blue@s2 제외 재시도
+  분리실패 → E2_Passive_01/blue@s2 제외 재시도
+  분리실패 → E2_Passive_00/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_11/blue@s2 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s2 제외 재시도
+  분리실패 → A3_LagAngler_06/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_03/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_00/blue@s1 제외 재시도
+  분리실패 → A2_GunTracker_06/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_00/blue@s2 제외 재시도
+  분리실패 → A2_GunTracker_03/blue@s2 제외 재시도
+  분리실패 → anchor_defensive/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_06/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_01/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_11/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_08/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_00/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_00/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_11/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_00/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_03/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_11/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_08/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_04/blue@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_00/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_03/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_04/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_05/blue@s3 제외 재시도
+  분리실패 → B2_Extender_08/blue@s3 제외 재시도
+  분리실패 → C3_Lufbery_02/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_06/blue@s3 제외 재시도
+  분리실패 → B2_Extender_02/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_03/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_03/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_01/blue@s3 제외 재시도
+  분리실패 → B2_Extender_04/blue@s3 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/blue@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_00/blue@s3 제외 재시도
+  분리실패 → D1_Reactive_08/blue@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_00/blue@s3 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s1 제외 재시도
+  분리실패 → A3_LagAngler_08/red@s1 제외 재시도
+  분리실패 → A3_LagAngler_08/blue@s1 제외 재시도
+  분리실패 → A3_LagAngler_11/blue@s1 제외 재시도
+  분리실패 → C2_OneCircleRad_00/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_04/red@s3 제외 재시도
+  분리실패 → C3_Lufbery_00/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_01/red@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_03/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_03/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_04/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_03/red@s3 제외 재시도
+  분리실패 → anchor_defensive/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_05/red@s3 제외 재시도
+  분리실패 → B1_EnergyFighter_00/red@s3 제외 재시도
+  분리실패 → C3_Lufbery_02/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_00/red@s3 제외 재시도
+  분리실패 → C1_TwoCircleRate_05/red@s3 제외 재시도
+  분리실패 → C2_OneCircleRad_01/red@s3 제외 재시도
+  분리실패 → D2_LastDitch_03/blue@s3 제외 재시도
+  분리실패 → A2_GunTracker_03/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_06/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_08/red@s3 제외 재시도
+  분리실패 → A2_GunTracker_00/red@s3 제외 재시도
+  분리실패 → A3_LagAngler_11/red@s3 제외 재시도
+  분리불가 → 승리 쌍둥이 ['A3_LagAngler_00/blue', 'A3_LagAngler_00/blue@s2', 'A3_LagAngler_00/red', 'A3_LagAngler_00/red@s1', 'A3_LagAngler_00/red@s3', 'A3_LagAngler_03/blue', 'A3_LagAngler_03/blue@s2', 'A3_LagAngler_03/red', 'A3_LagAngler_03/red@s1', 'A3_LagAngler_03/red@s3', 'A3_LagAngler_06/blue', 'A3_LagAngler_06/blue@s2', 'A3_LagAngler_06/red', 'A3_LagAngler_06/red@s1', 'A3_LagAngler_06/red@s3', 'A3_LagAngler_08/blue', 'A3_LagAngler_08/blue@s3', 'A3_LagAngler_08/red', 'A3_LagAngler_11/blue', 'A3_LagAngler_11/blue@s3', 'A3_LagAngler_11/red'] 공동발화 허용 재시도
+  [분리불가] gun_pure ⊃ ['A3_LagAngler_08/red@s3']
+[미해결 반례] A3_LagAngler_11/red@s1 — 증인 소진
+[미해결 반례] A3_LagAngler_06/blue@s1 — 증인 소진
+[미해결 반례] anchor_defensive/blue@s3 — 증인 소진
+[미해결 반례] C2_OneCircleRad_00/red@s3 — 증인 소진
+[미해결 반례] C2_OneCircleRad_04/red@s3 — 증인 소진
+[미해결 반례] A1_PurePursuer_09/red@s3 — 증인 소진
+[미해결 반례] A3_LagAngler_00/red@s2 — 증인 소진
+[미해결 반례] B1_EnergyFighter_11/red@s2 — 증인 소진
+[미해결 반례] A3_LagAngler_08/blue@s2 — 증인 소진
+[미해결 반례] A1_PurePursuer_07/blue@s1 — 증인 소진
+[미해결 반례] B1_EnergyFighter_06/blue@s3 — 증인 소진
+[미해결 반례] E2_Passive_01/blue@s2 — 증인 소진
+[미해결 반례] D2_LastDitch_05/red@s2 — 증인 소진
+[미해결 반례] A3_LagAngler_11/red@s3 — 증인 소진
+[미해결 반례] C2_OneCircleRad_01/blue@s3 — 증인 소진
+[미해결 반례] D2_LastDitch_03/blue@s3 — 증인 소진
+[미해결 반례] E1_AdaptiveAce_11/blue@s3 — 증인 소진
+[미해결 반례] B1_EnergyFighter_08/blue@s3 — 증인 소진
+[미해결 반례] C3_Lufbery_00/red@s3 — 증인 소진
+[미해결 반례] A1_PurePursuer_09/blue@s1 — 증인 소진
+[미해결 반례] A3_LagAngler_03/red@s2 — 증인 소진
+[미해결 반례] A2_GunTracker_11/blue@s2 — 증인 소진
+[미해결 반례] E1_AdaptiveAce_00/blue@s3 — 증인 소진
+[미해결 반례] C3_Lufbery_00/blue@s3 — 증인 소진
+[미해결 반례] D1_Reactive_11/blue@s3 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_01/red@s3 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_03/blue@s3 — 증인 소진
+[미해결 반례] E1_AdaptiveAce_06/red@s2 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_05/red@s2 — 증인 소진
+[미해결 반례] E2_Passive_00/blue@s1 — 증인 소진
+[미해결 반례] E2_Passive_00/blue@s2 — 증인 소진
+[미해결 반례] A3_LagAngler_08/red@s3 — 증인 소진
+[미해결 반례] A3_LagAngler_11/blue@s2 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_04/blue@s3 — 증인 소진
+[미해결 반례] A1_PurePursuer_05/blue@s1 — 증인 소진
+[미해결 반례] A3_LagAngler_03/blue@s1 — 증인 소진
+[미해결 반례] D1_Reactive_00/blue@s3 — 증인 소진
+[미해결 반례] anchor_aggressive/blue@s1 — 증인 소진
+[미해결 반례] C2_OneCircleRad_05/red@s2 — 증인 소진
+[미해결 반례] B1_EnergyFighter_03/red@s3 — 증인 소진
+[미해결 반례] B1_EnergyFighter_03/blue@s3 — 증인 소진
+[미해결 반례] A2_GunTracker_06/blue@s2 — 증인 소진
+[미해결 반례] C3_Lufbery_08/red@s2 — 증인 소진
+[미해결 반례] B1_EnergyFighter_11/blue@s3 — 증인 소진
+[미해결 반례] A2_GunTracker_00/blue@s2 — 증인 소진
+[미해결 반례] A3_LagAngler_08/blue@s1 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_03/red@s3 — 증인 소진
+[미해결 반례] E1_AdaptiveAce_08/blue@s3 — 증인 소진
+[미해결 반례] anchor_aggressive/red@s3 — 증인 소진
+[미해결 반례] E2_Passive_01/blue@s1 — 증인 소진
+[미해결 반례] A3_LagAngler_08/red@s1 — 증인 소진
+[미해결 반례] C3_Lufbery_04/red@s2 — 증인 소진
+[미해결 반례] C2_OneCircleRad_04/blue@s3 — 증인 소진
+[미해결 반례] D2_LastDitch_05/blue@s2 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_04/red@s3 — 증인 소진
+[미해결 반례] A2_GunTracker_03/blue@s2 — 증인 소진
+[미해결 반례] C2_OneCircleRad_03/red@s3 — 증인 소진
+[미해결 반례] B1_EnergyFighter_08/red@s2 — 증인 소진
+[미해결 반례] A3_LagAngler_08/red@s2 — 증인 소진
+[미해결 반례] anchor_simple/red@s3 — 증인 소진
+[미해결 반례] A2_GunTracker_06/red@s2 — 증인 소진
+[미해결 반례] B1_EnergyFighter_00/blue@s3 — 증인 소진
+[미해결 반례] D2_LastDitch_04/red@s2 — 증인 소진
+[미해결 반례] E1_AdaptiveAce_03/blue@s3 — 증인 소진
+[미해결 반례] A1_PurePursuer_00/blue@s1 — 증인 소진
+[미해결 반례] anchor_defensive/red@s3 — 증인 소진
+[미해결 반례] A2_GunTracker_03/red@s3 — 증인 소진
+[미해결 반례] A2_GunTracker_08/red@s2 — 증인 소진
+[미해결 반례] A3_LagAngler_00/blue@s1 — 증인 소진
+[미해결 반례] B1_EnergyFighter_06/red@s2 — 증인 소진
+[미해결 반례] A1_PurePursuer_02/red@s3 — 증인 소진
+[미해결 반례] anchor_simple/blue@s1 — 증인 소진
+[미해결 반례] C3_Lufbery_04/blue@s3 — 증인 소진
+[미해결 반례] D2_LastDitch_04/blue@s2 — 증인 소진
+[미해결 반례] A1_PurePursuer_00/red@s3 — 증인 소진
+[미해결 반례] A3_LagAngler_11/red@s2 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_05/blue@s3 — 증인 소진
+[미해결 반례] C2_OneCircleRad_05/blue@s3 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_04/red@s2 — 증인 소진
+[미해결 반례] B2_Extender_08/blue@s3 — 증인 소진
+[미해결 반례] C2_OneCircleRad_05/red@s3 — 증인 소진
+[미해결 반례] C3_Lufbery_02/blue@s3 — 증인 소진
+[미해결 반례] D1_Reactive_06/blue@s3 — 증인 소진
+[미해결 반례] A2_GunTracker_06/red@s3 — 증인 소진
+[미해결 반례] A2_GunTracker_00/red@s2 — 증인 소진
+[미해결 반례] B1_EnergyFighter_00/red@s3 — 증인 소진
+[미해결 반례] B2_Extender_02/blue@s3 — 증인 소진
+[미해결 반례] C2_OneCircleRad_03/red@s2 — 증인 소진
+[미해결 반례] A1_PurePursuer_07/red@s3 — 증인 소진
+[미해결 반례] C3_Lufbery_02/red@s3 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_03/red@s2 — 증인 소진
+[미해결 반례] A2_GunTracker_08/red@s3 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_00/red@s3 — 증인 소진
+[미해결 반례] C2_OneCircleRad_03/blue@s3 — 증인 소진
+[미해결 반례] A3_LagAngler_11/blue@s1 — 증인 소진
+[미해결 반례] A2_GunTracker_00/red@s3 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_05/red@s3 — 증인 소진
+[미해결 반례] A1_PurePursuer_02/blue@s1 — 증인 소진
+[미해결 반례] C2_OneCircleRad_01/red@s3 — 증인 소진
+[미해결 반례] D1_Reactive_03/blue@s3 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_01/blue@s3 — 증인 소진
+[미해결 반례] B2_Extender_04/blue@s3 — 증인 소진
+[미해결 반례] C2_OneCircleRad_04/red@s2 — 증인 소진
+[미해결 반례] E1_AdaptiveAce_06/blue@s3 — 증인 소진
+[미해결 반례] A3_LagAngler_06/red@s2 — 증인 소진
+[미해결 반례] D3_Scissors_01/red@s2 — 증인 소진
+[미해결 반례] A1_PurePursuer_05/red@s3 — 증인 소진
+[미해결 반례] C2_OneCircleRad_00/blue@s3 — 증인 소진
+[미해결 반례] D1_Reactive_08/blue@s3 — 증인 소진
+[미해결 반례] C1_TwoCircleRate_00/blue@s3 — 증인 소진
+
+규칙 1개 저장: C:\Users\USER\Desktop\AI-pilot\core2\port_measure\loop22_labels\induced_rules_loop30_v2.json
+미피복: 없음(전 반례 피복)

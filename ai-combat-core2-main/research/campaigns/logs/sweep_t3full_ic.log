@@ -1,0 +1,74 @@
+단위 20개 × 슬롯 150 = 총 3000판   워커 20
+  [1/20] headon s1 (7.4분 경과)
+  [2/20] headon s16 (7.8분 경과)
+  [3/20] headon s6 (8.7분 경과)
+  [4/20] headon s3 (10.1분 경과)
+  [5/20] headon s7 (11.1분 경과)
+  [6/20] headon s18 (11.1분 경과)
+  [7/20] headon s13 (11.3분 경과)
+  [8/20] headon s4 (11.8분 경과)
+  [9/20] headon s11 (12.0분 경과)
+  [10/20] headon s19 (12.8분 경과)
+  [11/20] headon s10 (12.9분 경과)
+  [12/20] headon s8 (14.1분 경과)
+  [13/20] headon s12 (15.1분 경과)
+  [14/20] headon s14 (15.1분 경과)
+  [15/20] headon s2 (15.4분 경과)
+  [16/20] headon s20 (15.4분 경과)
+  [17/20] headon s5 (15.6분 경과)
+  [18/20] headon s9 (16.6분 경과)
+  [19/20] headon s15 (17.1분 경과)
+  [20/20] headon s17 (17.2분 경과)
+
+국면           시드     판     승    무    패
+headon        1   150   115    0   35
+headon        2   150    87    0   63
+headon        3   150   109    0   41
+headon        4   150   133    0   17
+headon        5   150    79    0   71
+headon        6   150   121    0   29
+headon        7   150   115    0   35
+headon        8   150   100    0   50
+headon        9   150    84    0   66
+headon       10   150    81    0   69
+headon       11   150    99    0   51
+headon       12   150    87    0   63
+headon       13   150   100    0   50
+headon       14   150    88    0   62
+headon       15   150    61    0   89
+headon       16   150   142    0    8
+headon       17   150    77    2   71
+headon       18   150   122    0   28
+headon       19   150    67    0   83
+headon       20   150    88    0   62
+합계               3000  1955    2 1043   승률 65.2%  불패율 65.2%
+
+패배가 나온 슬롯 149개 (IC 중 몇 번 졌나):
+  E2_Passive_00/blue                     패  17/20   무   0  승   3
+  E2_Passive_01/blue                     패  17/20   무   0  승   3
+  E2_Passive_00/red                      패  16/20   무   0  승   4
+  E2_Passive_01/red                      패  16/20   무   0  승   4
+  A2_GunTracker_03/blue                  패  15/20   무   0  승   5
+  A3_LagAngler_08/red                    패  15/20   무   0  승   5
+  A3_LagAngler_11/red                    패  15/20   무   0  승   5
+  A1_PurePursuer_00/blue                 패  14/20   무   0  승   6
+  A1_PurePursuer_02/blue                 패  14/20   무   0  승   6
+  A1_PurePursuer_05/blue                 패  14/20   무   0  승   6
+  A1_PurePursuer_07/blue                 패  14/20   무   0  승   6
+  A1_PurePursuer_09/blue                 패  14/20   무   0  승   6
+  A2_GunTracker_00/blue                  패  14/20   무   0  승   6
+  A2_GunTracker_06/blue                  패  14/20   무   0  승   6
+  anchor_aggressive/blue                 패  14/20   무   0  승   6
+  anchor_simple/blue                     패  14/20   무   0  승   6
+  official_attacker/red                  패  14/20   무   0  승   6
+  A2_GunTracker_08/blue                  패  13/20   무   0  승   7
+  redteam_pressure/blue                  패  13/20   무   0  승   7
+  A2_GunTracker_03/red                   패  12/20   무   0  승   8
+  A3_LagAngler_08/blue                   패  12/20   무   0  승   8
+  A3_LagAngler_11/blue                   패  12/20   무   0  승   8
+  official_controlzone/red               패  12/20   무   0  승   8
+  A2_GunTracker_11/blue                  패  11/20   무   0  승   9
+  official_attacker/blue                 패  11/20   무   0  승   9
+  … 외 124개
+
+슬롯별 집계 → research/results/ic_sweep_t3full.csv

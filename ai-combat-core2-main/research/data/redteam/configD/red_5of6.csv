@@ -1,0 +1,4 @@
+case,t0,opp_action,champ_win,dhp,cond,t_end
+anchor_defensive/red,8.0,climb,1,23.6,health_zero,38
+anchor_defensive/red,8.0,dive,0,-7.7,health_zero,37
+anchor_defensive/red,8.0,break,1,19.4,health_zero,179

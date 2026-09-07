@@ -1,0 +1,17 @@
+기준 발화 42건 / 문장 14
+  문장#0 break    축 12 → 4
+  문장#1 climb    축 12 → 4
+  문장#2 break    축 12 → 4
+  문장#3 break    축 12 → 3
+  문장#4 climb    축 12 → 3
+  문장#5 e_extend 축 14 → 5
+  문장#6 lag      축 14 → 4
+  문장#7 unload   축 14 → 3
+  문장#8 break    축 12 → 4
+  문장#9 climb    축 12 → 4
+  문장#10 gun_pure 축 12 → 4
+  문장#11 gun_pure 축 12 → 4
+  문장#12 lag      축 12 → 5
+  문장#13 lag      축 12 → 4
+축 제거 119개 → 총 55축 저장: research\data\blueteam\induced_rules_t3full_slim.json
+※ 최종 판정은 전 128판 실측 필요(덤프 반올림 한계)

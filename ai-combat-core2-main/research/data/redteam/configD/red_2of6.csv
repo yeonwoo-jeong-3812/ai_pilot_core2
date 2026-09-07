@@ -1,0 +1,5 @@
+case,t0,opp_action,champ_win,dhp,cond,t_end
+anchor_aggressive/blue,8.0,climb,1,71.6,health_zero,89
+anchor_aggressive/blue,8.0,dive,1,67.1,health_zero,41
+anchor_aggressive/blue,8.0,break,1,55.8,health_zero,34
+anchor_aggressive/blue,8.0,extend,0,-53.6,health_zero,112

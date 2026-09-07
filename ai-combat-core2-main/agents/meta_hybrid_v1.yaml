@@ -1,0 +1,53 @@
+# v2.9.0 개방 기능 시연 B — 메타결합형(Meta Hybrid). **max_g 상시 + 개방 기능.**
+# ⚠ 2026-08-25 max_g→g_burst:0.8 기계 이관 — 아래 서술·실측은 max_g 시절 기준(재측정 전 무효).
+#
+# 목적: 현 메타(max_g 상시, FNG 계열)에 v2.9.0 개방 기능을 얹으면 순수 max_g 를
+# 넘어서는지 측정한다. 비교쌍 A(v29_doctrine_regulator)와 트리 골격이 같고,
+# 추격·방어 분기의 max_g 사용만 다르다 — 리그에서 A/B 격차가 곧 "max_g 의 잔여 우위",
+# FNG 와의 격차가 곧 "개방 기능의 추가 가치"다.
+#
+# doctrine 값 근거 (scripts/sweep_doctrine.py, fng_maxg base 실측):
+#   lv_above_ft: 1000  max_g base 에서 유일한 양(+3) 신호. max_g 는 G 계열 교리를
+#                      전부 우회하므로(전 극단 동일 성적 실증) 기하 파라미터만 남는다 —
+#                      조준점 수직 여유를 크게 줘 수직 분리에서 이득을 취한다.
+#   corner_kcas_lo 는 기본(330) 유지 — 440 으로 올리면 −6(fng_maxg base 유일한 음수).
+#   나머지 필드는 max_g 경로에서 무반응이라 기본값 유지(불필요한 오버라이드 금지).
+doctrine:
+  lv_above_ft: 1000.0
+
+agent_name: MetaHybrid
+
+selector:
+  # 0) 하드덱 회피 — 최우선, 예측 발동.
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500, lookahead_s: 3.5}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+
+  # 1) 손상 국면 (신규 low_health) — max_g 형이라도 HP 열세의 정면 교환은 산술적으로
+  #    불리하다. FNG 의 3패가 전부 이 국면(맞교환 끝 격추)이었다.
+  - sequence:
+      - condition: {name: low_health, hp: 35}
+      - condition: {name: foe_path_threat, vel_aa_deg: 110}
+      - action: {pursuit: lag, g_burst: 0.8, lag_dist_ft: 3500, aim_above_ft: -200,
+                 name: wounded_disengage}
+
+  # 2) 정밀 사격창 — WEZ 내 + ATA 조임 → pure 정조준 (FNG 최종본과 동일 골격)
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 12}
+      - action: {pursuit: pure, g_burst: 0.8, name: gun_cone_track}
+
+  # 3) 경로 이탈 감지 (신규 vel_nose_far) — max_g 당김 중 고AoA 드리프트로 궤적이
+  #    벌어질 때 리드로 재정렬. max_g 상시형의 사각(기수만 물고 궤적 이탈)을 메운다.
+  - sequence:
+      - condition: {name: vel_nose_far, vel_ata_deg: 55}
+      - condition: {name: closing, min_fps: -50}
+      - action: {pursuit: lead, lead_time_s: 1.0, g_burst: 0.8, name: path_realign}
+
+  # 4) 조준 정렬 — ATA ≤ 12° 약한 리드 (FNG 승리 공식 그대로)
+  - sequence:
+      - inverter:
+          condition: {name: nose_far, ata_deg: 12}
+      - action: {pursuit: lead, lead_time_s: 0.2, g_burst: 0.8, name: weak_lead_track}
+
+  # 5) 기본 추격 — 일반 리드 + max_g (FNG lead_chase 동일)
+  - action: {pursuit: lead, g_burst: 0.8, name: lead_chase}

@@ -1,0 +1,56 @@
+# 아키타입: Textbook Headon — 교본형(안정·설명가능성 우선). stable/control_zone 모드 시연.
+#
+# 성향: 헤드온에서 배면·롤 없이 날개 수평으로 ATA→0(mode: stable, 포인팅 추적),
+# 공세를 잡으면 control zone 을 유지(mode: control_zone)하다 attack cue 에 사격.
+# 공격성(최대 데미지)보다 매끄러움·교리 충실을 우선 — 순수 공격형과 대비되는 스파링 상대.
+#
+# ⚠ **이 파일의 조절 파라미터는 의도적으로 최적이 아니다.** 출발점이지 정답이 아니다.
+#   g_burst 0.6 = 태울 때와 아낄 때의 구분이 없다(전 국면 같은 값 — 국면별로 갈라 보라).
+#   g_full_ata_deg 75 = 조준각이 크게 벌어져야 세게 당긴다(둔한 조절).
+#   track_rng_ft 1500 = 건 추적 하한 G 창이 좁다(사격 기하에서 덜 당긴다).
+#   이 셋을 어떻게 조합할지가 전략 설계의 핵심이다 — 값을 직접 재보고 바꿀 것.
+#
+# 우선순위(selector, 위가 먼저):
+#   하드덱 회피 > 헤드온 안정(HABFM) > 방어(DBFM) > **사격(SOO)** > CZ 유지 > CZ 진입 > 기본 pure
+#
+# 사용: python scripts/run_match.py --scenario headon --blue examples/textbook_headon.yaml --red redteams/red_energy.yaml
+agent_name: TextbookHeadon
+selector:
+  # 0) 하드덱 회피 — 최우선(하드덱 1,000ft 위반 = 즉시 패). 회복은 burst 를 쓴다.
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+  # 1) 헤드온 안정 노즈온(HABFM) — 핵심 시연. 대향(hca>150)에서 mode: stable 이
+  #    수평 우선 뱅크 + 부호있는 pitch 로 배면·롤 없이 ATA→0. Tacview 에서 GMode=stable_track,
+  #    L2 유도의 dφ 가 작게 유지되는 것을 육안 확인. (stable 은 G 조절 경로를 타지 않는다)
+  - sequence:
+      - condition: {name: is_head_on, hca_deg: 150}
+      - action: {pursuit: pure, mode: stable, name: headon_stable}
+  # 2) 방어(DBFM): 적이 내 후미 조준 + 근접 → 브레이크
+  - sequence:
+      - condition: {name: is_defensive, aspect_deg: 150}
+      - condition: {name: merged, range_ft: 6000}
+      - action: {pursuit: lag, g_burst: 0.6, g_full_ata_deg: 75, name: break_defense}
+  # 3) SOO(Shot of Opportunity) — **CZ 유지보다 위에 둔다.** 아래로 내리면 존에
+  #    주차한 채 lag 로 기수를 뺀 상태가 유지되어 300초 내내 한 발도 못 쏜다
+  #    (실측: 그 배치에서 무접촉 15/40 = 쌍방 패). 사격 기회는 항상 존 유지를 이긴다.
+  #    track 창이 좁아(1,500ft/15°) 추적 하한 G 가 거의 안 걸린다 — 넓혀 보라.
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 30}
+      - inverter: {condition: {name: closing, min_fps: 250}}
+      - action: {pursuit: pure, g_burst: 0.6, g_full_ata_deg: 75,
+                 track_rng_ft: 1500, track_ata_deg: 15, name: gun_track}
+
+  # 4) CZ 점유 중 → 유지 (BEM 4.4.6 통제 구역: 후방 2,000~3,000ft · AA≈0 · HCA<30)
+  #    lag + 접근율 조절기. 존 안에서는 태울 이유가 없으므로 burst 없음.
+  - sequence:
+      - condition: {name: in_control_zone}
+      - action: {pursuit: lag, mode: control_zone, cz_range_ft: 2500,
+                 name: hold_control_zone}
+  # 5) 공세(OBFM)지만 존 밖 → 존으로 수렴. 파워는 CZ 조절기(오버슈트 억제)
+  - sequence:
+      - condition: {name: is_offensive, aspect_deg: 45}
+      - action: {pursuit: lag, mode: control_zone, name: enter_control_zone,
+                 lag_dist_ft: 900}
+  # 6) 기본: pure
+  - action: {pursuit: pure, g_burst: 0.6, g_full_ata_deg: 75, name: pure_default}

@@ -1,0 +1,285 @@
+표적 19개, 증인 992개
+  분리실패 → E2_Passive_00/red 제외 재시도
+  분리실패 → E2_Passive_01/red 제외 재시도
+  분리실패 → E2_Passive_00/blue 제외 재시도
+  분리실패 → E2_Passive_01/blue 제외 재시도
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → D3_Scissors_00/red 제외 재시도
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리실패 → D3_Scissors_02/red 제외 재시도
+  분리실패 → official_twocircle/blue 제외 재시도
+  분리실패 → official_twocircle/red 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/blue 제외 재시도
+  분리실패 → C3_Lufbery_06/red 제외 재시도
+  분리실패 → C3_Lufbery_08/red 제외 재시도
+  분리실패 → redteam_allround/blue 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red 제외 재시도
+  분리실패 → B1_EnergyFighter_11/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['C3_Lufbery_00/blue', 'C3_Lufbery_00/red', 'C3_Lufbery_02/blue', 'C3_Lufbery_02/red', 'C3_Lufbery_04/blue', 'C3_Lufbery_06/blue', 'C3_Lufbery_08/blue'] 공동발화 허용 재시도
+  [분리불가] break ⊃ ['C3_Lufbery_04/red']
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → D3_Scissors_00/red 제외 재시도
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리실패 → D3_Scissors_02/red 제외 재시도
+  분리실패 → E2_Passive_00/red 제외 재시도
+  분리실패 → E2_Passive_01/red 제외 재시도
+  분리실패 → E2_Passive_00/blue 제외 재시도
+  분리실패 → E2_Passive_01/blue 제외 재시도
+  분리실패 → redteam_allround/blue 제외 재시도
+  분리실패 → E1_AdaptiveAce_06/blue 제외 재시도
+  분리실패 → C3_Lufbery_06/red 제외 재시도
+  분리실패 → C3_Lufbery_08/red 제외 재시도
+  분리실패 → official_twocircle/blue 제외 재시도
+  분리실패 → official_twocircle/red 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red 제외 재시도
+  분리실패 → B1_EnergyFighter_11/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['C3_Lufbery_00/blue', 'C3_Lufbery_00/red', 'C3_Lufbery_02/blue', 'C3_Lufbery_02/red', 'C3_Lufbery_04/blue', 'C3_Lufbery_06/blue', 'C3_Lufbery_08/blue'] 공동발화 허용 재시도
+  [분리불가] climb ⊃ ['C3_Lufbery_04/red']
+  분리실패 → D3_Scissors_00/red 제외 재시도
+  분리실패 → E2_Passive_00/red 제외 재시도
+  분리실패 → E2_Passive_01/red 제외 재시도
+  분리실패 → E2_Passive_00/blue 제외 재시도
+  분리실패 → E2_Passive_01/blue 제외 재시도
+  분리실패 → redteam_allround/blue 제외 재시도
+  분리실패 → C3_Lufbery_06/red 제외 재시도
+  분리실패 → C3_Lufbery_08/red 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red 제외 재시도
+  분리실패 → B1_EnergyFighter_11/red 제외 재시도
+  분리실패 → C3_Lufbery_04/red 제외 재시도
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리실패 → D3_Scissors_02/red 제외 재시도
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  e_extend 진입틱 E1_AdaptiveAce_06/blue t=21.85 → ✓ Δ+16.7
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  e_extend 진입틱 official_twocircle/blue t=21.65 → ✓ Δ+30.1
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  e_extend 진입틱 official_twocircle/red t=21.65 → ✓ Δ+29.7
+[규칙 1] e_extend d6 ⊃ ['E1_AdaptiveAce_06/blue', 'official_twocircle/blue', 'official_twocircle/red']
+  분리실패 → D3_Scissors_00/red 제외 재시도
+  분리실패 → E2_Passive_00/red 제외 재시도
+  분리실패 → E2_Passive_01/red 제외 재시도
+  분리실패 → E2_Passive_00/blue 제외 재시도
+  분리실패 → E2_Passive_01/blue 제외 재시도
+  분리실패 → redteam_allround/blue 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red 제외 재시도
+  분리실패 → B1_EnergyFighter_11/red 제외 재시도
+  분리실패 → C3_Lufbery_04/red 제외 재시도
+  분리실패 → C3_Lufbery_06/red 제외 재시도
+  분리실패 → C3_Lufbery_08/red 제외 재시도
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['D3_Scissors_00/blue', 'D3_Scissors_01/blue', 'D3_Scissors_02/blue'] 공동발화 허용 재시도
+  [분리불가] e_extend ⊃ ['D3_Scissors_02/red']
+  분리실패 → C3_Lufbery_06/red 제외 재시도
+  분리실패 → C3_Lufbery_08/red 제외 재시도
+  분리실패 → E2_Passive_00/red 제외 재시도
+  분리실패 → E2_Passive_01/red 제외 재시도
+  분리실패 → E2_Passive_00/blue 제외 재시도
+  분리실패 → E2_Passive_01/blue 제외 재시도
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → D3_Scissors_00/red 제외 재시도
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리실패 → D3_Scissors_02/red 제외 재시도
+  분리실패 → redteam_allround/blue 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red 제외 재시도
+  분리실패 → B1_EnergyFighter_11/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['C3_Lufbery_00/blue', 'C3_Lufbery_00/red', 'C3_Lufbery_02/blue', 'C3_Lufbery_02/red', 'C3_Lufbery_04/blue', 'C3_Lufbery_06/blue', 'C3_Lufbery_08/blue'] 공동발화 허용 재시도
+  [분리불가] extend ⊃ ['C3_Lufbery_04/red']
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → E2_Passive_00/red 제외 재시도
+  분리실패 → E2_Passive_01/red 제외 재시도
+  분리실패 → E2_Passive_00/blue 제외 재시도
+  분리실패 → E2_Passive_01/blue 제외 재시도
+  분리실패 → D3_Scissors_00/red 제외 재시도
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리실패 → D3_Scissors_02/red 제외 재시도
+  분리실패 → C3_Lufbery_06/red 제외 재시도
+  분리실패 → C3_Lufbery_08/red 제외 재시도
+  분리실패 → redteam_allround/blue 제외 재시도
+  분리실패 → B1_EnergyFighter_06/red 제외 재시도
+  분리실패 → B1_EnergyFighter_08/red 제외 재시도
+  분리실패 → B1_EnergyFighter_11/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['C3_Lufbery_00/blue', 'C3_Lufbery_00/red', 'C3_Lufbery_02/blue', 'C3_Lufbery_02/red', 'C3_Lufbery_04/blue', 'C3_Lufbery_06/blue', 'C3_Lufbery_08/blue'] 공동발화 허용 재시도
+  [분리불가] gun_pure ⊃ ['C3_Lufbery_04/red']
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → E2_Passive_00/red 제외 재시도
+  분리실패 → E2_Passive_01/red 제외 재시도
+  분리실패 → E2_Passive_00/blue 제외 재시도
+  분리실패 → E2_Passive_01/blue 제외 재시도
+  분리실패 → D3_Scissors_00/red 제외 재시도
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리실패 → D3_Scissors_02/red 제외 재시도
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 B1_EnergyFighter_06/red t=33.65 → ✓ Δ+3.6
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 B1_EnergyFighter_08/red t=33.65 → ✓ Δ+3.6
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 B1_EnergyFighter_11/red t=33.65 → ✓ Δ+3.6
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 C3_Lufbery_04/red t=33.65 → ✓ Δ+3.6
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 C3_Lufbery_06/red t=33.55 → ✓ Δ+11.0
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 C3_Lufbery_08/red t=33.55 → ✓ Δ+11.0
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 redteam_allround/blue t=25.85 → ✗ Δ-26.6
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 B1_EnergyFighter_06/red t=33.95 → ✓ Δ+3.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 B1_EnergyFighter_08/red t=33.95 → ✓ Δ+3.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 B1_EnergyFighter_11/red t=33.95 → ✓ Δ+3.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 C3_Lufbery_04/red t=33.95 → ✓ Δ+3.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 C3_Lufbery_06/red t=33.95 → ✓ Δ+11.2
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 C3_Lufbery_08/red t=33.95 → ✓ Δ+11.2
+[규칙 2] lag d6 ⊃ ['B1_EnergyFighter_06/red', 'B1_EnergyFighter_08/red', 'B1_EnergyFighter_11/red', 'C3_Lufbery_04/red', 'C3_Lufbery_06/red', 'C3_Lufbery_08/red']
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → E2_Passive_00/red 제외 재시도
+  분리실패 → E2_Passive_01/red 제외 재시도
+  분리실패 → E2_Passive_00/blue 제외 재시도
+  분리실패 → E2_Passive_01/blue 제외 재시도
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 D3_Scissors_00/red t=27.95 → ✗ Δ-15.8
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 D3_Scissors_01/red t=27.95 → ✗ Δ-12.3
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 D3_Scissors_02/red t=27.95 → ✗ Δ-19.8
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  lag 진입틱 redteam_allround/blue t=25.95 → ✗ Δ-43.0
+[미해결 반례] E2_Passive_01/red — 증인 소진
+[미해결 반례] E2_Passive_00/blue — 증인 소진
+[미해결 반례] E2_Passive_00/red — 증인 소진
+[미해결 반례] E2_Passive_01/blue — 증인 소진
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → official_controlzone/blue 제외 재시도
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 D3_Scissors_00/red t=27.95 → ✗ Δ-18.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 D3_Scissors_01/red t=27.95 → ✗ Δ-15.0
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 D3_Scissors_02/red t=27.95 → ✓ Δ+7.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 redteam_allround/blue t=25.95 → ✗ Δ-53.3
+  분리불가 → 승리 쌍둥이 ['D3_Scissors_00/blue', 'D3_Scissors_01/blue', 'D3_Scissors_02/blue'] 공동발화 허용 재시도
+  [분리불가] dive ⊃ ['D3_Scissors_02/red']
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → D3_Scissors_00/red 제외 재시도
+  분리실패 → D3_Scissors_02/red 제외 재시도
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  unload 진입틱 redteam_allround/blue t=21.85 → ✓ Δ+41.6
+[규칙 3] unload d6 ⊃ ['redteam_allround/blue']
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+  분리실패 → D3_Scissors_00/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['D3_Scissors_00/blue', 'D3_Scissors_01/blue', 'D3_Scissors_02/blue'] 공동발화 허용 재시도
+  [분리불가] unload ⊃ ['D3_Scissors_02/red']
+[미해결 반례] D3_Scissors_02/red — 증인 소진
+[미해결 반례] D3_Scissors_00/red — 증인 소진
+[미해결 반례] official_controlzone/red — 증인 소진
+[미해결 반례] D3_Scissors_01/red — 증인 소진
+[미해결 반례] official_controlzone/blue — 증인 소진
+
+규칙 3개 저장: C:\Users\USER\Desktop\AI-pilot\core2\research\data\blueteam\daemon_t3full_r1_relt.json
+미피복: 없음(전 반례 피복)

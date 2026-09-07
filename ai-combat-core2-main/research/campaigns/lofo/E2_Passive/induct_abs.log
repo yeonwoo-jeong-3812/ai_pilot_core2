@@ -1,0 +1,40 @@
+표적 4개, 증인 93개
+  분리실패 → D3_Scissors_02/red 제외 재시도
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리실패 → D3_Scissors_00/red 제외 재시도
+
+
+     JSBSim Flight Dynamics Model v1.3.0 [GitHub build 1742/commit 01ea7816288dce9e9f6a1a6dc048014bc65d699e] Apr  9 2026 10:02:36
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E1_AdaptiveAce_03/blue t=27.85 → ✓ Δ+6.3
+[규칙 1] break d6 ⊃ ['E1_AdaptiveAce_03/blue']
+  분리실패 → D3_Scissors_01/red 제외 재시도
+  분리실패 → D3_Scissors_02/red 제외 재시도
+  분리불가 → 승리 쌍둥이 ['D3_Scissors_00/blue', 'D3_Scissors_01/blue', 'D3_Scissors_02/blue'] 공동발화 허용 재시도
+  [분리불가] break ⊃ ['D3_Scissors_00/red']
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 D3_Scissors_02/red t=25.55 → ✓ Δ+3.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 D3_Scissors_01/red t=25.55 → ✓ Δ+56.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 D3_Scissors_00/red t=25.55 → ✓ Δ+56.7
+[규칙 2] dive d6 ⊃ ['D3_Scissors_02/red', 'D3_Scissors_01/red', 'D3_Scissors_00/red']
+
+규칙 2개 저장: C:\Users\USER\Desktop\AI-pilot\core2\port_measure\loop22_labels\lofo_E2_Passive_abs.json
+미피복: 없음(전 반례 피복)

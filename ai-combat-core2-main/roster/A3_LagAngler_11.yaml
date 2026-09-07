@@ -1,0 +1,36 @@
+# core-live zoo 상대 'A3_LagAngler_11' (archetype A3_LagAngler) 를 core2 어휘로 자동번역.
+# 원본: core-live/src/engine/opponents/zoo/A3_LagAngler_11.yaml
+# 번역기: translate_zoo.py (일회성 구 도구 — 정리로 삭제, git 이력 보존. 의미론 ground truth=yaml_bt.py).
+# ⚠ 아키타입 행동 등가 이식(틱-동일 아님) — core2 물리로 재계측 대상.
+agent_name: A3_LagAngler_11
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 1200.0
+  - action:
+      pursuit: pure
+      aim_above_ft: 4000.0
+      name: climb
+- sequence:
+  - condition:
+      name: merged
+      range_ft: 2500
+  - condition:
+      name: in_gun_envelope
+      range_ft: 60000.0
+      ata_deg: 18
+  - action:
+      pursuit: pure
+      name: gun_track
+- sequence:
+  - inverter:
+      condition:
+        name: merged
+        range_ft: 9000
+  - action:
+      pursuit: lag
+      name: lag
+- action:
+    pursuit: pure
+    name: pursue

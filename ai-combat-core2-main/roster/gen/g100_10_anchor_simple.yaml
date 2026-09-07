@@ -1,0 +1,16 @@
+# 생성 상대(gen_opponents) — 원본 anchor_simple, 시드 100#10
+# 변이: 수직편향 +4000
+agent_name: g100_10_anchor_simple
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 819.01
+  - action:
+      pursuit: pure
+      aim_above_ft: 4563.91
+      name: climb
+- action:
+    pursuit: pure
+    name: pursue
+    aim_above_ft: 4000

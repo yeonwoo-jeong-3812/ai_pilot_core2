@@ -1,0 +1,6 @@
+{
+  "name": "acmi-viewer",
+  "private": true,
+  "type": "module",
+  "description": "브라우저 ACMI 뷰어. 이 파일은 배포용이 아니라 node 용 표시다 — static/ 의 .js 는 전부 ES 모듈이므로 node(tests/, --check)가 CJS 로 오해하지 않게 못 박는다. 브라우저는 index.html 의 importmap 을 쓰므로 영향 없다."
+}

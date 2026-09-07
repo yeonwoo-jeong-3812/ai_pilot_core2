@@ -1,0 +1,380 @@
+[
+ {
+  "box": {
+   "rng": [
+    1632.78,
+    2392.7801
+   ],
+   "dalt": [
+    -49.97,
+    49.03
+   ],
+   "hp_lead": [
+    -2.6901,
+    1.01
+   ],
+   "pursue": [
+    -0.1501,
+    0.1501
+   ]
+  },
+  "act": "break",
+  "dur": 6.0,
+  "covers": [
+   "E1_AdaptiveAce_06/blue"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    1872.04,
+    2612.04
+   ],
+   "eclimb": [
+    249.74,
+    357.74
+   ],
+   "hp_lead": [
+    5.46,
+    9.46
+   ],
+   "hotrun": [
+    -1.5001,
+    1.5001
+   ],
+   "pursue": [
+    -0.1501,
+    0.1501
+   ]
+  },
+  "act": "dive",
+  "dur": 6.0,
+  "covers": [
+   "E1_AdaptiveAce_11/blue"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    5942.08,
+    7142.08
+   ],
+   "eclimb": [
+    -484.25,
+    -310.25
+   ],
+   "clos": [
+    -760.9,
+    -640.9
+   ],
+   "hp_lead": [
+    5.54,
+    11.54
+   ]
+  },
+  "act": "extend",
+  "dur": 6.0,
+  "covers": [
+   "D3_Scissors_01/red"
+  ],
+  "cofire": [
+   "D3_Scissors_00/red"
+  ]
+ },
+ {
+  "box": {
+   "agap": [
+    -678.95,
+    1515.28
+   ],
+   "es_rel": [
+    668.29,
+    1050.01
+   ],
+   "dalt": [
+    312.0299,
+    563.96
+   ],
+   "eclimb": [
+    147.68,
+    357.65
+   ],
+   "clos": [
+    341.67,
+    385.75
+   ],
+   "hp_lead": [
+    2.42,
+    11.54
+   ]
+  },
+  "act": "break",
+  "dur": 6.0,
+  "covers": [
+   "B1_EnergyFighter_03/red",
+   "B1_EnergyFighter_06/red",
+   "B1_EnergyFighter_08/red",
+   "B1_EnergyFighter_11/red",
+   "C3_Lufbery_00/red",
+   "C3_Lufbery_02/red",
+   "E1_AdaptiveAce_00/blue",
+   "E1_AdaptiveAce_08/blue"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "agap": [
+    -2300.11,
+    589.45
+   ],
+   "rng": [
+    4816.33,
+    7024.4
+   ],
+   "clos": [
+    -36.82,
+    582.58
+   ],
+   "dalt": [
+    245.91,
+    726.59
+   ],
+   "race": [
+    -25.55,
+    14.04
+   ],
+   "hp_lead": [
+    3.82,
+    13.21
+   ]
+  },
+  "act": "break",
+  "dur": 6.0,
+  "covers": [
+   "anchor_ace/blue",
+   "official_twocircle/blue",
+   "official_twocircle/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "agap": [
+    1349.17,
+    4149.17
+   ],
+   "dalt": [
+    314.86,
+    494.86
+   ],
+   "eclimb": [
+    340.11,
+    448.11
+   ],
+   "clos": [
+    313.55,
+    389.55
+   ]
+  },
+  "act": "break",
+  "dur": 6.0,
+  "covers": [
+   "C1_TwoCircleRate_03/red",
+   "C1_TwoCircleRate_04/red",
+   "C2_OneCircleRad_03/red",
+   "C2_OneCircleRad_04/red",
+   "C2_OneCircleRad_05/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    5628.99,
+    6708.99
+   ],
+   "clos": [
+    25.5999,
+    145.6
+   ],
+   "hp_lead": [
+    0.7499,
+    6.75
+   ]
+  },
+  "act": "extend",
+  "dur": 6.0,
+  "covers": [
+   "E1_AdaptiveAce_06/blue"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "agap": [
+    -591.3,
+    2308.7
+   ],
+   "eclimb": [
+    217.59,
+    319.5901
+   ],
+   "dalt": [
+    146.03,
+    239.03
+   ],
+   "hp_lead": [
+    5.54,
+    11.54
+   ],
+   "pursue": [
+    0.1199,
+    0.4201
+   ]
+  },
+  "act": "gun_pure",
+  "dur": 6.0,
+  "covers": [
+   "C3_Lufbery_06/red",
+   "C3_Lufbery_08/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    5278.15,
+    6218.15
+   ],
+   "dalt": [
+    316.33,
+    454.33
+   ],
+   "eclimb": [
+    282.5299,
+    411.53
+   ],
+   "clos": [
+    357.49,
+    415.49
+   ],
+   "hp_lead": [
+    5.79,
+    10.29
+   ]
+  },
+  "act": "gun_pure",
+  "dur": 6.0,
+  "covers": [
+   "E1_AdaptiveAce_11/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "agap": [
+    -3433.3,
+    1400.89
+   ],
+   "dalt": [
+    -804.76,
+    487.16
+   ],
+   "rng": [
+    6111.81,
+    7304.85
+   ],
+   "clos": [
+    -532.13,
+    415.12
+   ],
+   "eclimb": [
+    -134.6101,
+    370.31
+   ],
+   "race": [
+    -11.48,
+    18.33
+   ],
+   "hp_lead": [
+    -1.4401,
+    8.46
+   ],
+   "pursue": [
+    -0.1001,
+    0.2751
+   ]
+  },
+  "act": "gun_pure",
+  "dur": 6.0,
+  "covers": [
+   "E1_AdaptiveAce_11/blue",
+   "E2_Passive_01/blue",
+   "E2_Passive_01/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "rng": [
+    4881.4399,
+    12933.98
+   ],
+   "es_rel": [
+    -1509.22,
+    2998.13
+   ],
+   "clos": [
+    546.87,
+    1187.67
+   ],
+   "race": [
+    -34.26,
+    0.7001
+   ],
+   "dalt": [
+    -10.05,
+    18.77
+   ],
+   "hotrun": [
+    1.8,
+    14.3001
+   ]
+  },
+  "act": "dive",
+  "dur": 6.0,
+  "covers": [
+   "D1_Reactive_06/red",
+   "official_controlzone/blue",
+   "official_controlzone/red",
+   "official_headon/blue",
+   "official_headon/red"
+  ],
+  "cofire": []
+ },
+ {
+  "box": {
+   "dalt": [
+    442.25,
+    622.25
+   ],
+   "hp_lead": [
+    11.58,
+    17.5801
+   ],
+   "hotrun": [
+    -1.5001,
+    1.5001
+   ]
+  },
+  "act": "dive",
+  "dur": 6.0,
+  "covers": [
+   "D3_Scissors_00/red"
+  ],
+  "cofire": []
+ }
+]

@@ -1,0 +1,17 @@
+[s3] A2_GunTracker_11/blue@s1 win[10,34] step4
+[s3] E2_Passive_00/blue@s1 win[10,35] step4
+[s3] A2_GunTracker_00/red@s2 win[10,60] step6
+[s3] A2_GunTracker_11/blue@s2 win[10,54] step6
+[s3] A3_LagAngler_08/red@s2 win[10,60] step6
+[s3] C3_Lufbery_04/red@s2 win[10,60] step6
+[s3] D3_Scissors_01/red@s2 win[10,60] step6
+[s3] A1_PurePursuer_00/red@s3 win[10,60] step6
+[s3] A3_LagAngler_08/red@s3 win[10,60] step6
+[s3] B2_Extender_02/blue@s3 win[10,33] step4
+[s3] C1_TwoCircleRate_00/red@s3 win[10,60] step6
+[s3] C2_OneCircleRad_00/red@s3 win[10,60] step6
+[s3] C3_Lufbery_00/red@s3 win[10,60] step6
+[s3] D1_Reactive_06/blue@s3 win[10,33] step4
+[s3] E1_AdaptiveAce_06/blue@s3 win[10,33] step4
+[s3] anchor_aggressive/red@s3 win[10,60] step6
+[s3] 완료

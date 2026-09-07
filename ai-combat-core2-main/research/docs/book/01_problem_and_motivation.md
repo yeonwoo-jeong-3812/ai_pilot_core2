@@ -1,0 +1,380 @@
+# 1장. 문제와 동기 — 왜 투명한 AI 조종사인가
+
+## 학습 목표
+이 장을 마치면 다음을 할 수 있다.
+- 블랙박스 신경망 제어의 두 결함(비설명성, 불확실 시 평균수렴)을 설명한다.
+- 투명·결정론·인용가능 제어가 왜 가치 있는지 안다.
+- 내측 제어로 LQR과 INDI 두 가지를 두는 이유(최적성·투명 대 모델오차 강건)를 안다.
+- 이 책이 다루는 전체 흐름(문제→토대→제어→유도→의사결정→통합)을 그린다.
+
+
+> 발표용 설명서. 설계 의도와 각 부품의 역할을 자연어로 풀고,
+> "왜 다른 방법이 아니라 이 방법인가" 를 하나씩 짚는다.
+> (기술 레퍼런스는 [NEW_ENGINE_OFFLINE_POLICY_METHODOLOGY.md](12_offline_policy.md))
+
+---
+
+## Part 1. 우리가 풀려는 문제 — 쉽게
+
+전투기 두 대가 1:1로 붙는 근접 공중전(dogfight). 매 순간 조종사는
+*"지금 쫓아야 하나, 돌아야 하나, 위로 빼야 하나?"* 를 결정해야 합니다.
+
+이게 어려운 이유:
+1. 상황이 계속 바뀐다 — 0.1초마다 유리/불리가 뒤집힘.
+2. 상황마다 정답이 다르다 — 적 뒤에선 추격이 정답, 적이 내 뒤면 추격은 자살.
+3. 검증·설명이 안 되면 못 쓴다 — "왜 그렇게 기동했냐"에 답할 수 있어야 신뢰.
+
+우리 목표: 사람이 *이해하고 검증할 수 있는* 방식으로, 상황마다 올바른 기동을
+데이터로 스스로 배우는 AI 파일럿.
+
+---
+
+## Part 2. 설계 철학 — 세 가지 약속
+
+우리 시스템은 세 가지 원칙 위에 섭니다. 모든 설계 결정이 여기서 나옵니다.
+
+### 약속 1. 투명해야 한다 (블랙박스 금지)
+> "왜 그렇게 했는지 설명·인용·검증할 수 있어야 한다."
+
+비행기 제어를 신경망(RNN)에 맡기면 잘 날지 몰라도 *왜* 그렇게 날았는지 모릅니다.
+우리는 수학적으로 해석 가능한 제어(LQR/INDI) 와 읽을 수 있는 정책(학습된 가치 + 행동유형 독트린)만
+씁니다. 최종 정책은 RandomForest 가치 base 위에 적 *행동 유형*별 결정론 독트린을 얹은 IntelPolicy다(11·17장).
+
+### 약속 2. 상황을 나눠서 봐야 한다 (단일 두뇌 금지)
+> "dogfight 는 상황의 조합. 하나의 잣대로 모든 상황을 재면 자기모순."
+
+예: "거리를 좁혀라"는 추격엔 맞지만 방어엔 틀립니다. 그래서 상황을 먼저 분리하고,
+각 상황의 정답을 따로 찾습니다.
+
+### 약속 3. 데이터로 배워야 한다 (손튜닝 금지)
+> "사람이 가중치를 만지면 그 적에만 맞춰진다(overfit). 진짜 게임 결과로 배워야 한다."
+
+"이 상황엔 이 값"을 손으로 정하면, 본 적 없는 적에겐 깨집니다.
+대신 실제 교전을 시뮬해서, 진짜로 이기는 기동을 데이터가 알려주게 합니다.
+
+---
+
+## Part 3. 시스템을 사람에 비유하면
+
+공중전 AI를 한 명의 조종사로 보면, 우리 시스템은 이렇게 나뉩니다:
+
+| 사람 | 우리 부품 | 하는 일 |
+|---|---|---|
+| 눈 | 관측(obs) | 적과 나의 상대 기하를 잰다 (거리·각도·에너지) |
+| 정보(IFF) | 행동유형 자가분류 | "적이 *어떻게* 싸우나?"(D2/A3/base, 궤적 형상으로) |
+| 뇌(판단) | 상황분류 + 정책(IntelPolicy) | "지금 무슨 상황? → 무슨 기동?"(유형별 독트린) |
+| 손(조작) | 유도 + 제어(LQR/INDI) | 결정한 기동을 실제 조종간 입력으로 |
+| 비행기 | JSBSim 물리 | 6자유도 비행 시뮬 |
+| 심판 | judge | 누가 쐈나, 누가 땅에 박았나 |
+
+이 문서의 핵심은 "뇌"가 어떻게 판단하고, 그 판단을 어떻게 데이터로 배우는가 입니다.
+
+---
+
+## Part 4. 각 부품 상세 — 기술·근거·이유·우리 문제 적합성
+
+> 각 선택을 네 가지로 설명합니다:
+> [기술] 어떻게 작동하나 · [근거] 무엇으로 뒷받침되나(측정/데이터) ·
+> [왜 이것] 대안 대비 이유 · [우리 문제 적합성] 1:1 dogfight 특성에 왜 맞나.
+
+### 4.1 제어 — 왜 LQR(과 INDI)인가?
+
+역할: setpoint(목표 방위·고도·속도) → 조종면 입력 u[thr,elev,ail,rud].
+
+- [기술] 상태오차 x에 대해 비용 J=∫(xᵀQx+uᵀRu)dt 를 최소화하는 최적 게인 K를
+  Riccati 방정식(scipy `solve_continuous_are`)으로 풀어 u = u₀ − K·(x−x\*).
+  비행영역이 넓어 trim점별로 K를 미리 풀어 보간(gain scheduling).
+- [근거] 게인 부호가 물리와 일치함을 측정 검증 (예: K[ail,phi]<0 → 좌오차에 우롤).
+  B행렬 1-tick 유한차분이 FCS transient를 잡는 버그 → 10-tick 평균으로 수정(실측).
+- [왜 이것] RNN=블랙박스(설명 불가), PID=다변수 결합(고도↔속도↔선회) 약함.
+  LQR은 최적성·해석성·결정론을 동시에.
+- [우리 문제 적합성]
+  ① F-16 동역학은 trim점 부근 준선형(소교란) → LQR의 선형 가정이 유효.
+  ② 고도·속도·선회가 강결합된 MIMO → 단일루프 PID보다 LQR이 자연스러움.
+  ③ 오프라인 solver가 성립하려면 제어가 결정론이어야 함 — RNN의 비결정성은
+     "같은 상태=같은 결과"를 깨뜨려 라벨을 무의미하게 만듦. LQR은 결정론.
+
+내측 루프 대안 — INDI. LQR은 선형화 모델(A, B)에 기댄다. 그래서 trim점 부근에선
+정확하지만, 깊은 고받음각이나 큰 복합기동처럼 모델이 실제와 어긋나는 영역에선 정확도가
+떨어진다. 이를 보완하는 같은 자리(내측 자세 안정)의 대안이 INDI(Incremental Nonlinear
+Dynamic Inversion)다.
+
+- [기술] 모델 전체에 의존하지 않고, 측정한 각가속도(ω̇)와 원하는 각가속도(ν)의 차만큼
+  조종면을 증분 보정한다(Δδ = ḡ⁻¹(ν − ω̇)). 모델오차가 측정값에 이미 반영돼 있어 흡수된다.
+- [근거] NASA TP-1538 고받음각 plant 실측(16장): 단순 피치는 LQR과 INDI가 사실상 동일
+  (둘 다 0.1도 미만). 그러나 복합 고기동에 모델 불확실성(제어효과 절반)을 주면 LQR은
+  정상상태 오차 2.38도/정착 7.9초로 둔해지고, INDI는 0.61도/1.1초를 유지(약 4배 정밀, 7배 빠름).
+- [왜 둘 다 두나] LQR은 증명 가능한 최적성과 게인 스케줄의 투명함을, INDI는 모델오차에
+  대한 강건함을 준다. 둘은 같은 내측 자리를 두고 교체 가능하며(7장 종속 구조), 어느 쪽을
+  쓰든 외측 루프와 유도·정책은 그대로다. 두 제어기는 6장(LQR)과 8장(INDI)에서 각각 다루고,
+  16장에서 형식 검증과 실측으로 비교한다.
+
+### 4.2 유도 — 왜 연속 setpoint인가?
+
+역할: Tactic(예 PURE_PURSUIT) → 구체 목표값(ψ\*, h\*, v\*).
+
+- [기술] 각 BFM tactic이 obs로부터 연속 setpoint를 계산 (예: pursuit는 ψ\*=적 방위).
+  chase 속도는 3-phase PID: 진행방향 다르면 저속 좁은선회 → 정렬 후 가속 → 근접 감속.
+- [근거] 기존 BT-RNN map 측정: 방위 명령이 9칸 이산 bin이라 ±20° 분해능 한계.
+  E-M 측정: 좁은 반경엔 corner speed가 최적(§4.3) → 속도를 국면별로 바꿔야 함.
+- [왜 이것] 이산 bin은 정밀 조준(WEZ ATA<12°) 달성에 분해능 부족.
+- [우리 문제 적합성] dogfight 승리는 1° 단위 조준과 corner speed 유지가 좌우 —
+  연속 setpoint라야 WEZ에 정밀 안착하고, 3-phase로 BFM 교리(저속선회→가속)를 구현.
+
+### 4.3 상황분류 — 왜 물리(HCA)로 나누나?
+
+역할: obs → 하나의 상호배타 상황 라벨 (CHASE/CIRCLE/DEFENSIVE).
+
+- [기술] HCA=\|wrap(ψ_us−ψ_opp)\| (두 속도벡터 교차각). 우선순위 분류:
+  DEFENSIVE(dist<4000∧aa>110) > CHASE(HCA<45∧aa<90) > CIRCLE(그외). 한 상태=한 라벨.
+- [근거] E-M 곡선 측정: max-bank 정상선회시 선회율 ω가 corner speed
+  ~360kts에서 최대(13.7°/s), 그 이상 빨라지면 감소. → 추격은 속도↑가 단조 유리,
+  선회전은 corner가 최적 → 두 상황 최적속도 정반대.
+  클러스터링 검증: feature 공간 KMeans silhouette가 k=8까지 증가 →
+  3개 부족, 데이터가 ~6 상황(CHASE/CHASED/HEAD_ON/CIRCLE 에너지3) 확인.
+- [왜 이것] 단일 advantage(=1−(ata+aa)/180)는 ata·aa를 뭉개 *다른 상황을 같다고 봄*
+  (ata0/aa90 vs ata90/aa0이 동점). 물리로 나눠야 구분됨.
+- [우리 문제 적합성] dogfight의 교전 *유형*은 두 기체의 속도벡터 정렬도(HCA)로
+  물리적으로 결정되고, 추격·선회는 최적 속도가 반대라 한 정책으로 못 섬 →
+  HCA 분리가 우리 문제의 본질적 구조를 그대로 반영. (손정의를 데이터로 재확인.)
+
+### 4.4 적 BT — 왜 yaml 인터프리터인가?
+
+역할: 상대 조종사. legacy 970개 적 BT(.yaml)를 그대로 실행.
+
+- [기술] .yaml 을 dict 트리로 읽어 직접 순회(walk)한다 — py_trees 런타임은 쓰지 않고
+  노드 종류만 py_trees식(Selector/Sequence/Condition/Action/Parallel). Selector=첫 성공
+  branch, Sequence=조건 all-pass→액션. Condition→obs 평가(35종),
+  Action→Tactic 매핑(37종). `load_bt(yaml)→opp_fn(obs)→Tactic`.
+- [근거] 어휘 추출: 조건 35종·액션 37종이 모두 obs/Tactic로 매핑 가능하며 bt-editor
+  어휘를 100% 덮음 → 969/969 로드·실행 성공(실측). 손포팅 4개는 버그(simple이 hard-deck 자멸).
+- [왜 이것] 손포팅은 970개 불가·오류多. 새로 작성은 legacy 거동과 달라짐.
+- [우리 문제 적합성] 오프라인 학습의 힘은 적 다양성(coverage) — 970개가
+  BFM 교리 상황(gun/scissors/energy/neutral/defensive/pursuit)을 망라.
+  또한 .yaml 유지 → 제출·토너먼트 호환 + legacy 엔진을 우리 코드로 대체하는 경로.
+
+#### 4.4.1 yaml BT 어휘 사전 — 조건 35종
+
+각 조건은 obs(관측) 또는 그 파생값을 받아 참/거짓을 낸다. 임계값은 .yaml params로
+바꿀 수 있고, 아래는 기본값이다. hca·Es·in_39·선회율은 obs에 없고 평가 시 즉석 계산한다.
+
+| 조건 | 식 (기본 임계) | 의미 |
+|---|---|---|
+| BelowHardDeck | ego_alt_ft < 1000 | 하드덱(고도 하한) 이하 — 추락 위험 |
+| DistanceBelow | distance_ft < 3000 | 적이 근접 |
+| DistanceAbove | distance_ft > 3000 | 적이 원거리 |
+| ATABelow | ata_deg < 30 | 기수가 적을 향함 |
+| ATAAbove | ata_deg > 30 | 기수가 적에서 벗어남 |
+| EnemyInRange | distance_ft < 6562 | 적이 교전 사거리 내 |
+| AltitudeBelow | ego_alt_ft < 5000 | 내 고도가 하한 미만 |
+| AltitudeAbove | ego_alt_ft > 20000 | 내 고도가 상한 초과 |
+| UnderThreat | aa_deg > 120 | 적이 내 후방 — 내가 위협받음 |
+| VelocityBelow | ego_vc_kts < 250 | 내 속도가 저속 |
+| ClosureRateAbove | closure_kts > 30 | 빠르게 접근 중 |
+| InEnemyWEZ | aa_deg > 150 그리고 distance_ft < 3000 | 적 사격권 안(적이 내 정후방 근접) |
+| IsOffensiveSituation | is_offensive(Geom) | 공격 국면 |
+| IsDefensiveSituation | is_defensive(Geom) | 방어 국면 |
+| IsNeutralSituation | is_neutral(Geom) | 중립 국면 |
+| IsEnergyAdvantage | Es_us > Es_op + 200 | 에너지 우위 |
+| SpecificEnergyAbove | Es_us > 18000 | 비에너지 절대값이 큼 |
+| IsAltAdvantage | alt_gap_ft > 200 | 고도 우위 |
+| IsMerged | distance_ft < 2000 | 머지(근접 교차) |
+| IsOvershootRisk | closure_kts > 80 그리고 distance_ft < 3000 | 과접근 — 오버슈트 위험 |
+| IsNearOffensive | advantage > 0.1 | 위치 우위가 약간 양수 |
+| IsDisengaging | closure_kts < −50 | 적이 이탈 중 |
+| IsOneCircle | hca < 60 | one-circle 기하(속도벡터 정렬) |
+| IsTwoCircle | hca > 120 | two-circle 기하(속도벡터 교차) |
+| IsScissors | 60 < aa_deg < 120 그리고 distance_ft < 3000 | 시저스(근접 측면) |
+| EnergyHighPs | ego_vc_kts > 350 | 고속(잉여출력 큼) |
+| ClosureRateBelow | closure_kts < 0 | 이격 중(접근속도 음수) |
+| VelocityAbove | ego_vc_kts > 389 | 고속 |
+| EnergyDiffAbove | Es_us − Es_op > 1640 | 에너지차 큼 |
+| Is39Line | aa_deg < 90 | 적 후방반구 점유 |
+| IsSpdAdvantage | ego_vc_kts > enm_vc_kts + 10 | 속도 우위 |
+| IsTargetInSight | ata_deg < 45 | 적이 전방 시계 내 |
+| LOSAbove | abs(rel_b_deg) > 15 | 시선이 정면에서 벗어남(선회 중) |
+| LOSBelow | abs(rel_b_deg) < 15 | 시선이 거의 정면 |
+| TurnRateAbove | g·tan(phi)/V > 5도/초 | 선회율이 큼 |
+
+여기서 Geom·Es·hca·in_39 정의는 10장(관측과 상황 분류)을 따른다.
+
+#### 4.4.2 yaml BT 어휘 사전 — 액션 37종
+
+각 액션 이름은 우리 Tactic 하나로 매핑된다(여러 legacy 이름이 같은 Tactic으로
+모이기도 한다). 표에 없는 이름은 기본값 PURE_PURSUIT로 떨어진다. Tactic의 실제
+실현(목표 방위·고도·속도)은 9장(유도)에서 다룬다.
+
+| 액션 | 매핑 Tactic | 의미 |
+|---|---|---|
+| ClimbTo | CLIMB | 상승 |
+| DescendTo | LOW_YOYO | 강하(하부 요요로 근사) |
+| GunAttack | GUN_TRACK | 기총 추적(비례항법 사격) |
+| Pursue | PURE_PURSUIT | 순수 추격 |
+| PurePursuit | PURE_PURSUIT | 순수 추격(기수를 적에) |
+| LagPursuit | LAG_PURSUIT | 지연 추격(적 뒤쪽 겨눔) |
+| LeadPursuit | LEAD_PURSUIT | 선도 추격(적 앞 겨눔) |
+| BreakTurn | BREAK_TURN | 브레이크 턴(방어 급선회) |
+| DefensiveManeuver | BREAK_TURN | 방어 기동 |
+| DefensiveSpiral | BREAK_TURN | 방어 나선 |
+| Evade | BREAK_TURN | 회피 |
+| SliceTurn | BREAK_TURN | 슬라이스 턴 |
+| DescendingTurn | LOW_YOYO | 강하 선회 |
+| HighYoYo | HIGH_YOYO | 상부 요요 |
+| LowYoYo | LOW_YOYO | 하부 요요 |
+| ClimbingTurn | HIGH_YOYO | 상승 선회 |
+| ReengageClimb | HIGH_YOYO | 재교전 상승 |
+| AltitudeAdvantage | HIGH_YOYO | 고도 우위 확보 |
+| EnergyFight | HIGH_YOYO | 에너지 파이트 |
+| SpiralClimb | HIGH_YOYO | 나선 상승 |
+| Loop | HIGH_YOYO | 루프 |
+| ImmelmannTurn | HIGH_YOYO | 임멜만 |
+| HammerHead | HIGH_YOYO | 해머헤드 |
+| OneCircleFight | ONE_CIRCLE | one-circle 선회전 |
+| TwoCircleFight | TWO_CIRCLE | two-circle 선회전 |
+| TCFight | TWO_CIRCLE | two-circle 선회전 |
+| TurnLeft | ONE_CIRCLE | 좌선회(원선회 근사) |
+| TurnRight | ONE_CIRCLE | 우선회(원선회 근사) |
+| BarrelRoll | LAG_DISPLACEMENT_ROLL | 배럴롤(지연 변위 롤) |
+| ScissorsAccel | SCISSORS | 시저스 |
+| Straight | LEVEL_FLIGHT | 직진 수평 |
+| MaintainAltitude | LEVEL_FLIGHT | 고도 유지 |
+| Accelerate | EXTENSION | 가속 이탈 |
+| Decelerate | LAG_PURSUIT | 감속(지연 추격으로) |
+| SplitS | LOW_YOYO | 스플릿 S |
+| SpiralDive | LOW_YOYO | 나선 강하 |
+| OvershootAvoidance | HIGH_YOYO | 오버슈트 회피(수직 요요로 접근 제거) |
+
+이 두 표의 출처는 new_match_engine/bt/yaml_bt.py(_cond, _ACTION)이며, bt-editor의
+편집기 어휘와 1:1로 일치한다.
+
+### 4.5 라벨링 — 왜 "진짜 데미지" forward-sim인가?
+
+역할: "이 상태서 이 기동→실제로 얼마나 이기나"를 시뮬로 채점(정답 생성).
+
+- [기술] 상태 S에서 각 tactic T: `restore_state(S)`→우리=T, 적=실제 BT로 H초 시뮬→
+  점수=Σ wez_damage(가한)−wez_damage(받은). wez_damage=ATA<12°∧500~3000ft→25HP/s·dt.
+  `capture/restore_state`(IC 경유, 0.1ms)로 임의 상태 분기.
+- [근거] 부드러운 근사(_wez_margin)로 학습시 CV·분포가 진짜 승패와 어긋남 →
+  진짜 wez_damage로 교체하니 feature 중요도가 aa·dist(=격추 기하)로 정렬(실측).
+- [왜 이것] 근사 라벨=의미없는 데이터. constant_action(적 고정)=반응형 적 못 잡음.
+- [우리 문제 적합성]
+  ① 우리 승리 조건은 closed-form(judge의 WEZ 규칙) → 추측 없이 그대로 채점 가능.
+  ② dogfight는 반응 게임 — 적이 실제로 반응해야 라벨이 참값. 오프라인이라 실제 적
+     BT를 돌릴 시간 여유가 있음(온라인 MPC는 불가능했던 것).
+  ③ 결정론 덕에 1회 시뮬=정확한 참값 (몬테카를로 반복 불필요, §4.9).
+
+### 4.6 정책 — 왜 RandomForest value 회귀인가? (핵심)
+
+역할: 라벨을 학습해 시뮬 없이 즉답하는 배포 정책 (feature→최적 tactic).
+
+(a) 왜 "학습/distillation"인가?
+- [기술] 라벨링은 비싸 샘플 상태에서만 가능 → 그 정답을 모델이 학습해 모든 상태로
+  일반화 → 배포 시 μs 즉답. = *policy distillation*.
+- [적합성] 온라인 0.1초 결정주기 → 매 tick 시뮬은 불가. 비싼 계산을 오프라인서
+  끝내고 가벼운 함수로 압축해야 실시간 배포 가능.
+
+(b) 왜 "회귀(value)"인가? (분류 아님)
+- [기술] 라벨링이 상태마다 8 tactic 점수(벡터)를 만듦 → multi-output 회귀로
+  feature→[8점수] 학습 → 배포 시 argmax. = Q(state,action) 가치함수(fitted-Q).
+- [근거] 분류(argmax 이름만)로 하면 동률에서 라벨 noise → 실측 CV 0.42.
+  회귀(8점수 보존)로 바꾸니 CV R² 0.72(실측). ③→④ 연결이 정보손실 없이 이어짐.
+- [적합성] dogfight는 여러 tactic이 근소차로 비슷한 상태가 많음(동률) →
+  hard 분류는 그 뉘앙스를 잃지만, 회귀는 점수차를 보존해 안정적.
+
+(c) 왜 RandomForest? (단일트리·DNN·offline RL 아님)
+- [기술] bootstrap 샘플 + 랜덤 feature 부분집합으로 다수 트리 학습 → 예측=평균.
+  비선형·feature 상호작용을 자동 포착, feature 중요도 산출.
+| 후보 | 평가 | 채택 |
+|---|---|---|
+| 단일 DecisionTree | 완전투명하나 얕고 noisy 라벨에 약함 | △ |
+| RandomForest | 비선형·상호작용·noisy 강건 + 중요도(해석) | |
+| DNN | 강력하나 블랙박스(약속1 위반)+대량데이터 | |
+| Offline RL(CQL) | 정석이나 블랙박스·복잡·대량데이터 | (지금) |
+- [근거] feature 중요도 aa0.38·dist0.29(실측) = 격추 기하 → 물리적으로 타당,
+  *손으로 정한 게 아니라 데이터가 말함*.
+- [우리 문제 적합성] 우리 상태는 저차원(8 feature)·tabular·강한 상호작용
+  (예: "aa 낮음 *그리고* 사거리"가 동시 충족돼야 격추) → 트리 앙상블이 가장 잘 맞는
+  데이터 형태. DNN은 이런 저차원 tabular에서 과하고 불투명. RandomForest는 적은
+  데이터로도 비선형 상호작용을 잡고, feature 중요도로 투명성(약속1) 유지 → 우리
+  세 약속(투명·상황·데이터)을 동시에 만족하는 유일한 균형점.
+
+(d) 그래서 "가중치"는? 사람이 안 만짐. 진짜 데미지를 정답으로 두면 모델이 데이터에서
+  feature↔점수를 학습 → 중요도로 창발. 상황별 차이는 cost공식이 아니라 *상태별 점수*에.
+
+### 4.7 커버리지 — 왜 Latin Hypercube인가?
+
+역할: 학습 데이터가 될 다양한 시작 상황 생성 (7-D: 거리·방위·HCA·양측고도·양측속도).
+
+- [기술] `scipy.stats.qmc.LatinHypercube`로 7-D 단위입방체를 각 축이 고르게 1번씩
+  지나도록 n점 샘플 → 각 점을 spawn 파라미터로 매핑.
+- [근거] 격자는 7-D×4값=16384 폭발, 단순 랜덤은 뭉침/공백 발생. LHS는 적은 n으로
+  공간을 균일 충진(space-filling)하는 표준 실험계획법.
+- [왜 이것] 분해능(coverage)을 적은 매치로 극대화.
+- [우리 문제 적합성] dogfight 상태공간은 고차원 연속체 — 4개 spawn으론 극히
+  일부만 봄. 진짜 1:1 상황(원거리 방어, 정면, 에너지 열세…)을 고르게 덮어야 정책이
+  일반화. LHS가 그 "분해능"을 효율적으로 제공.
+
+### 4.8 왜 오프라인인가? (온라인 MPC 아님)
+
+- [기술] 온라인 MPC는 매 tick 적 미래를 예측해 rollout. 실시간 0.1초 안에 풀려면
+  적을 `constant_action`(입력 고정)으로 단순화할 수밖에 없음.
+- [근거] 실측: 온라인 rollout이 ace는 잡으나 반응형 추격자(aggressive)에 무승부 —
+  constant_action이 적 반응을 못 그림.
+- [우리 문제 적합성] dogfight 적은 반응형 → 온라인 단순예측은 본질적으로 부정확.
+  오프라인이면 적 BT를 실제로 돌려 정확히 평가하고, 그 결과를 가벼운 정책으로 배포 →
+  정확성과 실시간성을 분리해 둘 다 얻음.
+
+### 4.9 왜 결정론 coverage인가? (몬테카를로 반복 아님)
+
+- [기술] 고전 MC는 확률 시스템에서 같은 시나리오를 N번 반복해 분산을 평균.
+- [근거] 우리 스택(JSBSim·LQR·적BT) 모두 RNG 없음 → 같은 입력=같은 출력(결정론 검증
+  완료). 반복하면 동일값 N개(정보 0).
+- [우리 문제 적합성] 결정론이므로 1회 rollout=정확한 참값 → 노력을 반복이 아니라
+  서로 다른 시나리오(coverage) 에 투자해야 분해능↑. (robustness가 필요하면 그때만
+  교란+평균=진짜 MC를 선택적으로 적용.)
+
+---
+
+## Part 5. 전체 흐름 — 한 편의 스토리
+
+```
+1) 다양한 1:1 상황을 만든다       (Latin Hypercube spawn × 970 적)
+2) 5분 매치를 돌리며 상태를 모은다  (결정론 시뮬)
+3) 각 상태에서 8개 기동을 "실제로" 시뮬해 진짜 데미지로 채점한다  (정답 생성)
+4) 그 정답들을 RandomForest가 학습한다  (가치함수 → 투명 정책)
+5) 배포: 매 순간 상황을 보고 즉답한다  (시뮬 없이 μs, 설명 가능)
+```
+
+처음부터 끝까지: 투명한 제어 + 물리로 나눈 상황 + 진짜 게임으로 배운 정책.
+
+---
+
+## Part 6. 지금까지의 성과와 결론
+
+성과
+- 최종 정책 **IntelPolicy**: 적의 *행동 유형*(D2 최후방어 강하-도주(deck까지 얕은 강하) / A3 lag-angler / base)을
+  *관측으로 자가분류*하고, 유형별 파훼 독트린을 RandomForest 가치 base 위에 얹는다(11·17장).
+  유형은 적 BT 정체가 아니라 *어떻게 싸우는가*(행동 archetype) — 그렇게 행동하는 어떤 적에게도 통한다.
+- 결과(세 채점 모드 — both-INDI·교범 러더 0.2·high-g ON·300s):
+  · **realistic 16/17** — 교범 러더(`INDI_RUD_MAX_CRUISE=0.2`)·high-g ON. high-g 로 A3 를 깨 15→16, 잔여 1 은 D2(blind).
+  · **성능 17/17** — 비교범 대형 수동 러더(nose-skid)로 얻는 추가 1승(D2).
+  · **blind 16/17** — 적 정보 0, 관측 자가분류만(실제 배치조건). D2 만 무승부인데, 이는 운동학 벽이 아니라 *분류 정보한계*(D2 의 dive-onset 이 늦어 조기 창 안에 D2 로 확정 못 함)다. oracle(유형 given, 상한 벤치마크)에서는 D2 도 판정승 → 17/17(D2 는 운동학적으로 격파 가능함이 증명됨).
+- 투명한 LQR/INDI 제어 + 물리 기반 상황 분리 + 진짜 데미지 라벨로 학습. legacy 적 BT(.yaml) 자동 해금.
+
+검증으로 확정한 결론 (17장 종합)
+- **control-fidelity 충실**: 러더 ±30°·NASA TP-1538 Cndr·FLCS 자동 턴조정(`yaw-load-pid`)·조건부 high-g(8.2g, 9g 구조한계 안) →
+  realistic 천장은 16/17이고, 잔여 1(D2 blind)은 fidelity 결함도 운동학 벽도 아니라 *분류 정보한계*다(D2 는 oracle 에서 판정승 = 운동학적 격파 증명).
+- **예측은 병목이 아니다**: ETM 칼만필터·뱅크-선행 ω·lead-collision 등 *5개 예측 레버가 전부
+  중립/악화* — gun-WEZ dwell은 *제어(러더) 한계*에 묶여 있어 더 잘 예측해도 안 늘어난다.
+- 독트린의 목표 = 지속 **gun-WEZ dwell**(코가 적의 *현재 위치*를 향함), 고전 SOTA의 *요격* 최적화와 다름.
+
+> 한 문장으로: *"왜 그렇게 싸웠는지 설명할 수 있고, 적의 행동 유형을 스스로 알아내,
+> 진짜 게임에서 이기는 — 그리고 그 천장이 어디이고 왜인지까지 측정으로 아는 조종사 AI."*
+
+---
+
+## 연습문제
+1. 블랙박스 제어의 두 결함을 각각 한 줄로 설명하라.
+2. 투명 제어가 같은 입력에 같은 출력을 낸다는 성질이 왜 중요한가.
+3. 이 책의 여섯 부가 각각 무엇을 답하는지 한 줄씩 적어라.
+

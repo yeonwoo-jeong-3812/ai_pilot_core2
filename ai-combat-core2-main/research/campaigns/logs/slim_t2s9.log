@@ -1,0 +1,9 @@
+기준 발화 31건 / 문장 6
+  문장#0 e_extend 축 14 → 6
+  문장#1 e_extend 축 14 → 8
+  문장#2 break    축 12 → 6
+  문장#3 climb    축 12 → 4
+  문장#4 e_extend 축 12 → 4
+  문장#5 lag      축 12 → 4
+축 제거 44개 → 총 32축 저장: research\data\blueteam\induced_rules_t2s9_slim.json
+※ 최종 판정은 전 128판 실측 필요(덤프 반올림 한계)

@@ -1,0 +1,45 @@
+# 아키타입: Two-Circle Rate Fighter(레이트 파이터) — 새 어휘 사용례 겸 스파링 상대.
+#
+# 성향: 머지에서 2-circle flow(양 기체 같은 회전방향 = 노즈-투-노즈, BEM 4.4.4)를
+# 강제해 선회율 싸움으로 끌고 간다. 1-circle(반대 방향 = 반경 싸움)이 되면 lag 으로 거부.
+# flow 판별은 선회방향 기반 one_circle/two_circle 조건 (순간 HCA 아님 — D7).
+#
+# 우선순위: 브레이크 > 건 > 머지 커밋(2s) > 2-circle 레이트파이트 > 1-circle 거부 > 기본 pure
+agent_name: TwoCircle
+selector:
+  # 0) 하드덱 회피 — 최우선 (고도 4,500ft 이하면 상승 회복). 레이트파이트는
+  #    선회로 에너지를 소모하므로 저고도 이탈이 특히 중요하다.
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, aim_above_ft: 4000, name: recover_altitude}
+  # 1) 방어 브레이크: 적 기수 조준 + 근접일 때만 (거리 게이트 — 방어 고착 방지)
+  - sequence:
+      - condition: {name: foe_threat, aspect_deg: 135}
+      - condition: {name: merged, range_ft: 6000}
+      - action: {pursuit: lag, max_g: true, name: break_defense}
+  # 2) 건 솔루션 → 추적 사격
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 45}
+      - action: {pursuit: lead, max_g: true, name: gun_track, lead_time_s: 0.5}
+  # 3) 머지 통과 → 2s 커밋: max-G 리드로 즉시 선회 개시(레이트파이트 진입).
+  #    커밋이 merge 직후 1~2 tick 의 기하 요동에 흔들리지 않게 잠근다
+  - commit:
+      name: merge_commit
+      duration_s: 2.0
+      cooldown_s: 2.0
+      child:
+        sequence:
+          - condition: {name: merged, range_ft: 1500}
+          - action: {pursuit: lead, max_g: true, name: rate_fight_entry}
+  # 4) 2-circle flow + 접근 중 → 리드로 선회율 우위 활용.
+  #    (구 ¬one_circle 표현은 D7 flow 전환 후 "둘 다 직선"까지 포함하므로 명시 조건으로 교체)
+  - sequence:
+      - condition: two_circle
+      - condition: closing
+      - action: {pursuit: lead, name: rate_fight}
+  # 5) 1-circle 기하 → lag 으로 거부(원서클 반경 싸움 회피)
+  - sequence:
+      - condition: one_circle
+      - action: {pursuit: lag, name: refuse_one_circle}
+  # 6) 기본: pure
+  - action: {pursuit: pure, name: pure_default}

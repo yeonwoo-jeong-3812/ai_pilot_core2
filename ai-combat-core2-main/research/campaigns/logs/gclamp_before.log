@@ -1,0 +1,34 @@
+단위 1개 × 슬롯 150 = 총 150판   워커 1
+  [1/1] headon s0 (6.0분 경과)
+
+국면           시드     판     승    무    패
+headon        0   150   117    0   33
+합계                150   117    0   33   승률 78.0%  불패율 78.0%
+
+패배가 나온 슬롯 33개 (IC 중 몇 번 졌나):
+  A1_PurePursuer_00/red                  패   1/1    무   0  승   0
+  A1_PurePursuer_02/red                  패   1/1    무   0  승   0
+  A1_PurePursuer_05/red                  패   1/1    무   0  승   0
+  A1_PurePursuer_07/red                  패   1/1    무   0  승   0
+  A1_PurePursuer_09/red                  패   1/1    무   0  승   0
+  A2_GunTracker_00/red                   패   1/1    무   0  승   0
+  A2_GunTracker_03/red                   패   1/1    무   0  승   0
+  A2_GunTracker_06/red                   패   1/1    무   0  승   0
+  A2_GunTracker_08/red                   패   1/1    무   0  승   0
+  A3_LagAngler_00/blue                   패   1/1    무   0  승   0
+  A3_LagAngler_03/blue                   패   1/1    무   0  승   0
+  A3_LagAngler_06/blue                   패   1/1    무   0  승   0
+  A3_LagAngler_08/red                    패   1/1    무   0  승   0
+  A3_LagAngler_11/red                    패   1/1    무   0  승   0
+  D1_Reactive_08/red                     패   1/1    무   0  승   0
+  D1_Reactive_11/red                     패   1/1    무   0  승   0
+  D2_LastDitch_03/blue                   패   1/1    무   0  승   0
+  D3_Scissors_00/blue                    패   1/1    무   0  승   0
+  D3_Scissors_01/blue                    패   1/1    무   0  승   0
+  D3_Scissors_02/blue                    패   1/1    무   0  승   0
+  E2_Passive_00/blue                     패   1/1    무   0  승   0
+  E2_Passive_01/blue                     패   1/1    무   0  승   0
+  anchor_ace/red                         패   1/1    무   0  승   0
+  anchor_aggressive/red                  패   1/1    무   0  승   0
+  anchor_simple/red                      패   1/1    무   0  승   0
+  … 외 8개

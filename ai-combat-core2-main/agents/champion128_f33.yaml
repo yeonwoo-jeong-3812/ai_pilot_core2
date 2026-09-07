@@ -1,0 +1,203 @@
+# 128승 조종사 — 함수-구간 3층 BT (생성: research/gen_champion_yaml.py)
+# 문장 출처: research\data\blueteam\induced_rules_f33_slim.json (12문장). 손편집 금지 — 재생성할 것.
+# 표시 상수는 로드 시점에 정본 값과 일치가 단언된다(드리프트 검출).
+agent_name: Champion128
+dwell_s: 0                       # 문장·기저가 자체 래치 보유
+custom_module: champion128/ledger_nodes.py
+selector:
+  # ①층 — 상황 함수 계산(20Hz 부기·10Hz 결정) + 기저 선계산
+  #   함수 사전(ledger_book 이 매 결정틱 계산; ②층 문장의 좌표계):
+  #     rng      두 기체 거리 [ft]
+  #     ata      내 기수-조준각 [deg] (0=정조준)
+  #     eata     적 기수-조준각 [deg] (0=적이 나를 정조준)
+  #     race     조준 경쟁 = eata − ata [deg] (+ = 경쟁 우위)
+  #     kcas     내 속도 [kt]
+  #     alt      내 고도 [ft]
+  #     agap     고도차 = 내 − 적 [ft]
+  #     hp_lead  장부 점수차 = 내HP − 적HP(부기 추정) [hp]
+  #     clos     접근율 [kt] (+ = 가까워지는 중)
+  #     pursue   적 추격 점유율(무장 후 12s 창) [0~1]
+  #     hotrun   적 hot(eata<45°) 연속 지속 [s]
+  #     eclimb   적 상승률 [fps] (− = 강하)
+  #     dalt     내 고도변화율 [fps]
+  #     es_rel   비에너지 차 = (h+v²/2g) 내 − 적 [ft]
+  #     t        경과 시간 [s]
+  #     fdmg     내가 가한 데미지(장부) [hp]
+  #   기저는 트리가 아니라 명시 함수 2개(f_gun/f_lead — 루프32 재유도)
+  - custom: {name: ledger_book, refuse: auto, base_fn: gun20}
+  # ②층 — 함수-구간 문장 (위가 선순위; 발화 1회·dur 유지)
+  #   구간은 발화-구속 축만 남긴 것(축 다이어트 — 전 발화 스케줄 불변 증명,
+  #   research/slim_rules.py). 문장 = 함수값 구간의 교집합 국면 → 국소 풀이.
+  - custom:                    # 문장#0 — 피복: E1_AdaptiveAce/blue
+      name: sentence
+      label: s0_dive
+      act: dive
+      dur: 6.0
+      box:
+        rng: [1872.04, 2612.04]     # 두 기체 거리 [ft]
+        eclimb: [249.74, 357.74]    # 적 상승률 [fps] (− = 강하)
+        hp_lead: [5.46, 9.46]       # 장부 점수차 = 내HP − 적HP(부기 추정) [hp]
+        hotrun: [-1.5001, 1.5001]   # 적 hot(eata<45°) 연속 지속 [s]
+        pursue: [-0.1501, 0.1501]   # 적 추격 점유율(무장 후 12s 창) [0~1]
+  - custom:                    # 문장#1 — 피복: E1_AdaptiveAce/blue
+      name: sentence
+      label: s1_break
+      act: break
+      dur: 6.0
+      box:
+        rng: [1632.78, 2392.7801]   # 두 기체 거리 [ft]
+        dalt: [-49.97, 49.03]       # 내 고도변화율 [fps]
+        hp_lead: [-2.6901, 1.01]    # 장부 점수차 = 내HP − 적HP(부기 추정) [hp]
+        pursue: [-0.1501, 0.1501]   # 적 추격 점유율(무장 후 12s 창) [0~1]
+  - custom:                    # 문장#2 — 피복: E2_Passive/blue,E2_Passive/blue,E2_Passive/red…
+      name: sentence
+      label: s2_break
+      act: break
+      dur: 6.0
+      box:
+        ata: [-12.81, 17.19]         # 내 기수-조준각 [deg] (0=정조준)
+        fdmg: [38.3799, 50.3801]     # 내가 가한 데미지(장부) [hp]
+        hp_lead: [6.37, 12.48]       # 장부 점수차 = 내HP − 적HP(부기 추정) [hp]
+        hotrun: [18.4499, 21.4501]   # 적 hot(eata<45°) 연속 지속 [s]
+  - custom:                    # 문장#3 — 피복: E1_AdaptiveAce/blue
+      name: sentence
+      label: s3_break
+      act: break
+      dur: 6.0
+      box:
+        rng: [6725.23, 7045.23]    # 두 기체 거리 [ft]
+        eclimb: [444.95, 558.95]   # 적 상승률 [fps] (− = 강하)
+        clos: [-164.16, -128.16]   # 접근율 [kt] (+ = 가까워지는 중)
+  - custom:                    # 문장#4 — 피복: D3_Scissors/red,D3_Scissors/red,D3_Scissors/red
+      name: sentence
+      label: s4_gun_pure
+      act: gun_pure
+      dur: 6.0
+      box:
+        dalt: [332.46, 512.46]      # 내 고도변화율 [fps]
+        clos: [-140.83, -20.8299]   # 접근율 [kt] (+ = 가까워지는 중)
+        race: [-34.62, 7.38]        # 조준 경쟁 = eata − ata [deg] (+ = 경쟁 우위)
+        t: [17.0499, 47.05]         # 경과 시간 [s]
+        hp_lead: [5.54, 11.54]      # 장부 점수차 = 내HP − 적HP(부기 추정) [hp]
+  - custom:                    # 문장#5 — 피복: E1_AdaptiveAce/blue
+      name: sentence
+      label: s5_extend
+      act: extend
+      dur: 6.0
+      box:
+        agap: [371.0499, 2321.05]   # 고도차 = 내 − 적 [ft]
+        rng: [5754.9399, 6634.94]   # 두 기체 거리 [ft]
+        dalt: [431.96, 563.96]      # 내 고도변화율 [fps]
+        eclimb: [147.68, 276.68]    # 적 상승률 [fps] (− = 강하)
+        hp_lead: [2.42, 6.42]       # 장부 점수차 = 내HP − 적HP(부기 추정) [hp]
+  - custom:                    # 문장#6 — 피복: E1_AdaptiveAce/blue
+      name: sentence
+      label: s6_extend
+      act: extend
+      dur: 6.0
+      box:
+        rng: [5628.99, 6708.99]   # 두 기체 거리 [ft]
+        clos: [25.5999, 145.6]    # 접근율 [kt] (+ = 가까워지는 중)
+        hp_lead: [0.7499, 6.75]   # 장부 점수차 = 내HP − 적HP(부기 추정) [hp]
+  - custom:                    # 문장#7 — 피복: E1_AdaptiveAce/blue
+      name: sentence
+      label: s7_extend
+      act: extend
+      dur: 6.0
+      box:
+        rng: [6004.28, 6844.28]    # 두 기체 거리 [ft]
+        dalt: [423.64, 558.64]     # 내 고도변화율 [fps]
+        eclimb: [153.45, 282.45]   # 적 상승률 [fps] (− = 강하)
+        clos: [305.67, 425.67]     # 접근율 [kt] (+ = 가까워지는 중)
+        hp_lead: [5.46, 9.46]      # 장부 점수차 = 내HP − 적HP(부기 추정) [hp]
+  - custom:                    # 문장#8 — 피복: B1_EnergyFighter/red,C3_Lufbery/red,C2_OneCircleRad/red…
+      name: sentence
+      label: s8_break
+      act: break
+      dur: 6.0
+      box:
+        agap: [-299.55, 2749.17]   # 고도차 = 내 − 적 [ft]
+        eclimb: [289.07, 448.11]   # 적 상승률 [fps] (− = 강하)
+        dalt: [372.0299, 423.1]    # 내 고도변화율 [fps]
+        eata: [26.68, 61.96]       # 적 기수-조준각 [deg] (0=적이 나를 정조준)
+        race: [-27.11, 2.4901]     # 조준 경쟁 = eata − ata [deg] (+ = 경쟁 우위)
+  - custom:                    # 문장#9 — 피복: E1_AdaptiveAce/red,anchor/blue
+      name: sentence
+      label: s9_break
+      act: break
+      dur: 6.0
+      box:
+        rng: [6224.4, 7059.5]      # 두 기체 거리 [ft]
+        clos: [8.01, 37.18]        # 접근율 [kt] (+ = 가까워지는 중)
+        eclimb: [409.46, 426.98]   # 적 상승률 [fps] (− = 강하)
+  - custom:                    # 문장#10 — 피복: C3_Lufbery/red,C3_Lufbery/red,E1_AdaptiveAce/blue
+      name: sentence
+      label: s10_gun_pure
+      act: gun_pure
+      dur: 6.0
+      box:
+        agap: [-649.11, 958.7]     # 고도차 = 내 − 적 [ft]
+        dalt: [137.03, 562.1601]   # 내 고도변화율 [fps]
+        eata: [8.93, 56.16]        # 적 기수-조준각 [deg] (0=적이 나를 정조준)
+        hp_lead: [5.46, 11.54]     # 장부 점수차 = 내HP − 적HP(부기 추정) [hp]
+        pursue: [0.0399, 0.4201]   # 적 추격 점유율(무장 후 12s 창) [0~1]
+  - custom:                    # 문장#11 — 피복: D1_Reactive/red
+      name: sentence
+      label: s11_dive
+      act: dive
+      dur: 6.0
+      box:
+        rng: [4361.4399, 5161.44]   # 두 기체 거리 [ft]
+        clos: [506.87, 580.87]      # 접근율 [kt] (+ = 가까워지는 중)
+        dalt: [-40.05, 19.95]       # 내 고도변화율 [fps]
+        hp_lead: [5.54, 11.54]      # 장부 점수차 = 내HP − 적HP(부기 추정) [hp]
+        pursue: [0.2399, 0.5401]    # 적 추격 점유율(무장 후 12s 창) [0~1]
+  # ③층 — 구간 밖 일반해(기저 판독 가지; 위가 선순위 = 원본 dispatch 순서)
+  - custom:                    # 점수-장부 게이트 거부(효능 폐루프)
+      name: base_branch
+      when: refuse
+      label: gate_refuse
+      gate_hot: 45.0
+      gate_rng: 4500.0
+      gate_edge: 12.0
+      lead_near: 1.0
+      lead_hi: 8.0
+      lead_floor: 8.0
+      hurt_max: 4.0
+      cooldown_s: 15.0
+      abort_off: 2
+      clear_hot: 60.0
+      clear_rng: 6000.0
+      pursue_win_s: 12.0
+      pursue_max: 0.6
+      pursue_min_s: 3.0
+      dom: 25.0
+      threat_hold_s: 1.2
+  - custom: {name: base_branch, when: empty_dive, label: empty_dive_response}
+  - custom:
+      name: base_branch
+      when: hard_deck
+      label: hard_deck_climb
+      hard_deck: 1300.0
+  - custom:                    # 적 다이브-커밋 감지(c≥θ) → off 대응(수치 argmax)
+      name: base_branch
+      when: dive_response
+      label: dive_commit_response
+      theta: 0.4
+      decay: 0.999
+      dive_fps: 80.0
+      dive_hold: 1.5
+      aa_extend: 50.0
+  - custom:
+      name: base_branch
+      when: deck_suppress
+      label: headon_deck_suppress
+      suppress_alt: 4500.0
+      suppress_rng: 7000.0
+  - custom:                    # 기저함수 f_gun — 조준 원뿔 안이면 건 추적
+      name: base_branch
+      when: f_gun
+      label: f_gun
+      gun_ata: 20.0            # ata < 이 값 → GUN_TRACK
+  - custom: {name: base_branch, when: f_lead, label: f_lead}   # 그 외 → LEAD_TURN
+  - custom: {name: base_pilot}   # 안전망(비활성 경로 preserve/deck_guard)

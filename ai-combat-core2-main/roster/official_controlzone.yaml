@@ -1,0 +1,53 @@
+# 아키타입: BEM Control Zone — 교범(BEM 4.4.6)의 통제 구역을 수치 그대로 구현.
+#
+# BEM CZ 목표 기하 → 노드 매핑:
+#   Range 2,000~3,000 ft 후방  → in_control_zone(range_lo/hi) + control_zone 기본 setpoint 2,500 ft
+#   AA ≈ 0 (꼬리 점유)         → in_control_zone(aspect_deg: 30) / is_offensive 게이트
+#   HCA < 30° (기수 정렬)      → in_control_zone(hca_deg: 30)
+#   ATA 20~30°                → 조건이 아닌 결과 — lag 추격이 기수를 살짝 빼서 이 대역에 놓임.
+#                               ATA가 조여지면(적 실수) SOO 분기가 High-PK 사격으로 전환(4.4.7).
+#
+# 기존 에이전트의 진자 문제(거리 2,000~8,000 ft 왕복, ATA 40~120° 진동) 대응:
+#   · 진입 단계부터 mode: control_zone 폐쇄율 조절기 → 유리한 각을 잡아도 뚫고 지나가지 않음
+#   · 패스 직후 nose_far → lead+max_g 기수 회복 → 거리 풍선 억제
+#
+# 우선순위(selector, 위가 먼저):
+#   하드덱 회피 > 헤드온 안정 > 방어 브레이크 > SOO 사격 > CZ 유지 > CZ 진입 > 기수 회복 > 기본 pure
+#
+# 사용: python scripts/run_match.py --scenario perch_offense --blue examples/bem_control_zone.yaml --red scripted:turn --analyze
+agent_name: BemControlZone
+selector:
+  # 0) 하드덱 회피 — 최우선(하드덱 1,000ft 위반 = 즉시 패)
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, aim_above_ft: 4000, name: recover_altitude}
+  # 1) 헤드온 안정(HABFM): 대향에서 배면·롤 없이 ATA→0
+  - sequence:
+      - condition: {name: is_head_on, hca_deg: 150}
+      - action: {pursuit: pure, mode: stable, name: headon_stable}
+  # 2) 방어(DBFM): 적이 내 후미 조준 + 근접 → 브레이크
+  - sequence:
+      - condition: {name: is_defensive, aspect_deg: 150}
+      - condition: {name: merged, range_ft: 6000}
+      - action: {pursuit: lag, max_g: true, name: break_defense}
+  # 3) SOO(Shot of Opportunity): CZ에서 ATA가 조여졌을 때만 사격 — High PK(4.4.7)
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 10}
+      - inverter: {condition: {name: closing, min_fps: 250}}
+      - action: {pursuit: pure, name: gun_soo}
+  # 4) CZ 점유 중 → 유지: lag + 접근율 조절(기본 setpoint 2,500 ft = BEM 대역 중앙)
+  - sequence:
+      - condition: {name: in_control_zone}
+      - action: {pursuit: lag, mode: control_zone, lag_dist_ft: 2500,
+                 name: hold_control_zone}
+  # 5) 공세지만 존 밖 → 존으로 수렴: pure로 정렬, 파워는 CZ 조절기(오버슈트 억제)
+  - sequence:
+      - condition: {name: is_offensive, aspect_deg: 60}
+      - action: {pursuit: pure, mode: control_zone, name: enter_control_zone}
+  # 6) 패스 직후 기수 회복 — 거리 풍선(2,000→8,000 ft) 억제:
+  #    기수가 크게 벗어나면 lead+max_g로 선회 원 안쪽을 잘라 재접근 단축
+  - sequence:
+      - condition: {name: nose_far, ata_deg: 60}
+      - action: {pursuit: lead, max_g: true, name: regain_nose}
+  # 7) 기본: pure
+  - action: {pursuit: pure, name: pure_default}

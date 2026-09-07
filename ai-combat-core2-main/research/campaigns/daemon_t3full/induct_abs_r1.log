@@ -1,0 +1,105 @@
+표적 9개, 증인 472개
+  분리실패 → E2_Passive_00/red 제외 재시도
+  분리실패 → E2_Passive_01/red 제외 재시도
+  분리실패 → E2_Passive_00/blue 제외 재시도
+  분리실패 → E2_Passive_01/blue 제외 재시도
+  분리실패 → official_controlzone/blue 제외 재시도
+  분리실패 → official_controlzone/red 제외 재시도
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 D3_Scissors_00/red t=21.95 → ✓ Δ+12.8
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 D3_Scissors_01/red t=21.95 → ✓ Δ+10.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 D3_Scissors_02/red t=21.95 → ✓ Δ+34.0
+[규칙 1] break d6 ⊃ ['D3_Scissors_00/red', 'D3_Scissors_01/red', 'D3_Scissors_02/red']
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E2_Passive_00/blue t=29.45 → ✗ Δ-1.8
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E2_Passive_00/red t=29.45 → ✗ Δ-1.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E2_Passive_01/blue t=29.45 → ✗ Δ-1.8
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E2_Passive_01/red t=29.45 → ✗ Δ-1.9
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_controlzone/blue t=25.95 → ✓ Δ+0.0
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_controlzone/red t=25.95 → ✓ Δ+0.0
+[규칙 2] break d6 ⊃ ['official_controlzone/blue', 'official_controlzone/red']
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E2_Passive_00/blue t=29.65 → ✗ Δ-0.3
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E2_Passive_00/red t=29.65 → ✗ Δ-0.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E2_Passive_01/blue t=29.65 → ✗ Δ-0.3
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 E2_Passive_01/red t=29.65 → ✗ Δ-0.4
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  climb 진입틱 E2_Passive_00/blue t=25.65 → ✓ Δ+15.5
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  climb 진입틱 E2_Passive_00/red t=25.65 → ✓ Δ+15.5
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  climb 진입틱 E2_Passive_01/blue t=25.65 → ✓ Δ+15.5
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  climb 진입틱 E2_Passive_01/red t=25.65 → ✓ Δ+15.5
+[규칙 3] climb d6 ⊃ ['E2_Passive_00/blue', 'E2_Passive_00/red', 'E2_Passive_01/blue', 'E2_Passive_01/red']
+
+규칙 3개 저장: C:\Users\USER\Desktop\AI-pilot\core2\research\data\blueteam\daemon_t3full_r1_abs.json
+미피복: 없음(전 반례 피복)

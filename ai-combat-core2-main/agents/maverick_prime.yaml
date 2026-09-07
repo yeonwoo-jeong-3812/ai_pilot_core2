@@ -1,0 +1,50 @@
+# 원본 대비 변경 4가지 (구조·분기 의도는 원본 유지):
+#  ① extreme_pursuit: g_burst 1.0→0.7, g_full_ata_deg 25→35 + track 창(3000/30) 부여.
+#     원본은 상시 순간봉투로 전 국면 에너지 출혈 → 코너속도 미달 머지 → 수렴 실패
+#     (FNG 리더보드 매치 96979b90 실측: 무익 패스 3회, 격추 163s). 추격은 천장을
+#     내려 코너속도를 지키고, 사격 기하 당김은 track 창(순간봉투)이 담당.
+#  ② 실속 가드 신설: kcas<280 → g_burst 0 재충전 (JesterF energy_regain 이식).
+#     사격 기회 분기(2·3)보다 후순위라 킬 찬스는 놓치지 않음.
+#  ③ headon_deathmatch 에 aim_above_ft 400: 정면 머지 교환을 수직으로 비껴
+#     피해를 한쪽으로 기울임 — 이 한 줄이 headon 동전던지기(0:1 패)를 전승으로 바꿈.
+#  ④ low_altitude 에 lookahead_s 3.5 (예측 발동), 사문 corner doctrine 제거.
+#
+# 실측 (엔진 v3.0.0, 웹 배터리 미러 40경기 = 리더보드 동일 시드):
+#   falco_prime 120점(만점: 40승, 격추승 35) > JesterF 117 > 원본 Falco 114
+#   홀드아웃 salt(t9/t9b) 40경기: 111점(37승3패) > JesterF 105 — salt 과적합 아님
+# 튜닝 사다리 (기각 포함):
+#   burst 0.4(C1) = 87점 — 과소극(무접촉·타임아웃 급증). burst 는 0.7 부근이 능선.
+#   burst 0.85/g_full 30(C4) = 114점 — 재공격 상향도 역효과. ③ 이 결정적 변수였음.
+
+agent_name: MaverickPrime
+
+selector:
+  # 1. Emergency Survival — 하드덱 예측 회복 (aim_above + g_burst 병용 필수)
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500, lookahead_s: 3.5}
+      - action: {pursuit: pure, g_burst: 1.0, aim_above_ft: 4000, name: crash_recovery}
+
+  # 2. Head-On Deathmatch — 정면 머지 시 400ft 위로 비껴 문다
+  - sequence:
+      - condition: {name: is_head_on, hca_deg: 150}
+      - condition: {name: merged, range_ft: 4000}
+      - action: {pursuit: pure, mode: stable, g_burst: 1.0, g_full_ata_deg: 20,
+                 track_rng_ft: 3000, track_ata_deg: 20, aim_above_ft: 400,
+                 name: headon_deathmatch}
+
+  # 3. Guns Track & Fire — 사격권에서만 에너지를 태운다
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 15}
+      - action: {pursuit: pure, g_burst: 1.0, g_full_ata_deg: 45,
+                 track_rng_ft: 3000, track_ata_deg: 30, name: guns_lethal}
+
+  # 4. 실속 가드 — 사격 기회에 밀리는 저속 재충전 (지속 봉투)
+  - sequence:
+      - condition: {name: below_fighting_speed, kcas: 280}
+      - action: {pursuit: lead, g_burst: 0.0, g_full_ata_deg: 60,
+                 track_rng_ft: 2000, track_ata_deg: 20, lead_time_s: 0.5,
+                 name: energy_regain}
+
+  # 5. Pursuit — 코너속도 유지가 목적. 사격 진입 당김은 track 창이 담당.
+  - action: {pursuit: lead, g_burst: 0.7, g_full_ata_deg: 35, lead_time_s: 1.0,
+             track_rng_ft: 3000, track_ata_deg: 30, name: extreme_pursuit}

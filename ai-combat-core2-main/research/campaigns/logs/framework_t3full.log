@@ -1,0 +1,19 @@
+[M1 불변식] 실행 — 파이프라인 함정 기계검사(항상 실행)
+........                                                                 [100%]
+8 passed in 12.44s
+[플레인 기저] 실행 — gun20 기저 128판 + 구름 덤프
+[폐루프(데몬)] 실행 — F-좌표 문장 귀납·무인 수렴
+[다이어트] 실행 — 발화 스케줄 불변 증명 하의 축 축소
+[지문] 배포본 발화 기록 저장 → research\data\blueteam\induced_rules_t3full_slim.fingerprint.json
+[YAML 번역] 실행 — agents/champion128_t3.yaml 재생성(항상 — 문장 정본과 동기화)
+14문장 → agents/champion128_t3.yaml
+[게이트] 실행 — YAML 128판 실측 + 패리티(항상 실행)
+— 게이트 통계:
+판수 150  141승 8무 1패
+격추승 146 / 판정 4
+HPΔ 평균 +33.3  중앙 +29.9  최소 -53.6  최대 +83.1
+격추 시각 평균 63s  중앙 44s
+비승리: ['anchor_ace/blue', 'official_controlzone/blue', 'official_controlzone/red', 'official_headon/blue', 'official_headon/red', 'agents/champion128/blue', 'agents/champion128/red', 'agents/champion128_f33/blue', 'agents/champion128_f33/red']
+— 패리티(YAML vs 연구):
+framework_t3full_gate.log 150판  vs  framework_t3full_research.log 150판  — 불일치 0건
+게이트 실패 — 전승/패리티 미달

@@ -1,0 +1,15 @@
+기준 발화 34건 / 문장 12
+  문장#0 extend   축 12 → 4
+  문장#1 gun_pure 축 14 → 5
+  문장#2 gun_pure 축 14 → 3
+  문장#3 gun_pure 축 14 → 4
+  문장#4 break    축 12 → 5
+  문장#5 break    축 12 → 5
+  문장#6 break    축 12 → 4
+  문장#7 break    축 12 → 4
+  문장#8 extend   축 12 → 4
+  문장#9 extend   축 12 → 4
+  문장#10 gun_pure 축 12 → 5
+  문장#11 gun_pure 축 12 → 4
+축 제거 99개 → 총 51축 저장: research\data\blueteam\induced_rules_t1s7h_slim.json
+※ 최종 판정은 전 128판 실측 필요(덤프 반올림 한계)

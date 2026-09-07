@@ -1,0 +1,41 @@
+# 생성 상대(gen_opponents) — 원본 C1_TwoCircleRate_01, 시드 100#1
+# 변이: pursuit lead→lag; 수직편향 +4000; pursuit lead→pure; pursuit lead→lag
+agent_name: g100_01_C1_TwoCircleRate_01
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 1153.47
+  - action:
+      pursuit: pure
+      aim_above_ft: 3641.25
+      name: climb
+- sequence:
+  - condition:
+      name: is_defensive
+      aspect_deg: 122.86
+  - action:
+      pursuit: lag
+      max_g: true
+      name: break
+- sequence:
+  - condition:
+      name: merged
+      range_ft: 2110.76
+  - action:
+      pursuit: lag
+      max_g: true
+      name: two_circle
+      aim_above_ft: 4000
+- sequence:
+  - condition:
+      name: merged
+      range_ft: 4325.08
+  - action:
+      pursuit: pure
+      max_g: true
+      name: two_circle
+- action:
+    pursuit: lag
+    max_g: true
+    name: two_circle

@@ -1,0 +1,31 @@
+표적 1개, 증인 17개
+  분리불가 → 승리 쌍둥이 ['D3_Scissors_00/blue', 'D3_Scissors_00/red', 'D3_Scissors_01/blue'] 공동발화 허용 재시도
+  [분리불가] break ⊃ ['D3_Scissors_01/red']
+  분리불가 → 승리 쌍둥이 ['D3_Scissors_00/blue', 'D3_Scissors_00/red', 'D3_Scissors_01/blue'] 공동발화 허용 재시도
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  dive 진입틱 D3_Scissors_01/red t=31.55 → ✗ Δ-22.1
+  분리불가 → 승리 쌍둥이 ['D3_Scissors_00/blue', 'D3_Scissors_00/red', 'D3_Scissors_01/blue'] 공동발화 허용 재시도
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  extend 진입틱 D3_Scissors_01/red t=25.55 → ✓ Δ+37.2
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  extend 진입틱 D3_Scissors_00/red t=25.55 → ✓ Δ+33.5
+[규칙 1] extend d6 ⊃ ['D3_Scissors_01/red']
+
+규칙 1개 저장: C:\Users\USER\Desktop\AI-pilot\core2\research\data\blueteam\daemon_t1s7g_r1_relt.json
+미피복: 없음(전 반례 피복)

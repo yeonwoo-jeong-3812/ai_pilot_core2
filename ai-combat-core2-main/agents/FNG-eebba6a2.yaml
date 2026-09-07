@@ -1,0 +1,30 @@
+# my_agent.yaml — V2 엔진 룰북 최적화 버전 (채터링 방지 및 조준 안정화)
+#
+# 수정 사양:
+#  1) 사거리 내(in_gun_envelope) AND 사격각(ATA <= 30°) 내: 무조건 pure 정조준
+#  2) 거리 무관 ATA <= 12° 이내: 무조건 pure 정조준
+#  3) 그 외 (원거리/각밖): 일반 lead 추격 + max_g로 빠른 각 확보
+
+agent_name: MyViper
+
+selector:
+  # 1. 추락방지 (고도 4,500ft 이하)
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, max_g: true, aim_above_ft: 4000, name: recover_altitude}
+
+  # 2. 사격 콘 내부 진입 시 (거리 500~3,000ft AND ATA <= 30°) → pure 정조준
+  - sequence:
+      - condition: {name: in_gun_envelope}
+      - inverter:
+          condition: {name: nose_far, ata_deg: 30}
+      - action: {pursuit: pure, name: pure_wez_track}
+
+  # 3. 조준선 밀착 시 (거리 무관 AND ATA <= 12°) → pure 정조준
+  - sequence:
+      - inverter:
+          condition: {name: nose_far, ata_deg: 12}
+      - action: {pursuit: pure, name: pure_close_angle_track}
+
+  # 4. 기본 추격 (ATA > 30° 및 사격권 밖) → 빠른 선회로 각도 확보
+  - action: {pursuit: lead, max_g: true, name: lead_chase}

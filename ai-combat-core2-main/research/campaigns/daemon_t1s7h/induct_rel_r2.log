@@ -1,0 +1,22 @@
+표적 1개, 증인 8개
+
+
+     JSBSim Flight Dynamics Model v1.3.1 [GitHub build 1837/commit 3b25f25e49b42d0489c04ac805674fc1450ca579] May 17 2026 14:28:34
+            [JSBSim-ML v2.0]
+
+JSBSim startup beginning ...
+
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  break 진입틱 official_controlzone/blue t=25.75 → ✗ Δ+0.0
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+Engine location ignored, only thruster location is used.
+Engine orientation ignored, only thruster orientation is used.
+  extend 진입틱 official_controlzone/blue t=25.75 → ✓ Δ+10.1
+[규칙 1] extend d6 ⊃ ['official_controlzone/blue']
+
+규칙 1개 저장: C:\Users\USER\Desktop\AI-pilot\core2\research\data\blueteam\daemon_t1s7h_r2_rel.json
+미피복: 없음(전 반례 피복)

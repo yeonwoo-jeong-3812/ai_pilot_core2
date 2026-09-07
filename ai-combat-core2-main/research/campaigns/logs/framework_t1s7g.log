@@ -1,0 +1,6 @@
+[M1 불변식] 실행 — 파이프라인 함정 기계검사(항상 실행)
+........                                                                 [100%]
+8 passed in 12.23s
+[플레인 기저] 실행 — gun20 기저 128판 + 구름 덤프
+[폐루프(데몬)] 실행 — F-좌표 문장 귀납·무인 수렴
+데몬 미수렴 — 로그 확인: C:\Users\USER\Desktop\AI-pilot\core2\research\replays\logs\daemon_t1s7g.log

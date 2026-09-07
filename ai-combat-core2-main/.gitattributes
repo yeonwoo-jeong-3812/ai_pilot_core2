@@ -1,0 +1,4 @@
+# crlf_lint(test_pipeline_invariants) 이 LF 를 강제하는 파일들 — core.autocrlf=true
+# 환경에서도 워킹트리를 LF 로 유지해 fresh checkout 시 CRLF 오염을 막는다.
+roster/all_128.txt text eol=lf
+research/campaigns/logs/inputs/*.txt text eol=lf

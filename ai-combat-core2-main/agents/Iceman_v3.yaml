@@ -1,0 +1,77 @@
+# ⚠ 비배포 — 내부 연구 자산(참가자 미공개). SDK 빌드 제외(build_sdk FORBIDDEN: research).
+# ⚠ 2026-08-25 max_g→g_burst:0.8 기계 이관 — 아래 서술·실측은 max_g 시절 기준(재측정 전 무효).
+# 아키타입: BEM Control Zone — 교범(BEM 4.4.6)의 통제 구역을 수치 그대로 구현.
+#
+# v2 대비 변경 — regain_nose 의 상시 max_g 제거. 나머지 트리는 v2 와 동일.
+#   측정(2026-08-19, 프로덕션 배터리 무접촉 17경기를 시드 그대로 재현): v2 는 교전 중
+#   평균 ATA 가 59~73° 라 nose_far(문턱 60°)가 거의 상시 참이 되어, '패스 직후 기수 회복'
+#   으로 의도한 이 노드가 경기의 34~58% 를 점유했다. lead + max_g 상시 지령 → 고도
+#   21,700~29,300ft 로 치솟으며 CAS 106~120kt 로 붕괴 → WEZ(3,000ft) 진입 실패
+#   (최소거리 2,337~3,640ft). 배터리 40경기 중 17경기가 무접촉(42.5%, 참가자 중 유일).
+#   max_g 한 줄 제거로 같은 시드에서 무접촉 17/17 → 4/17(23.5%).
+#   대안 비교: 문턱 60→90° 7/17, 둘 다 적용 7/17 — 이 한 줄 단독이 최선이다.
+#   남은 과제: 교전이 성립해도 13경기 3승 10패(대부분 timeout). 에너지 관리가 먼저고
+#   사격 기하는 그다음이다.
+#
+# v1 → v2 (이력) — 하드덱 회피 분기만 손봤다.
+#   측정(매치 2c71498c, ACMI): 4,497ft 를 강하율 730fps·FPA −60°·뱅크 136° 로 통과 →
+#   회복 여유 6초. 롤 아웃에만 1.2초·940ft, Nz 3.6→8.6 에 1.3초, 뱅크 40~70° 라
+#   수직 성분 4~6G. 3,500ft 를 쓰고도 하드덱 통과 시점에 아직 −14° 로 강하 중이었다.
+#   ① lookahead_s: 3.5 — 고도만 보면 강하각에 따라 여유가 들쭉날쭉하다. 730fps 강하면
+#      약 2,600ft 앞당겨 발동(≈7,100ft), 수평비행이면 v1 과 동일한 4,500ft.
+#   ② g_burst: 0.8 — v1 은 이 액션에 max_g 가 없어 gmode=regulate·지속 G 봉투에 묶여
+#      3.68G 로 회복했다. 하드덱 회복은 순간 봉투(9G)를 다 써야 한다.
+#
+# BEM CZ 목표 기하 → 노드 매핑:
+#   Range 2,000~3,000 ft 후방  → in_control_zone(range_lo/hi) + control_zone 기본 setpoint 2,500 ft
+#   AA ≈ 0 (꼬리 점유)         → in_control_zone(aspect_deg: 30) / is_offensive 게이트
+#   HCA < 30° (기수 정렬)      → in_control_zone(hca_deg: 30)
+#   ATA 20~30°                → 조건이 아닌 결과 — lag 추격이 기수를 살짝 빼서 이 대역에 놓임.
+#                               ATA가 조여지면(적 실수) SOO 분기가 High-PK 사격으로 전환(4.4.7).
+#
+# 기존 에이전트의 진자 문제(거리 2,000~8,000 ft 왕복, ATA 40~120° 진동) 대응:
+#   · 진입 단계부터 mode: control_zone 폐쇄율 조절기 → 유리한 각을 잡아도 뚫고 지나가지 않음
+#   · 패스 직후 nose_far → lead+max_g 기수 회복 → 거리 풍선 억제
+#
+# 우선순위(selector, 위가 먼저):
+#   하드덱 회피 > 헤드온 안정 > 방어 브레이크 > SOO 사격 > CZ 유지 > CZ 진입 > 기수 회복 > 기본 pure
+#
+# 사용: python scripts/run_match.py --scenario perch_offense --blue agents/Iceman_v3.yaml --red scripted:turn --analyze
+agent_name: Iceman_v3
+selector:
+  # 0) 하드덱 회피 — 최우선(하드덱 1,000ft 위반 = 즉시 패)
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500, lookahead_s: 3.5}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+  # 1) 헤드온 안정(HABFM): 대향에서 배면·롤 없이 ATA→0
+  - sequence:
+      - condition: {name: is_head_on, hca_deg: 150}
+      - action: {pursuit: pure, mode: stable, name: headon_stable}
+  # 2) 방어(DBFM): 적이 내 후미 조준 + 근접 → 브레이크
+  - sequence:
+      - condition: {name: is_defensive, aspect_deg: 150}
+      - condition: {name: merged, range_ft: 6000}
+      - action: {pursuit: lag, g_burst: 0.8, name: break_defense}
+  # 3) SOO(Shot of Opportunity): CZ에서 ATA가 조여졌을 때만 사격 — High PK(4.4.7)
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 10}
+      - inverter: {condition: {name: closing, min_fps: 250}}
+      - action: {pursuit: pure, name: gun_soo}
+  # 4) CZ 점유 중 → 유지: lag + 접근율 조절(기본 setpoint 2,500 ft = BEM 대역 중앙)
+  - sequence:
+      - condition: {name: in_control_zone}
+      - action: {pursuit: lag, mode: control_zone, lag_dist_ft: 2500,
+                 name: hold_control_zone}
+  # 5) 공세지만 존 밖 → 존으로 수렴: pure로 정렬, 파워는 CZ 조절기(오버슈트 억제)
+  - sequence:
+      - condition: {name: is_offensive, aspect_deg: 60}
+      - action: {pursuit: pure, mode: control_zone, name: enter_control_zone}
+  # 6) 패스 직후 기수 회복 — 거리 풍선(2,000→8,000 ft) 억제:
+  #    기수가 크게 벗어나면 lead 로 선회 원 안쪽을 잘라 재접근 단축.
+  #    max_g 는 쓰지 않는다 — 이 노드가 상시 점유되는 탓에 최대 G 상시 지령이
+  #    에너지를 고갈시켜 사거리 진입 자체를 막았다(위 v2 대비 변경 참조).
+  - sequence:
+      - condition: {name: nose_far, ata_deg: 60}
+      - action: {pursuit: lead, name: regain_nose}
+  # 7) 기본: pure
+  - action: {pursuit: pure, name: pure_default}

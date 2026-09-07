@@ -1,0 +1,48 @@
+# Red Team 대항군 — REACTIVE (반응형). 비배포.
+# 2026-08-18 roster/D1_Reactive_06.yaml 에서 채택 — 공개 examples 복사본이던 red_attacker 를 대체한다.
+# SDK 에 실리는 examples/ 와 달리 roster/ 는 배포 대상이 아니라 참가자가 파일을 갖지
+# 못한다. 참가자 5팀 패널 × 40경기 측정에서 변별력 σ²_a 1721 (교체 대상 982).
+# ⚠ 원본은 core-live zoo 아키타입의 자동번역본이다(행동 등가, 틱-동일 아님).
+#   트리 본체는 측정값을 유지하기 위해 한 줄도 고치지 않았다 — 손대면 재측정해야 한다.
+#
+# 성향:
+# 기교 없이 국면에 즉응한다. 방어면 lag 로 최대선회 브레이크, 머지 뒤 조준선이
+# 서면(ATA 18°) 곧바로 사격, 그 외에는 pure 추격만 한다. 분기가 4개뿐이라
+# 빈틈이 단순하고 일관되다 — 참가자의 기본기를 그대로 비춘다.
+#
+# 우선순위(selector, 위가 먼저):
+#   하드덱 회피 > 방어 브레이크(aspect 120°) > 머지 후 건 조준(ATA 18°) > pure 추격
+#
+# 사용: python scripts/run_match.py --blue redteams/red_reactive.yaml ...
+agent_name: RedReactive
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 1200.0
+  - action:
+      pursuit: pure
+      aim_above_ft: 4000.0
+      name: climb
+- sequence:
+  - condition:
+      name: is_defensive
+      aspect_deg: 120
+  - action:
+      pursuit: lag
+      g_burst: 0.8
+      name: break
+- sequence:
+  - condition:
+      name: merged
+      range_ft: 2500
+  - condition:
+      name: in_gun_envelope
+      range_ft: 60000.0
+      ata_deg: 18
+  - action:
+      pursuit: pure
+      name: gun_track
+- action:
+    pursuit: pure
+    name: pursue

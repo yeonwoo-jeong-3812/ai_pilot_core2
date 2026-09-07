@@ -1,0 +1,42 @@
+[M1 불변식] 실행 — 파이프라인 함정 기계검사(항상 실행)
+........                                                                 [100%]
+8 passed in 12.88s
+[플레인 기저] 실행 — gun20 기저 128판 + 구름 덤프
+[폐루프(데몬)] 실행 — F-좌표 문장 귀납·무인 수렴
+[다이어트] 실행 — 발화 스케줄 불변 증명 하의 축 축소
+[지문] 배포본 발화 기록 저장 → research\data\blueteam\induced_rules_t2s9_slim.fingerprint.json
+[YAML 번역] 실행 — agents/champion128_t2.yaml 재생성(항상 — 문장 정본과 동기화)
+6문장 → agents/champion128_t2.yaml
+[게이트] 실행 — YAML 128판 실측 + 패리티(항상 실행)
+— 게이트 통계:
+판수 112  112승 0무 0패
+격추승 108 / 판정 4
+HPΔ 평균 +35.9  중앙 +35.9  최소 +0.4  최대 +77.1
+격추 시각 평균 70s  중앙 46s
+— 패리티(YAML vs 연구):
+framework_t2s9_gate.log 112판  vs  framework_t2s9_research.log 112판  — 불일치 0건
+[검증(val)] 실행 — roster/val_s9.txt 홀드아웃 성적(훈련 미유입)
+— 검증(홀드아웃) 통계:
+판수 36  31승 0무 5패
+격추승 36 / 판정 0
+HPΔ 평균 +30.7  중앙 +29.6  최소 -18.4  최대 +83.1
+격추 시각 평균 67s  중앙 46s
+비승리: ['E1_AdaptiveAce_03/red', 'official_twocircle/blue', 'official_twocircle/red', 'agents/champion128_f33/blue', 'agents/champion128_f33/red']
+[LOFO] 실행 — 14가족 이월·회귀 행렬
+
+=== 산출물 사슬 감사: 태그 t2s9 ===
+  [OK ] 로스터→기저 판 수 — 로스터 112 vs 기저 112
+  [OK ] 덤프 헤더 = 런타임 _DUMP_KEYS — 20열
+  [FAIL] 증인 수확 조건 일치(재사용 신선도) — 0/45 일치 · 서명 acts=break,climb,dive,e_extend,extend,gun_pure,lag,unload durs=12,2,4,8
+  [OK ] 데몬 최종 라운드 → 문장 정본 — rules_r1.json (6문장)
+  [OK ] 다이어트 문장 수 보존 — 6→6
+  [OK ] 다이어트 축 부분집합 — 76→32축
+  [OK ] 시간창 메타데이터 전달(t_width)
+  [OK ] 배포본 지문 존재(slim 기준)
+  [OK ] 지문 드리프트 없음 — 이탈 0건
+  [OK ] YAML ↔ 연구 런타임 패리티 — 112판
+  [OK ] 훈련/검증 격리(교집합 0) — train 112 · val 36
+  [OK ] 검증 상대 증인 미유입(누수 차단)
+=== 감사 실패 ===
+
+완료 — 문장 정본 research\data\blueteam\induced_rules_t2s9_slim.json, 실행형 agents/champion128_t2.yaml, 게이트 로그 research\replays\logs\framework_t2s9_gate.log

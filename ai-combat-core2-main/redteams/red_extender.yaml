@@ -1,0 +1,55 @@
+# Red Team 대항군 — EXTENDER (에너지 익스텐션형). 비배포.
+# 2026-08-18 roster/B2_Extender_04.yaml 에서 채택 — 공개 examples 복사본이던 red_two_circle 를 대체한다.
+# SDK 에 실리는 examples/ 와 달리 roster/ 는 배포 대상이 아니라 참가자가 파일을 갖지
+# 못한다. 참가자 5팀 패널 × 40경기 측정에서 변별력 σ²_a 1419 (교체 대상 1195).
+# ⚠ 원본은 core-live zoo 아키타입의 자동번역본이다(행동 등가, 틱-동일 아님).
+#   트리 본체는 측정값을 유지하기 위해 한 줄도 고치지 않았다 — 손대면 재측정해야 한다.
+#
+# 성향:
+# 6,500ft 밖이면 lag 로 벌리며 약간 강하해 에너지를 쌓고, 상대가 도주하면 따라
+# 확장한다. 접근을 강요하지 않으므로 참가자가 교전을 성립시키지 못하면 무접촉으로
+# 끝난다 — 측정 무접촉률 10%(현행 red_textbook·red_two_circle 과 동률).
+#
+# 우선순위(selector, 위가 먼저):
+#   하드덱 회피 > 방어 브레이크(aspect 130°) > 원거리 익스텐션(6,500ft 밖) > 도주 추종 > 수평 유지
+#
+# 사용: python scripts/run_match.py --blue redteams/red_extender.yaml ...
+agent_name: RedExtender
+selector:
+- sequence:
+  - condition:
+      name: low_altitude
+      floor_ft: 1200.0
+  - action:
+      pursuit: pure
+      aim_above_ft: 4000.0
+      name: climb
+- sequence:
+  - condition:
+      name: is_defensive
+      aspect_deg: 130
+  - action:
+      pursuit: lag
+      g_burst: 0.8
+      name: break
+- sequence:
+  - inverter:
+      condition:
+        name: merged
+        range_ft: 6500
+  - action:
+      pursuit: lag
+      lag_dist_ft: 6000.0
+      aim_above_ft: -200.0
+      name: extend
+- sequence:
+  - condition: foe_extending
+  - action:
+      pursuit: lag
+      lag_dist_ft: 6000.0
+      aim_above_ft: -200.0
+      name: extend
+- action:
+    pursuit: pure
+    aim_above_ft: 0.0
+    name: level
