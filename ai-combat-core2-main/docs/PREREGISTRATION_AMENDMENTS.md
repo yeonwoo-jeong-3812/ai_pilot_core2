@@ -114,3 +114,30 @@
   드는 비율도 함께 보고한다.
 - R3: 비대표 판정이 나오면 **본실행 전에** 실전 분위수에 맞춘 수정안을 제안하고, 사용자 승인 후 개정 기록을 남긴 뒤 반영한다.
   이 판정 결과를 보고 규칙 자체를 바꾸지 않는다.
+
+## A8 — 2026-09-14 — A5 수집 모집단 교체 (A5 실행 불가 확인, 데이터 수집 전)
+
+- **실행 불가 사실 (실측)**:
+  1. 고정 참가자 `agents/champion128.yaml` 과 변형 4종(`_f33`, `_t1~t3`)이 **로드 단계에서 TypeError** 로 실패한다.
+     커스텀 모듈이 가져오는 `research/branch_search.py:49` 가 현행 `TacticCommand` 시그니처와 맞지 않는다.
+     저장소의 공식 명령 `scripts/run_match.py --blue agents/champion128.yaml ...` 도 같은 오류로 실패하므로 기존 문제다
+     (관련 파일 전부 초기 커밋 d1f3901 그대로).
+  2. `roster/all_128.txt` 의 상대 64종 중 **45종이 로드 실패**한다. 45종 모두 2026-08-24 폐지된 `max_g` 키를 쓰고,
+     엔진이 `dsl.py:114` 에서 거부한다. 로드되는 것은 A1/A2/A3 아키타입 15종, E2 2종, anchor 2종(19종)뿐이라
+     아키타입 13종 중 4종만 남는다.
+  3. `max_g` 를 엔진 권장값(true→0.8, false→0.0)으로 기계 변환하는 방법은 쓰지 않는다. 엔진 안내문이 "조절 법칙이 바뀌어
+     거동은 동일하지 않습니다" 라고 명시하므로 원래 전술의 궤적이 아니게 된다.
+- **교체 모집단 = 현행 운영 평가 배터리 규칙** (`aircombat/engine/tournament.py:run_gauntlet`, 웹 서버 BATTERY 미러):
+  - 대항군(red): `run_tournament.BATTERY_REDS` = red_adaptive, red_extender, red_phangman, red_prime, red_reactive
+    (웹 DB 등록 5종, 전부 로드 확인).
+  - 시나리오 4종 × 솔트 2개("battery-v1", "battery-v1b"), 시드 = `derive_seed(솔트, 시나리오, red 이름)`, 참가자는 항상 blue.
+    → 참가자당 **40경기**.
+  - 참가자(blue): 로드되는 참가자형 에이전트 전부 — 공개 SDK 예제 `examples/` 4종(starter, energy_fighter, textbook_headon,
+    doctrine_regulator) + `agents/` 7종(maverick_prime, maverick_JesterF, maverick_JesterL, Iceman_v1, Iceman_v2, Iceman_v3,
+    meta_hybrid_v1). 제외: `test-eebba6a2`(이름상 시험 파일), `FNG-eebba6a2`(로드 실패), champion128 계열(위 1).
+  - 규모: 11 × 40 = **440경기**. 양 기체 모두 기록.
+- **운영 경로와의 차이 한 가지**: `Match(wall_limit_s)` 를 기본 120 s 대신 3600 s 로 둔다. 병렬 실행 부하로 벽시계 제한에 걸려
+  물리와 무관하게 무승부 처리되는 것을 막기 위함이며, 물리·판정에는 영향이 없다.
+- **기록이 경기를 바꾸지 않음 확인**: 운영 경로 `CompetitionMatch(...).run()` 결과와 기록 장치를 단 실행 결과(승자·종료 사유·양측 체력)를
+  시나리오별 1경기씩 4경기 대조한다.
+- **본 데이터**: 없음 (로드 가능 여부만 확인).
