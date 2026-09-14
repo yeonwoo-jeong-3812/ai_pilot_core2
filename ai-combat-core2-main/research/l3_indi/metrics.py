@@ -59,9 +59,18 @@ def sign_change_hz(u: np.ndarray, trim: float, dt: float, deadband: float = SIGN
     return changes / dur if dur > 0 else 0.0
 
 
+OSC_SIGNCHG_MIN_RATE_P2P_DPS = 0.5   # 개정 A3: 기체 각속도 p2p 가 이 이상일 때만 부호반전 기준 적용
+
+
 def oscillation(ts: dict, dt: float, window_s: float = OSC_WINDOW_S,
                 deadband: float = SIGN_DEADBAND) -> dict:
-    """§7.1 리밋사이클 판정 — 마지막 window_s 초, 참 상태 기준."""
+    """§7.1 + 개정 A3 리밋사이클 판정 — 마지막 window_s 초, 참 상태 기준.
+
+    반환:
+      oscillating      개정 A3 규칙 (부호반전 기준은 각속도 p2p ≥ 0.5 deg/s 일 때만)
+      osc_v1           사전등록 원문 규칙 (부호반전 기준 무조건 적용)
+      osc_signchg_only 원문 규칙에서 부호반전 기준만 참 (각속도·Nz 기준은 거짓)
+    """
     t = ts["t"]
     m = t >= t[-1] - window_s
     p2p = lambda a: float(np.nanmax(a[m]) - np.nanmin(a[m]))
@@ -69,8 +78,13 @@ def oscillation(ts: dict, dt: float, window_s: float = OSC_WINDOW_S,
     p2p_nz = p2p(ts["nz"])
     trims = {c: ts[c][0] for c in ("u_ail", "u_ele", "u_rud")}
     sc = max(sign_change_hz(ts[c][m], trims[c], dt, deadband) for c in trims)
-    osc = int(p2p_rate > OSC_RATE_P2P_DPS or p2p_nz > OSC_NZ_P2P or sc > OSC_SIGNCHG_HZ)
-    return {"p2p_rate_dps": p2p_rate, "p2p_nz": p2p_nz, "signchg_hz": sc, "oscillating": osc}
+    motion = p2p_rate > OSC_RATE_P2P_DPS or p2p_nz > OSC_NZ_P2P
+    sc_hit = sc > OSC_SIGNCHG_HZ
+    osc_v1 = int(motion or sc_hit)
+    osc = int(motion or (sc_hit and p2p_rate >= OSC_SIGNCHG_MIN_RATE_P2P_DPS))
+    return {"p2p_rate_dps": p2p_rate, "p2p_nz": p2p_nz, "signchg_hz": sc,
+            "oscillating": osc, "osc_v1": osc_v1,
+            "osc_signchg_only": int(sc_hit and not motion)}
 
 
 def envelope(ts: dict) -> dict:

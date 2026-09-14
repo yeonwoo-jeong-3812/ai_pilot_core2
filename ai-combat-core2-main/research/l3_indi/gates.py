@@ -31,7 +31,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))          # research/
 from l3_indi.harness import (build, run, state_view, Condition, Params, Uncertainty, PlantProxy,
-                             transform_g0, TRUTH_COLS, DT, REPO, GuidanceCommand)   # noqa: E402
+                             transform_g0, TRUTH_COLS, DT, REPO, GuidanceCommand, G_FT_S2)   # noqa: E402
 from l3_indi.maneuvers import (Hold, M1NzCapture, M2RollReversal, M3RollingPull, Replay,
                                LegacyCornerPull)    # noqa: E402
 from l3_indi import metrics as M                   # noqa: E402
@@ -299,6 +299,16 @@ def g4():
         rates[sd] = (M.sign_change_hz(ch, 0.3, DT), M.sign_change_hz(ch, 0.3, DT, deadband=0.0))
     # 판정 기준: σ=0.008 채터에서 데드밴드가 거짓 양성을 판정 임계(1 Hz) 아래로 낮춘다.
     # 완전 제거는 보장하지 않는다 — 명령 채터가 커지면 한계가 있음을 수치로 남긴다.
+    quiet_body = {"t": np.arange(1200) * DT, "p": np.zeros(1200), "q": np.full(1200, 1e-4),
+                  "r": np.zeros(1200), "nz": np.ones(1200),
+                  "u_ail": np.zeros(1200), "u_rud": np.zeros(1200),
+                  "u_ele": 0.3 + np.random.default_rng(1).normal(0, 0.05, 1200)}
+    quiet_body["u_ele"][0] = 0.3
+    oq = M.oscillation(quiet_body, DT)
+    record("G4", "개정 A3: 기체가 흔들리지 않으면 큰 명령 채터(σ=0.05)도 진동 아님, v1 은 진동",
+           oq["oscillating"] == 0 and oq["osc_v1"] == 1 and oq["osc_signchg_only"] == 1,
+           f"부호반전 {oq['signchg_hz']:.1f} Hz, 각속도 p2p {oq['p2p_rate_dps']:.3f} dps → "
+           f"A3={oq['oscillating']}, v1={oq['osc_v1']}, 부호반전만={oq['osc_signchg_only']}")
     record("G4", "데드밴드가 트림 주변 채터의 거짓 양성을 1 Hz 아래로 낮춤 (σ=0.008)",
            rates[0.008][0] < M.OSC_SIGNCHG_HZ and rates[0.008][1] > M.OSC_SIGNCHG_HZ,
            "명령 채터 σ별 부호반전율 [데드밴드 0.02 / 없음]: " +
@@ -319,24 +329,27 @@ def g4():
             d = {"t": a["t"], "p": np.deg2rad(a["omega_p_dps"]), "q": np.deg2rad(a["omega_q_dps"]),
                  "r": np.deg2rad(a["omega_r_dps"]), "nz": a["n_act"],
                  "u_ail": a["cmd_aileron"], "u_ele": a["cmd_elevator"], "u_rud": a["cmd_rudder"]}
-            return M.oscillation(d, DT)["oscillating"]
+            o = M.oscillation(d, DT)
+            return (o["oscillating"], o["osc_v1"])
 
         with open(os.path.join(base_dir, "timeseries.csv"), newline="") as f:
             for r in csv.DictReader(f):
                 if r["run_id"] != cur:
                     if cur is not None:
                         o = flush(cur, rows); total += 1
-                        agree += int(o == osc_ref[cur]) or 0
-                        if o != osc_ref[cur]:
+                        ok = o[0] == osc_ref[cur] and o[1] == osc_ref[cur]
+                        agree += int(ok)
+                        if not ok:
                             mism.append((sweep, cur, osc_ref[cur], o))
                     cur, rows = r["run_id"], []
                 rows.append(r)
             o = flush(cur, rows); total += 1
-            agree += int(o == osc_ref[cur])
-            if o != osc_ref[cur]:
+            ok = o[0] == osc_ref[cur] and o[1] == osc_ref[cur]
+            agree += int(ok)
+            if not ok:
                 mism.append((sweep, cur, osc_ref[cur], o))
-    record("G4", "무잡음에서 새 진동판정(트림 차감+데드밴드) = 탐색 단계 판정 (225런)",
-           agree == total, f"{agree}/{total} 일치, 불일치 {mism[:5]}")
+    record("G4", "무잡음에서 새 진동판정(개정 A3 규칙과 원문 v1 규칙 모두) = 탐색 단계 판정 (225런)",
+           agree == total, f"{agree}/{total} 일치 (A3·v1 둘 다), 불일치 {mism[:5]}")
 
     # 4.5 3구간
     ref = {"a": 1.0, "b": 1.0}
@@ -424,6 +437,47 @@ def g4():
     record("G4", "J_r 는 파라미터와 무관 (M3, k 배율 4종)", spread < 0.05,
            "; ".join(f"k={v[0]} J_r={v[1]:.3f} RMS(r_sp)={v[2]:.2f}dps J_q={v[3]:.3f}" for v in vals)
            + f"; 상대 범위 {100*spread:.1f}% (이론 2.5/1.5=1.667)")
+
+
+def g4_taxonomy():
+    """개정 A7 분류기: 알려진 합성 기동을 넣고 범주·크기 확인."""
+    from l3_indi import taxonomy as T
+    n = int(20 / DT)
+    phi, psp, spq = np.zeros(n), np.zeros(n), np.zeros(n)
+    vt, theta = np.full(n, 700.0), np.zeros(n)
+
+    def roll(a, b, rate):
+        s, e = int(a / DT), int(b / DT)
+        psp[s:e] = np.deg2rad(rate)
+        phi[s:e] = phi[s - 1] + np.cumsum(np.full(e - s, np.deg2rad(rate) * DT))
+        phi[e:] = phi[e - 1]
+
+    roll(2, 3, 60)
+    roll(5, 7, -60)
+    s, e = int(10 / DT), int(14 / DT)
+    spq[s:e] = (4.0 - np.cos(phi[s:e])) * G_FT_S2 / 700
+    roll(16, 17.2, 58)
+    s, e = int(16.2 / DT), int(19 / DT)
+    spq[s:e] = (4.0 - np.cos(phi[s:e])) * G_FT_S2 / 700
+    z = {f"blue__{k}": v for k, v in dict(sp_p=psp, phi=phi, theta=theta, sp_q=spq, vt=vt,
+                                           alt=np.full(n, 15000.0), kcas=np.full(n, 400.0)).items()}
+
+    class Cap:
+        def c_nz(self, a, k):
+            return 7.0, True
+
+    lab, ev, _ = T.classify_side(z, "blue", Cap())
+    expect = {2.5: "roll_other", 6.0: "roll_reversal", 12.0: "g_capture", 16.5: "rolling_pull",
+              18.0: "rolling_pull", 1.0: "low_g"}
+    got = {t: lab[int(t / DT)] for t in expect}
+    rev = [e for e in ev if e["type"] == "roll_reversal"]
+    rp = [e for e in ev if e["type"] == "rolling_pull"]
+    gc = [e for e in ev if e["type"] == "g_capture"]
+    ok = (got == expect and len(rev) == 1 and abs(rev[0]["dphi_abs_deg"] - 120) < 2 and len(rp) == 1
+          and abs(rp[0]["dphi_abs_deg"] - 70) < 2 and len(gc) == 1 and abs(gc[0]["nz_frac"] - 4 / 7) < 0.02)
+    record("G4", "기동 분류기(개정 A7): 합성 기동 4종 범주·크기", ok,
+           f"라벨 {got}; 반전 Δφ {rev[0]['dphi_abs_deg']:.1f}°, 롤링풀 Δφ {rp[0]['dphi_abs_deg']:.1f}°, "
+           f"G포착 C_nz비율 {gc[0]['nz_frac']:.3f}(정답 0.571)")
 
 
 # ======================================================================================
@@ -522,7 +576,7 @@ def main():
     st = git_state()
     print(f"[gates] commit {st['commit'][:10]} clean={st['clean']}")
     t0 = time.perf_counter()
-    for g in (g6, g1, g2, g3, g4, g5):
+    for g in (g6, g1, g2, g3, g4, g4_taxonomy, g5):
         try:
             g()
         except Exception as e:                                   # 게이트 자체 오류도 실패로 기록

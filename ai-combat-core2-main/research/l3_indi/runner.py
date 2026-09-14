@@ -20,7 +20,7 @@ import time
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # 결과에 영향을 주는 코드·데이터 경로. 여기에 커밋 안 된 변경이 있으면 거부한다.
-GUARDED_PATHS = ("research/l3_indi", "aircombat", "jsbsim_data", "examples")
+GUARDED_PATHS = ("research/l3_indi", "aircombat", "jsbsim_data", "examples", "roster", "agents")
 
 
 class DirtyTreeError(RuntimeError):
