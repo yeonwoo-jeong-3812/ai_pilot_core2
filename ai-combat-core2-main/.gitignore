@@ -225,6 +225,13 @@ __marimo__/
 # 매치 산출물 (커밋 제외)
 replays/
 results/
+# 탐색 단계 결과: 데이터는 제외, 출처 기록(MANIFEST/README)만 추적한다.
+!/results/
+/results/*
+!/results/exploratory/
+/results/exploratory/*
+!/results/exploratory/MANIFEST.csv
+!/results/exploratory/README.md
 logs/
 
 tmp/
