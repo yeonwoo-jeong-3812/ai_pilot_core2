@@ -170,6 +170,38 @@ def classify_band(metrics: dict, ref: dict, keys: tuple, osc: int, g_exceeded: i
     return "stable", rho
 
 
+NZ_SETTLE_BAND_G = 0.3             # 개정 A13-1 (G5 와 같은 밴드)
+NZ_SETTLE_BAND_FRAC = 0.05
+RATIO_FLOOR = {"nz_overshoot": 0.05, "bank_overshoot_deg": 1.0,      # 개정 A13-2
+               "nz_settle_s": 0.25, "bank_settle_s": 0.25}
+
+
+def nz_settle(ts: dict, window, nz_target: float) -> float:
+    """개정 A13-1: 창 시작부터 |Nz−목표| > max(0.3, 5%) 인 마지막 틱까지 + Δt. 한 번도 밴드에 못 들면 NaN."""
+    m = window_mask(ts, window)
+    t, nz = ts["t"][m], ts["nz"][m]
+    band = max(NZ_SETTLE_BAND_G, NZ_SETTLE_BAND_FRAC * abs(nz_target))
+    out = np.nonzero(np.abs(nz - nz_target) > band)[0]
+    if len(out) == len(nz):
+        return float("nan")
+    if len(out) == 0:
+        return 0.0
+    return float(t[out[-1]] - window[0] + (t[1] - t[0]))
+
+
+def floored_ratio(key: str, value: float, ref: float) -> float:
+    """개정 A13-2: ρ = max(x, f)/max(기준, f). NaN(미정착)은 ∞. 기준이 NaN 이면 NaN."""
+    f = RATIO_FLOOR.get(key, 0.0)
+    if not np.isfinite(ref):
+        return float("nan")
+    if not np.isfinite(value):
+        return float("inf")
+    den = max(ref, f)
+    if den <= 0:
+        return 1.0 if max(value, f) <= 0 else float("inf")
+    return max(value, f) / den
+
+
 def nz_exceeds_cap(ts: dict, window, c_nz: float) -> int:
     """개정 A9: 창 안 Nz 가 C_nz 를 넘었는지 (검열하지 않고 플래그만)."""
     return int(np.nanmax(ts["nz"][window_mask(ts, window)]) > c_nz)
