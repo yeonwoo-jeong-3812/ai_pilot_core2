@@ -332,7 +332,7 @@ def main():
         if len(R) != n_blocks:
             continue
         if not all(r["band"] == "stable" and r["departure"] < 1 and r["unsettled"] < 1
-                   and r.get("bank_pre_unsettled", 0) < 1 for r in R):
+                   and not (r.get("bank_pre_unsettled", 0) >= 1) for r in R):   # M1 외 기동은 NaN (개정 A16)
             continue
         logs = []
         for r in R:
