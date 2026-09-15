@@ -126,13 +126,47 @@ class M2aCappedReversal(M2RollReversal):
         return g
 
 
-def paper_maneuvers(c_nz: float, c_p: float) -> list:
-    """개정 A9 의 주 기동 변형 7종: M1×{0.7,0.8,0.9}, M2a, M2b, M3×{0.7,0.9}. 이름에 수준을 붙인다."""
+TAIL_S = 5.0          # 개정 A15
+
+
+class TailHold:
+    """개정 A15: 기동 끝에 꼬리 유지 구간을 붙인다 (마지막 뱅크 목표 유지, Nz 1/cosφ).
+
+    창 W·기동 속성은 안쪽 기동에 위임한다. 꼬리 전 구간의 명령은 안쪽 기동과 같다.
+    """
+
+    def __init__(self, inner, bank_deg: float, tail_s: float = TAIL_S):
+        self.inner = inner
+        self.tail_bank_deg = bank_deg
+        self.tail_s = tail_s
+        self.duration_s = inner.duration_s + tail_s
+        self.per_tick = getattr(inner, "per_tick", False)
+
+    def __getattr__(self, name):
+        return getattr(self.inner, name)
+
+    def window(self):
+        return self.inner.window()
+
+    def command(self, t, k, st):
+        if t < self.inner.duration_s:
+            return self.inner.command(t, k, st)
+        return gcmd(np.deg2rad(self.tail_bank_deg) - st["phi"], 1.0 / max(float(np.cos(st["phi"])), 0.2), st)
+
+
+def paper_maneuvers(c_nz: float, c_p: float, tail_s: float = TAIL_S) -> list:
+    """개정 A9 의 주 기동 변형 7종: M1×{0.7,0.8,0.9}, M2a, M2b, M3×{0.7,0.9}. 이름에 수준을 붙인다.
+
+    tail_s > 0 이면 개정 A15 꼬리 유지 구간을 붙인다 (tail_s = 0 은 RQ1 실행 649798f6c1 과 같은 기동).
+    """
     out = [M1BankedCapture(nz_target=f * c_nz, name=f"M1_{f:g}") for f in (0.7, 0.8, 0.9)]
     out.append(M2aCappedReversal(cap_p_dps=c_p, name="M2a"))
     out.append(M2RollReversal(name="M2b"))
     out += [M3RollingPull(nz_target=f * c_nz, name=f"M3_{f:g}") for f in (0.7, 0.9)]
-    return out
+    if tail_s <= 0:
+        return out
+    bank = {"M1": 45.0, "M2": -60.0, "M3": M3RollingPull().bank_deg}
+    return [TailHold(m, bank[m.name[:2]], tail_s) for m in out]
 
 
 @dataclass

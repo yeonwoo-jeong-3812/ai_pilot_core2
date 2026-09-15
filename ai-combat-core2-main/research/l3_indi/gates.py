@@ -13,6 +13,7 @@
   G8 개정 A10-4 지연      동기화 N=0 비트 동일, 측정 지연·동기화 의미 대조, 지연이 실제로 들어감
   G9 개정 A10-2 F_i       수평 협조선회 F_i ≈ 1, 벡터식 = 스칼라식, 수평 비행 μ ≈ φ
   G10 개정 A10-3 Ĉ        G0 복원 비트 동일, float32 중심차분 Ĉ 오차 5% 이내
+  G11 개정 A15 꼬리      꼬리 유무 간 창 W 비트 동일, 착오·리밋사이클 6런 판정 재현
   (G4 에 개정 A10 지표 단위시험 g4_a10 추가)
 
 사용: python research/l3_indi/gates.py            (커밋된 상태에서)
@@ -653,7 +654,7 @@ def g7():
 
     cap = capability(Condition(14000.0, 350.0))
     names = [m.name for m in paper_maneuvers(cap["C_nz"], cap["C_p"])]
-    m2b = [m for m in paper_maneuvers(cap["C_nz"], cap["C_p"]) if m.name == "M2b"][0]
+    m2b = [m for m in paper_maneuvers(cap["C_nz"], cap["C_p"], tail_s=0) if m.name == "M2b"][0]
     with quiet():
         a = run(build(COND), m2b)
         b = run(build(COND), M2RollReversal())
@@ -877,6 +878,50 @@ def g10():
 
 
 # ======================================================================================
+# G11 개정 A15 꼬리 유지 구간
+# ======================================================================================
+def g11():
+    print("\n== G11 개정 A15 꼬리 유지 구간 ==")
+    from l3_indi.design import capability
+    from l3_indi.maneuvers import paper_maneuvers
+    W_COLS = tuple(c for c in TRUTH_COLS if c != "t")
+    ok_a, la = True, []
+    for fbw in (0, 1):
+        cond = Condition(14000.0, 350.0, fbw_override=fbw)
+        cap = capability(cond)
+        plain = paper_maneuvers(cap["C_nz"], cap["C_p"], tail_s=0)
+        tailed = paper_maneuvers(cap["C_nz"], cap["C_p"])
+        for m0, m1 in zip(plain, tailed):
+            with quiet():
+                a = run(build(cond), m0)
+                b = run(build(cond), m1)
+            n = len(a["t"])
+            same = all(np.array_equal(a[c], b[c][:n], equal_nan=True) for c in W_COLS)
+            longer = len(b["t"]) == n + int(round(5.0 / DT)) and m1.window() == m0.window()
+            ok_a &= same and longer
+            la.append(f"{'off' if fbw else 'on'} {m0.name}: {same and longer}")
+    record("G11", "(a) 꼬리 유무 간 원래 구간 시계열 비트 동일 + 창 W 불변 + 길이 +5 s (14k/350, 7기동 × FLCS on/off)",
+           ok_a, "; ".join(la))
+
+    from l3_indi.maneuvers import M1BankedCapture, M2aCappedReversal, M3RollingPull, TailHold
+    cases = (("M1_0.8 off 기준", 1, (1, 1, 1), 25.0, lambda c: TailHold(M1BankedCapture(nz_target=0.8 * c["C_nz"]), 45.0), 0),
+             ("M2a on 기준", 0, (1, 1, 1), 25.0, lambda c: TailHold(M2aCappedReversal(cap_p_dps=c["C_p"]), -60.0), 0),
+             ("M2a on k_p 2 filt 50", 0, (2, 1, 1), 50.0, lambda c: TailHold(M2aCappedReversal(cap_p_dps=c["C_p"]), -60.0), 0),
+             ("M1_0.9 on 기준", 0, (1, 1, 1), 25.0, lambda c: TailHold(M1BankedCapture(nz_target=0.9 * c["C_nz"]), 45.0), 0),
+             ("M1_0.9 on k_q 2", 0, (1, 2, 1), 25.0, lambda c: TailHold(M1BankedCapture(nz_target=0.9 * c["C_nz"]), 45.0), 1),
+             ("M3_0.9 on k_q 2", 0, (1, 2, 1), 25.0, lambda c: TailHold(M3RollingPull(nz_target=0.9 * c["C_nz"]), 70.0), 1))
+    ok_b, lb = True, []
+    for label, fbw, ks, f, mk, expect in cases:
+        cond = Condition(14000.0, 350.0, fbw_override=fbw)
+        with quiet():
+            ts = run(build(cond, Params(k_scale=ks, filt_hz=f)), mk(capability(cond)))
+        o = M.oscillation(ts, DT)
+        ok_b &= o["oscillating"] == expect
+        lb.append(f"{label}: osc {o['oscillating']}(기대 {expect}), p2p {o['p2p_rate_dps']:.1f} dps, 부호반전 {o['signchg_hz']:.1f} Hz")
+    record("G11", "(b) 개정 A15-3 의 6런 판정 재현 (착오 4런 → 진동 아님, 리밋사이클 2런 → 진동)", ok_b, "; ".join(lb))
+
+
+# ======================================================================================
 def main():
     if len(sys.argv) >= 2 and sys.argv[1] == "--child":
         cfg = json.loads(sys.argv[2])
@@ -889,7 +934,7 @@ def main():
     st = git_state()
     print(f"[gates] commit {st['commit'][:10]} clean={st['clean']}")
     t0 = time.perf_counter()
-    order = (g6, g1, g2, g3, g4, g4_taxonomy, g4_a10, g5, g7, g8, g9, g10)
+    order = (g6, g1, g2, g3, g4, g4_taxonomy, g4_a10, g5, g7, g8, g9, g10, g11)
     if only:
         order = tuple(g for g in order if g.__name__ in only)
     for g in order:
