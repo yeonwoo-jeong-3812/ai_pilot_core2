@@ -78,11 +78,14 @@ class Uncertainty:
     gyro_sigma_dps: float = 0.0               # 120 Hz 샘플당 자이로 백색잡음 σ [deg/s]
     input_delay_ms: float = 0.0               # 조종면 명령 전달 지연
     seed: int = 0
+    meas_delay_steps: int = 0                 # 개정 A10-4: 자이로·각가속도 읽기 지연 [틱]
+    sync_act_delay: bool = False              # 개정 A10-4: INDI 액추에이터 되먹임도 같은 틱 지연
 
     @property
     def is_null(self) -> bool:
         return (self.g0_row_scale == (1.0, 1.0, 1.0) and self.g0_offdiag_scale == 1.0
-                and self.gyro_sigma_dps == 0.0 and self.input_delay_ms == 0.0)
+                and self.gyro_sigma_dps == 0.0 and self.input_delay_ms == 0.0
+                and self.meas_delay_steps == 0)
 
 
 def config_hash(*objs) -> str:
@@ -100,10 +103,12 @@ class PlantProxy:
     잡음: 물리 스텝마다 축별 백색잡음 n_k ~ N(0, σ) 을 새로 뽑아 고정(latch)한다.
           자이로 = 참 + n_k,  각가속도 = 참 + (n_k − n_{k−1})/Δt  (같은 잡음 자이로의 1차 차분과 일치)
     지연: set_input 을 FIFO 로 N 틱 늦춰 참 플랜트에 적용. N = round(delay/Δt).
+    측정 지연 (개정 A10-4): 자이로·각가속도 읽기가 N 틱 전 참 값을 돌려준다. 첫 N 틱은 시작 값을 유지.
+          잡음과 동시에 쓰지 않는다(지연이 있으면 잡음 없는 과거 참 값을 돌려준다) — A10-4 는 잡음 0 설계.
     """
 
     def __init__(self, true_plant, dt: float, gyro_sigma_dps: float = 0.0,
-                 input_delay_ms: float = 0.0, seed: int = 0):
+                 input_delay_ms: float = 0.0, seed: int = 0, meas_delay_steps: int = 0):
         self.true = true_plant
         self.fdm = true_plant.fdm
         self.dt = dt
@@ -115,8 +120,15 @@ class PlantProxy:
         self.delay_steps = int(round(float(input_delay_ms) / 1000.0 / dt))
         u0 = list(true_plant.get_input())
         self.fifo = collections.deque([u0] * self.delay_steps)
+        self.meas_delay_steps = int(meas_delay_steps)
+        if self.meas_delay_steps > 0:
+            snap = {p: true_plant[p] for p in GYRO_PROPS + ACC_PROPS}
+            self.meas_hist = collections.deque([snap] * (self.meas_delay_steps + 1),
+                                               maxlen=self.meas_delay_steps + 1)
 
     def __getitem__(self, prop):
+        if self.meas_delay_steps > 0 and prop in self.meas_hist[0]:
+            return self.meas_hist[0][prop]
         v = self.true[prop]
         if self.sigma > 0:
             if prop in GYRO_PROPS:
@@ -141,6 +153,8 @@ class PlantProxy:
             if self.sigma > 0:
                 self.n_prev = self.n
                 self.n = self.rng.normal(0.0, self.sigma, 3)
+            if self.meas_delay_steps > 0:
+                self.meas_hist.append({p: self.true[p] for p in GYRO_PROPS + ACC_PROPS})
         return self
 
     def __getattr__(self, name):          # get_input, get_state 등 나머지는 참 플랜트로
@@ -161,6 +175,31 @@ class Rig:
     params: Params
     unc: Uncertainty
     sp_log: list = field(default_factory=list)
+
+
+class SyncDelayINDI(INDIRateController):
+    """개정 A10-4 동기화 변형 — 동기화 필터 f_act 에 들어가는 u_prev 를 N 틱 전 출력으로 바꾼다.
+
+    원본 `update` 는 그대로 호출한다. N = 0 이면 원본과 비트 동일(게이트 G8).
+    """
+
+    def __init__(self, *args, sync_delay_steps: int = 0, **kwargs):
+        self.sync_n = int(sync_delay_steps)
+        self._u_hist = None
+        super().__init__(*args, **kwargs)
+
+    def reset(self, u0=(0, 0, 0), omega0=(0, 0, 0)):
+        super().reset(u0, omega0)
+        u0 = np.asarray(u0, float)
+        self._u_hist = collections.deque([u0.copy()] * (self.sync_n + 1), maxlen=self.sync_n + 1)
+
+    def update(self, omega, omega_sp, qbar, ang_accel=None, omega_sp_dot=None):
+        if self.sync_n > 0:
+            self.u_prev = self._u_hist[0]
+        u = super().update(omega, omega_sp, qbar, ang_accel=ang_accel, omega_sp_dot=omega_sp_dot)
+        if self.sync_n > 0:
+            self._u_hist.append(np.array(u, float))
+        return u
 
 
 def transform_g0(G0: np.ndarray, unc: Uncertainty) -> np.ndarray:
@@ -196,8 +235,12 @@ def build(cond: Condition, params: Params = Params(), unc: Uncertainty = Uncerta
     G0_model = transform_g0(G0_true, unc)
 
     if rebuild_indi:
-        indi = INDIRateController(pilot.dt_phys, G0_model, qbar_ref,
-                                  k_rate=params.k_rate, filt_hz=params.filt_hz)
+        if unc.sync_act_delay:
+            indi = SyncDelayINDI(pilot.dt_phys, G0_model, qbar_ref, k_rate=params.k_rate,
+                                 filt_hz=params.filt_hz, sync_delay_steps=unc.meas_delay_steps)
+        else:
+            indi = INDIRateController(pilot.dt_phys, G0_model, qbar_ref,
+                                      k_rate=params.k_rate, filt_hz=params.filt_hz)
         indi.reset(u0=[true_plant["fcs/aileron-cmd-norm"],      # Pilot.setup 과 같은 u0
                        true_plant["fcs/elevator-cmd-norm"],
                        true_plant["fcs/rudder-cmd-norm"]])
@@ -220,7 +263,7 @@ def build(cond: Condition, params: Params = Params(), unc: Uncertainty = Uncerta
 
     if use_proxy:
         pilot.plant = PlantProxy(true_plant, pilot.dt_phys, unc.gyro_sigma_dps,
-                                 unc.input_delay_ms, unc.seed)
+                                 unc.input_delay_ms, unc.seed, unc.meas_delay_steps)
     return rig
 
 
@@ -234,6 +277,8 @@ TRUTH_COLS = (
     "pos_ail", "pos_ele", "pos_rud_deg",             # 실제 타면
     "phi", "theta", "psi", "alpha", "beta", "nz", "vt", "kcas", "qbar", "alt",
     "gc_dphi", "gc_q", "gc_thrust", "gc_g",
+    "pdot", "qdot", "rdot",                         # 개정 A10-1: 참 각가속도
+    "vn", "ve", "vd",                               # 개정 A10-2: 참 NED 속도 [ft/s]
 )
 
 
@@ -285,6 +330,10 @@ def run(rig: Rig, maneuver, n_steps: int | None = None) -> dict:
             plant["velocities/vt-fps"], plant["velocities/vc-kts"], plant["aero/qbar-psf"],
             plant["position/h-sl-ft"],
             gc.dphi_cmd, gc.q_cmd, gc.thrust_cmd, gc.g_target,
+            plant["accelerations/pdot-rad_sec2"], plant["accelerations/qdot-rad_sec2"],
+            plant["accelerations/rdot-rad_sec2"],
+            plant["velocities/v-north-fps"], plant["velocities/v-east-fps"],
+            plant["velocities/v-down-fps"],
         )
     ts = {c: out[:, i] for i, c in enumerate(TRUTH_COLS)}
     ts["_meta"] = {"have_sp": have_sp, "n_steps": n,

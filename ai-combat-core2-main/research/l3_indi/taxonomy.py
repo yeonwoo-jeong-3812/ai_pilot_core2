@@ -37,6 +37,35 @@ SYNTH = {
 }
 
 
+# 개정 A9 수준 (M2a 피크 |p_sp| 는 조건별 0.8·C_p — 게이트에서 RQ1 9조건 FLCS on 값의 최소·최대로 채운다)
+SYNTH_A9 = {
+    "M1": {"nz_frac": (0.7, 0.8, 0.9), "duration_s": (5.0,), "bank_abs_deg": (45.0,)},
+    "M2a": {"dphi_abs_deg": (120.0,), "peak_psp_dps": None, "dwell_s": (3.0,), "ncmd": (2.0,)},
+    "M3": {"dphi_abs_deg": (70.0,), "nz_frac": (0.7, 0.9), "duration_s": (6.0,)},
+}
+REAL_MAP = {"M1": ("g_capture", {"nz_frac": "nz_frac", "duration_s": "duration_s", "bank_abs_deg": "bank_abs_median_deg"}),
+            "M2": ("roll_reversal", {"dphi_abs_deg": "dphi_abs_deg", "peak_psp_dps": "peak_psp_dps",
+                                     "dwell_s": "dwell_s", "ncmd": "ncmd_median"}),
+            "M3": ("rolling_pull", {"dphi_abs_deg": "dphi_abs_deg", "nz_frac": "nz_frac", "duration_s": "duration_s"})}
+
+
+def r2_from_events(event_rows: list[dict], synth: dict) -> dict:
+    """events.csv 행으로 A7 R2 판정 (main 의 R2 와 같은 규칙). synth 키 M2a 는 M2 의 실전 사건과 비교."""
+    out = {}
+    for m, pars in synth.items():
+        etype, fmap = REAL_MAP[m[:2]]
+        E = [r for r in event_rows if r["type"] == etype]
+        for par, levels in pars.items():
+            vals = [float(r[fmap[par]]) for r in E]
+            p10, p90 = pct(vals, 10), pct(vals, 90)
+            fin = np.asarray([v for v in vals if np.isfinite(v)])
+            between = float(np.mean((fin >= min(levels)) & (fin <= max(levels)))) if len(fin) else float("nan")
+            out[f"{m}.{par}"] = {"levels": tuple(levels), "real_p10": p10, "real_p50": pct(vals, 50), "real_p90": p90,
+                                 "outside": [lv for lv in levels if not (p10 <= lv <= p90)],
+                                 "frac_real_between_levels": between, "n": int(len(fin))}
+    return out
+
+
 # --------------------------------------------------------------------------------------
 def runs(mask: np.ndarray) -> list[tuple[int, int]]:
     """True 연속 구간 [s, e) 목록."""

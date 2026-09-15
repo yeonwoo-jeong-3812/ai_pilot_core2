@@ -9,8 +9,14 @@
                           잡음·지연 프록시 통계, G0 변형, J_r 파라미터 독립성(사전등록 §3.2 주장 검증)
   G5 기존 결과 재현       탐색 단계 코너 당김을 하네스로 → 안정 경계 위치를 stability_filter_map 과 대조
   G6 출처                 커밋 안 된 변경이 있으면 runner 가 실행 거부
+  G7 개정 A9 기동         M2a 능력 제한 0, M1 45° 정착, M2b = 기존 M2, A9 수준 R2 재판정
+  G8 개정 A10-4 지연      동기화 N=0 비트 동일, 측정 지연·동기화 의미 대조, 지연이 실제로 들어감
+  G9 개정 A10-2 F_i       수평 협조선회 F_i ≈ 1, 벡터식 = 스칼라식, 수평 비행 μ ≈ φ
+  G10 개정 A10-3 Ĉ        G0 복원 비트 동일, float32 중심차분 Ĉ 오차 5% 이내
+  (G4 에 개정 A10 지표 단위시험 g4_a10 추가)
 
 사용: python research/l3_indi/gates.py            (커밋된 상태에서)
+      python research/l3_indi/gates.py --only g7,g9   (부분 점검, 보고서 없음)
 결과: research/l3_indi/gate_reports/<commit10>.md, 모두 통과하면 종료코드 0
 """
 from __future__ import annotations
@@ -567,16 +573,326 @@ def g6():
 
 
 # ======================================================================================
+# G4 추가 단위시험 — 개정 A10 지표 (알려진 입력)
+# ======================================================================================
+def g4_a10():
+    print("\n== G4 개정 A10 지표 단위시험 ==")
+    from l3_indi import effectiveness as EFF
+    rng = np.random.default_rng(3)
+    n = 400
+    G0 = np.array([[-20.0, 1.0, 3.0], [0.5, -7.0, 0.2], [-1.0, 0.3, -2.0]])
+    u = np.cumsum(rng.normal(0, 0.01, (n, 3)), axis=0)
+    du = np.vstack([np.zeros(3), np.diff(u, axis=0)])
+    wd = np.cumsum(du @ G0.T, axis=0)
+    ts = {"t": np.arange(n) * DT, "cmd_ail": u[:, 0], "cmd_ele": u[:, 1], "cmd_rud": u[:, 2],
+          "pdot": wd[:, 0], "qdot": wd[:, 1], "rdot": wd[:, 2], "qbar": np.full(n, 400.0),
+          "alpha": np.full(n, 0.1), "nz": np.full(n, 3.0)}
+    e0 = M.tss_residual(ts, (0, n * DT), G0, 400.0)
+    d = rng.normal(0, 0.05, (n, 3))
+    wd2 = np.cumsum(du @ G0.T + d, axis=0)
+    ts2 = dict(ts, pdot=wd2[:, 0], qdot=wd2[:, 1], rdot=wd2[:, 2])
+    e1 = M.tss_residual(ts2, (0, n * DT), G0, 400.0)
+    dd = np.diff(wd2, axis=0)
+    expect = np.sum(np.abs(d[1:]), axis=0) / np.sum(np.abs(dd), axis=0)
+    ok = (max(abs(v) for v in e0.values()) < 1e-9
+          and np.allclose([e1["eps_p"], e1["eps_q"], e1["eps_r"]], expect, rtol=1e-9))
+    record("G4", "개정 A10-1 ε: 증분 모델이 정확하면 0, 알려진 교란이면 해석값", ok,
+           f"정확 {max(abs(v) for v in e0.values()):.1e}; 교란 ε=({e1['eps_p']:.4f},{e1['eps_q']:.4f},{e1['eps_r']:.4f}) "
+           f"해석 ({expect[0]:.4f},{expect[1]:.4f},{expect[2]:.4f})")
+    wd3 = np.cumsum(2.0 * (du @ G0.T), axis=0)
+    e2 = M.tss_residual(dict(ts, qbar=np.full(n, 800.0), pdot=wd3[:, 0], qdot=wd3[:, 1], rdot=wd3[:, 2]),
+                        (0, n * DT), G0, 400.0)
+    record("G4", "개정 A10-1 ε: 동압 스케줄 G = (q̄/q̄_ref)·G0 반영", max(abs(v) for v in e2.values()) < 1e-9,
+           f"q̄ 2배·효과 2배 → ε 최대 {max(abs(v) for v in e2.values()):.1e}")
+
+    x = np.linspace(0, 1, 300)
+    yh = 2.0 * np.maximum(0, x - 0.5) + rng.normal(0, 1e-3, 300)
+    yl = 0.8 * x + rng.normal(0, 1e-3, 300)
+    fh, fl = M.transfer_fit(x, yh), M.transfer_fit(x, yl)
+    record("G4", "개정 A10-2 T→M 판정: 힌지 데이터 → 임계형(x₀≈0.5), 선형 데이터 → 선형",
+           fh["verdict"] == "threshold" and abs(fh["x0"] - 0.5) < 0.03 and fl["verdict"] == "linear",
+           f"힌지: {fh['verdict']} x₀={fh['x0']:.3f} ΔBIC={fh['delta_bic']:.0f}; 선형: {fl['verdict']} ΔBIC={fl['delta_bic']:.1f}")
+
+    wdot = np.cumsum(0.5 * (du @ G0.T), axis=0)
+    W = EFF.windows(wdot, u, np.full(n, 400.0), G0, 400.0)
+    record("G4", "개정 A10-3 창별 최소제곱: 실효 효과가 식별값의 0.5배면 Ĉ = 0.5",
+           len(W["C"]) > 0 and np.allclose(W["C"], 0.5, atol=1e-9),
+           f"창 {len(W['C'])}개, Ĉ 범위 {np.nanmin(W['C']):.6f}~{np.nanmax(W['C']):.6f}")
+
+
+# ======================================================================================
+# G7 개정 A9 합성 기동
+# ======================================================================================
+def g7():
+    print("\n== G7 개정 A9 합성 기동 ==")
+    from l3_indi.design import rq1_conditions, capability
+    from l3_indi.maneuvers import M1BankedCapture, M2aCappedReversal, paper_maneuvers
+    a_ok, b_ok, la, lb = True, True, [], []
+    for fbw in (0, 1):
+        for cond in rq1_conditions(fbw):
+            cap = capability(cond)
+            m2a = M2aCappedReversal(cap_p_dps=cap["C_p"])
+            with quiet():
+                ts = run(build(cond), m2a)
+            w = m2a.window()
+            lim = M.capability_limited(ts, w, cap["C_p"])
+            pmax = float(np.max(np.abs(np.rad2deg(ts["sp_p"][M.window_mask(ts, w)]))))
+            ok = lim == 0 and pmax <= 1.01 * 0.8 * cap["C_p"]
+            a_ok &= ok
+            la.append(f"{'off' if fbw else 'on'} {cond.alt_ft/1000:g}k/{cond.kcas:g}: max|p_sp| {pmax:.1f}"
+                      f"/0.8C_p {0.8*cap['C_p']:.1f}, 제한 {lim}")
+            m1 = M1BankedCapture(nz_target=0.7 * cap["C_nz"])
+            with quiet():
+                ts1 = run(build(cond), m1)
+            k3 = int(round(m1.pull_start_s / DT)) - 1
+            dphi = abs(float(np.rad2deg(ts1["phi"][k3])) - 45.0)
+            b_ok &= dphi <= 2.0
+            lb.append(f"{'off' if fbw else 'on'} {cond.alt_ft/1000:g}k/{cond.kcas:g}: |φ−45°| {dphi:.2f}°")
+    record("G7", "M2a 능력 제한 0, max|p_sp| ≤ 1.01×0.8·C_p (9조건 × FLCS on/off)", a_ok, "; ".join(la))
+    record("G7", "M1 t=3 s 에서 |φ−45°| ≤ 2° (기준 파라미터, 18블록)", b_ok, "; ".join(lb))
+
+    cap = capability(Condition(14000.0, 350.0))
+    names = [m.name for m in paper_maneuvers(cap["C_nz"], cap["C_p"])]
+    m2b = [m for m in paper_maneuvers(cap["C_nz"], cap["C_p"]) if m.name == "M2b"][0]
+    with quiet():
+        a = run(build(COND), m2b)
+        b = run(build(COND), M2RollReversal())
+    same, worst, _ = bitwise(a, b, TRUTH_COLS)
+    record("G7", "M2b = 기존 M2 시계열 비트 동일, 주 기동 변형 7종", same and len(names) == 7,
+           f"최대차 {worst}; 변형 {names}")
+
+    from l3_indi import taxonomy as T
+    from l3_indi.design import rq1_conditions as rc
+    caps = [capability(c)["C_p"] for c in rc(0)]
+    synth = {k: dict(v) for k, v in T.SYNTH_A9.items()}
+    synth["M2a"]["peak_psp_dps"] = (round(0.8 * min(caps), 1), round(0.8 * max(caps), 1))
+    ev = list(csv.DictReader(open(os.path.join(REPO, "results", "paper", "taxonomy", "296ce41ff0", "events.csv"),
+                                  encoding="utf-8")))
+    r2 = T.r2_from_events(ev, synth)
+    outside = {k: v["outside"] for k, v in r2.items() if v["outside"]}
+    record("G7", "개정 A9 수준으로 A7 R2 재판정 — 실전 p10~p90 밖 수준 없음", not outside,
+           "; ".join(f"{k} {v['levels']} (p10 {v['real_p10']:.2f}, p90 {v['real_p90']:.2f}, 밖 {v['outside']})"
+                     for k, v in r2.items()))
+
+
+# ======================================================================================
+# G8 개정 A10-4 측정 지연·동기화
+# ======================================================================================
+def g8():
+    print("\n== G8 개정 A10-4 측정 지연 ==")
+    from l3_indi.harness import SyncDelayINDI
+    man = M3RollingPull(nz_target=4.0)
+    with quiet():
+        base = run(build(COND), man)
+        rig0 = build(COND, unc=Uncertainty(sync_act_delay=True, meas_delay_steps=0))
+        s0 = run(rig0, man)
+    same, worst, _ = bitwise(base, s0, TRUTH_COLS)
+    record("G8", "동기화 제어기 N=0 → 원본과 비트 동일", same and isinstance(rig0.pilot.indi, SyncDelayINDI),
+           f"최대차 {worst}, 클래스 {type(rig0.pilot.indi).__name__}")
+
+    from aircombat.fdm.plant import F16Plant
+    with quiet():
+        pl = F16Plant(dt=DT)
+        pl.set_ic(alt_ft=15000, vc_kts=400)
+        pl["fcs/throttle-cmd-norm"] = 0.85
+        pl.trim()
+    N = 4
+    px = PlantProxy(pl, DT, meas_delay_steps=N)
+    u0 = list(pl.get_input())
+    hist = [(pl["velocities/q-rad_sec"], pl["accelerations/qdot-rad_sec2"])]
+    ok = True
+    for k in range(40):
+        rd = (px["velocities/q-rad_sec"], px["accelerations/qdot-rad_sec2"])
+        exp = hist[max(len(hist) - 1 - N, 0)]
+        ok &= rd == exp
+        px.set_input([u0[0], u0[1] - 0.02 * np.sin(k / 3), u0[2], u0[3]])
+        px.step(1)
+        hist.append((pl["velocities/q-rad_sec"], pl["accelerations/qdot-rad_sec2"]))
+    other = px["attitude/phi-rad"] == pl["attitude/phi-rad"]
+    record("G8", "프록시 측정 지연: 자이로·각가속도 읽기 = N틱 전 참 값, 다른 속성은 지연 없음",
+           ok and other and hist[-1][0] != hist[0][0], f"N={N}, 40스텝 일치={ok}, 자세 비지연={other}")
+
+    with quiet():
+        rig = build(COND, unc=Uncertainty(sync_act_delay=True, meas_delay_steps=N))
+    indi = rig.pilot.indi
+    inputs = []
+
+    class Spy:
+        def __init__(self, f):
+            self.f = f
+
+        def __call__(self, x):
+            inputs.append(np.array(x, float))
+            return self.f(x)
+
+        def reset(self, x0):
+            return self.f.reset(x0)
+
+    u_reset = np.array(indi.u_prev, float)
+    indi.f_act = Spy(indi.f_act)
+    with quiet():
+        ts = run(rig, M3RollingPull(nz_target=4.0, duration_s=2.0))
+    outs = np.stack([ts["u_ail"], ts["u_ele"], ts["u_rud"]], axis=1)
+    ok2 = True
+    for k, x in enumerate(inputs):
+        j = k - 1 - N
+        exp = outs[j] if j >= 0 else u_reset
+        ok2 &= np.array_equal(x, exp)
+    record("G8", "동기화 변형: f_act 입력 = N+1틱 전 INDI 출력 (첫 N+1틱은 리셋값)", ok2 and len(inputs) == len(outs),
+           f"N={N}, {len(inputs)}틱 대조")
+
+    with quiet():
+        d_async = run(build(COND, unc=Uncertainty(meas_delay_steps=N)), man)
+        d_sync = run(build(COND, unc=Uncertainty(meas_delay_steps=N, sync_act_delay=True)), man)
+    differ = (not bitwise(base, d_async, TRUTH_COLS)[0]) and (not bitwise(d_async, d_sync, TRUTH_COLS)[0])
+    record("G8", "지연이 실제로 들어감 (기준 ≠ 비동기 ≠ 동기)", differ,
+           f"J_q 기준 {M.tracking_J(base,'q',man.window()):.4f} / 비동기 {M.tracking_J(d_async,'q',man.window()):.4f}"
+           f" / 동기 {M.tracking_J(d_sync,'q',man.window()):.4f}")
+
+
+# ======================================================================================
+# G9 개정 A10-2 F_i
+# ======================================================================================
+def g9():
+    print("\n== G9 개정 A10-2 기동 실현도 F_i ==")
+    from aircombat.control.limiter import G_FT_S2 as G_LIM
+    from l3_indi.maneuvers import M1BankedCapture
+    cond = Condition(14000.0, 350.0)
+    turn = M1BankedCapture(nz_target=float(np.sqrt(2.0)), duration_s=12.0)
+    with quiet():
+        rig_turn = build(cond)
+        ts = run(rig_turn, turn)
+    w = (8.0, 12.0)
+    fi = M.path_realization(ts, w, n_target=ts["nz"])
+    geo = M.wind_geometry(ts)
+    act, ideal = M.path_rates(ts, ts["nz"])
+    n_t = ts["nz"]
+    scalar = (M.G_FT_S2 / geo["V"]) * np.sqrt(np.maximum(n_t ** 2 - 2 * n_t * np.cos(geo["mu"]) * np.cos(geo["gamma"])
+                                                         + np.cos(geo["gamma"]) ** 2, 0))
+    rel = float(np.max(np.abs(scalar - ideal) / np.maximum(ideal, 1e-9)))
+    m = M.window_mask(ts, w)
+    mu_phi_turn = float(np.max(np.abs(np.rad2deg(geo["mu"][m] - ts["phi"][m]))))
+    # 진단: 마지막 틱(플랜트 현재 상태)에서 측방 하중 Ny 를 포함한 수직가속 예측 vs 속도 후진차분
+    P = rig_turn.plant
+    kk = len(ts["t"]) - 1
+    v = np.stack([ts["vn"], ts["ve"], ts["vd"]], axis=1)
+    vh = v[kk] / np.linalg.norm(v[kk])
+    perp = lambda x: np.linalg.norm(x - np.dot(x, vh) * vh)
+    xb, zb = M._body_axes_ned(ts["phi"][kk], ts["theta"][kk], ts["psi"][kk])
+    yb = np.cross(zb, xb)
+    gd = M.G_FT_S2 * np.array([0.0, 0.0, 1.0])
+    meas = perp((v[kk] - v[kk - 1]) / DT)
+    with_ny = perp(M.G_FT_S2 * (P["accelerations/Ny"] * yb - P["accelerations/Nz"] * zb) + gd)
+    nz_only = perp(-M.G_FT_S2 * P["accelerations/Nz"] * zb + gd)
+    passed_i = abs(fi - 1) <= 0.05
+    record("G9", "(i) 수평 협조선회(뱅크 45°, Nz √2)에서 n_t=실측 Nz 인 F_i = 1 ± 0.05", passed_i,
+           f"F_i {fi:.4f}, 창 {w}, 평균 뱅크 {np.rad2deg(np.mean(ts['phi'][m])):.1f}°, 평균 γ "
+           f"{np.rad2deg(np.mean(geo['gamma'][m])):.2f}°, 평균 Nz {np.mean(ts['nz'][m]):.3f}, "
+           f"평균 β {np.rad2deg(np.mean(ts['beta'][m])):.2f}°. 진단(마지막 틱): 속도 수직가속 실측 {meas:.2f} ft/s², "
+           f"Nz+Ny 예측 {with_ny:.2f}, Nz 만 예측 {nz_only:.2f} (Ny {P['accelerations/Ny']:.3f} G) — "
+           f"배치 요축 법칙(요 감쇠)은 협조선회를 하지 않아 측력이 생기고 F_i 식은 Nz 만 쓴다")
+    record("G9", "개정 A10-2 대체 규칙 적용 결정 (G9 (i) 결과에 따름)", True,
+           "M층 지표 = F_i" if passed_i else "G9 (i) 불통과 → M층 지표를 Nz 실현율(§4)로 대체 (개정 A12)")
+    record("G9", "Ω_ideal 벡터식 = 스칼라식 √(n²−2n cosμ cosγ+cos²γ)·g/V", rel < 1e-9 and M.G_FT_S2 == G_LIM,
+           f"최대 상대차 {rel:.1e}, g {M.G_FT_S2} = limiter {G_LIM}")
+    with quiet():
+        hs = run(build(cond), Hold(duration_s=3.0))
+    gh = M.wind_geometry(hs)
+    mh = hs["t"] >= 1.0
+    mu_phi = float(np.max(np.abs(np.rad2deg(gh["mu"][mh] - hs["phi"][mh]))))
+    record("G9", "(ii) β≈0 수평 비행(트림 유지)에서 |μ−φ| ≤ 0.5°", mu_phi <= 0.5,
+           f"최대 {mu_phi:.4f}°, |β| 최대 {np.rad2deg(np.max(np.abs(hs['beta'][mh]))):.3f}°; "
+           f"(참고, 판정 아님) 45° 선회 중 |μ−φ| 최대 {mu_phi_turn:.2f}°")
+
+
+# ======================================================================================
+# G10 개정 A10-3 실효 제어효과 추정
+# ======================================================================================
+def g10():
+    print("\n== G10 개정 A10-3 실효 제어효과 ==")
+    from l3_indi import effectiveness as EFF
+    from l3_indi.traces import all_jobs, SCENARIOS
+    from aircombat.engine.factory import load_policy, make_pilot
+    from aircombat.engine.match import Match
+    from aircombat.engine.scenarios import initial_conditions
+    jobs = all_jobs()
+    picks = [next(j for j in jobs if j["scenario"] == sc) for sc in SCENARIOS]
+    ok, lines = True, []
+    for j in picks:
+        cwd = os.getcwd()
+        os.chdir(REPO)
+        try:
+            with quiet():
+                sides = [load_policy(j["participant"]), load_policy(j["red_path"])]
+                ic = initial_conditions(j["scenario"], seed=j["seed"])
+                pb = make_pilot("Blue", ic["blue"], *sides[0])
+                pr = make_pilot("Red", ic["red"], *sides[1], name=j["red"])
+                Match(pb, pr, duration_s=0.1, log_hz=0, wall_limit_s=600, overtime_s=0.0).run()
+        finally:
+            os.chdir(cwd)
+        rest = EFF.restore_g0(j)
+        same = all(np.array_equal(rest[s][0], p.indi.G0) and rest[s][1] == p.indi.qbar_ref
+                   for s, p in (("blue", pb), ("red", pr)))
+        ok &= same
+        lines.append(f"{j['match_id']}: {same}")
+    record("G10", "G0 복원 = 경기 중 식별값 비트 동일 (시나리오별 1경기, 양측)", ok, "; ".join(lines))
+
+    from l3_indi.design import capability
+    from l3_indi.maneuvers import paper_maneuvers
+    cond = Condition(14000.0, 350.0)
+    cap = capability(cond)
+    mans = [m for m in paper_maneuvers(cap["C_nz"], cap["C_p"]) if m.name in ("M1_0.8", "M2a", "M3_0.9")]
+    schemes = {"true": [], "central32": [], "central64": [], "forward64": []}
+    for man in mans:
+        with quiet():
+            rig = build(cond)
+            ts = run(rig, man)
+        mask = M.window_mask(ts, man.window())
+        u = np.stack([ts["cmd_ail"], ts["cmd_ele"], ts["cmd_rud"]], axis=1)
+        om = np.stack([ts["p"], ts["q"], ts["r"]], axis=1)
+        fwd = np.full_like(om, np.nan)
+        fwd[:-1] = (om[1:] - om[:-1]) / DT
+        est = {"true": np.stack([ts["pdot"], ts["qdot"], ts["rdot"]], axis=1),
+               "central32": EFF.omega_dot_central(om.astype(np.float32)),     # 사전등록 방식 (판정 대상)
+               "central64": EFF.omega_dot_central(om), "forward64": fwd}      # 진단용
+        for k, wd in est.items():
+            W = EFF.windows(wd, u, ts["qbar"], rig.G0_true, rig.qbar_ref, mask)
+            schemes[k].append((W["C"], W["rms_phi"]))
+    med = {}
+    for k, lst in schemes.items():
+        C, R = np.vstack([c for c, _ in lst]), np.vstack([r for _, r in lst])
+        ex = EFF.excited(R)
+        med[k] = [float(np.nanmedian(C[ex[:, i], i])) for i in range(3)]
+        if k == "true":
+            n_win = len(C)
+    rel = lambda k, i: abs(med[k][i] - med["true"][i]) / abs(med["true"][i])
+    ok_b = all(rel("central32", i) <= 0.05 for i in range(3))
+    diag = "; ".join(f"{k} Ĉ(p,q,r)=({', '.join(f'{v:.3f}' for v in med[k])})"
+                     + ("" if k == "true" else f" 차 ({', '.join(f'{100*rel(k, i):.0f}%' for i in range(3))})")
+                     for k in med)
+    record("G10", "ω̇ 중심차분(float32) Ĉ 가 참 ω̇ Ĉ 와 축별 5% 이내 (14k/350, M1_0.8·M2a·M3_0.9, 가진 상위 50% 창 중앙값)",
+           ok_b, f"창 {n_win}개; {diag}. 진단: float32 와 float64 결과가 같으면 정밀도가 아니라 차분 방식이 원인")
+    record("G10", "개정 A10-3 격하 규칙 적용 결정 (G10b 결과에 따름)", True,
+           "A10-3 주 결과 유지" if ok_b else "G10b 불통과 → A10-3 은 부록 참고치로 격하 (개정 A12)")
+
+
+# ======================================================================================
 def main():
     if len(sys.argv) >= 2 and sys.argv[1] == "--child":
         cfg = json.loads(sys.argv[2])
         ts = _child_config(cfg)
         np.savez(sys.argv[3], **{c: ts[c] for c in TRUTH_COLS})
         return 0
+    only = None
+    if len(sys.argv) >= 3 and sys.argv[1] == "--only":
+        only = sys.argv[2].split(",")
     st = git_state()
     print(f"[gates] commit {st['commit'][:10]} clean={st['clean']}")
     t0 = time.perf_counter()
-    for g in (g6, g1, g2, g3, g4, g4_taxonomy, g5):
+    order = (g6, g1, g2, g3, g4, g4_taxonomy, g4_a10, g5, g7, g8, g9, g10)
+    if only:
+        order = tuple(g for g in order if g.__name__ in only)
+    for g in order:
         try:
             g()
         except Exception as e:                                   # 게이트 자체 오류도 실패로 기록
@@ -585,6 +901,9 @@ def main():
             traceback.print_exc()
     wall = time.perf_counter() - t0
     passed = all(r["pass"] for r in RESULTS)
+    if only:                                       # 부분 실행은 보고서를 쓰지 않는다
+        print(f"\n[gates --only] {sum(r['pass'] for r in RESULTS)}/{len(RESULTS)} pass, {wall:.0f}s")
+        return 0 if passed else 1
     os.makedirs(os.path.join(HERE, "gate_reports"), exist_ok=True)
     path = os.path.join(HERE, "gate_reports", f"{st['commit'][:10]}.md")
     with open(path, "w", encoding="utf-8") as f:

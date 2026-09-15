@@ -84,6 +84,58 @@ class M3RollingPull(Maneuver):
 
 
 @dataclass
+class M1BankedCapture(Maneuver):
+    """개정 A9 M1: t<1 트림 유지 → [1,3) 뱅크 45° 진입·유지(Nz 1/cosφ) → t=3 에 Nz 목표 계단, 5 s. 창 [3, 8)."""
+    nz_target: float = 3.0
+    bank_deg: float = 45.0
+    pull_start_s: float = 3.0
+    name: str = "M1"
+    duration_s: float = 8.0
+
+    def window(self):
+        return (self.pull_start_s, self.duration_s)
+
+    def command(self, t, k, st):
+        if t < HOLD_S:
+            return gcmd(0.0 - st["phi"], 1.0, st)
+        target = np.deg2rad(self.bank_deg)
+        if t < self.pull_start_s:
+            return gcmd(target - st["phi"], 1.0 / max(float(np.cos(st["phi"])), 0.2), st)
+        return gcmd(target - st["phi"], self.nz_target, st)
+
+
+@dataclass
+class M2aCappedReversal(M2RollReversal):
+    """개정 A9 M2a: M2 와 같은 뱅크 스케줄, dphi_cmd 를 ±Δφ_max 로 제한.
+
+    shim 롤 지령이 p_sp = 2·k_att·sin(dphi/2) 이므로 Δφ_max = 2·asin(P/(2·k_att)), P = frac·C_p.
+    """
+    cap_p_dps: float = 100.0
+    frac: float = 0.8
+    k_att: float = 4.0
+    name: str = "M2a"
+
+    @property
+    def dphi_max(self) -> float:
+        P = np.deg2rad(self.frac * self.cap_p_dps)
+        return float(2.0 * np.arcsin(min(P / (2.0 * self.k_att), 1.0)))
+
+    def command(self, t, k, st):
+        g = super().command(t, k, st)
+        g.dphi_cmd = float(np.clip(g.dphi_cmd, -self.dphi_max, self.dphi_max))
+        return g
+
+
+def paper_maneuvers(c_nz: float, c_p: float) -> list:
+    """개정 A9 의 주 기동 변형 7종: M1×{0.7,0.8,0.9}, M2a, M2b, M3×{0.7,0.9}. 이름에 수준을 붙인다."""
+    out = [M1BankedCapture(nz_target=f * c_nz, name=f"M1_{f:g}") for f in (0.7, 0.8, 0.9)]
+    out.append(M2aCappedReversal(cap_p_dps=c_p, name="M2a"))
+    out.append(M2RollReversal(name="M2b"))
+    out += [M3RollingPull(nz_target=f * c_nz, name=f"M3_{f:g}") for f in (0.7, 0.9)]
+    return out
+
+
+@dataclass
 class M4Multisine(Maneuver):
     """트림 주변 p 또는 q 지령에 0.1~5 Hz 합성파(피크 peak_dps). 1 + 20 s.
 
