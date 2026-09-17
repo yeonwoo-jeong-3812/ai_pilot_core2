@@ -51,13 +51,8 @@ def heatmap(out_dir: str) -> list[str]:
     for fp in sorted(glob.glob(os.path.join(RQ1_TS, "*.npz"))):
         z = np.load(fp)
         ts = {k: z[k] for k in z.files if k not in ("G0_true", "qbar_ref")}
-        g = re.search(r"alt_ft=([\d.]+)__fbw=(\d)__filt=[\d.]+__kcas=([\d.]+)__kp=", fp)
-        if g is None:                       # 파일명 순서가 다르면 개별 키로 파싱
-            kv = dict(re.findall(r"([a-z_0-9]+)=([\w.\-]+)", os.path.basename(fp)))
-            alt, fbw, kcas, man = float(kv["alt_ft"]), int(kv["fbw"]), float(kv["kcas"]), kv["man"]
-        else:
-            alt, fbw, kcas = float(g.group(1)), int(g.group(2)), float(g.group(3))
-            man = re.search(r"man=([A-Za-z0-9_.]+?)__", fp).group(1)
+        kv = dict(p.split("=", 1) for p in os.path.basename(fp)[:-4].split("__"))
+        alt, fbw, kcas, man = float(kv["alt_ft"]), int(kv["fbw"]), float(kv["kcas"]), kv["man"]
         cap = capability(Condition(alt, kcas, fbw_override=fbw))
         w = maneuver_by_name(man, cap).window()
         acc[fbw] = M.tss_accumulate(acc[fbw], ts, w, z["G0_true"], float(z["qbar_ref"]))
