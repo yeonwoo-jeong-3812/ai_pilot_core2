@@ -102,6 +102,23 @@ def jobs():
     return out
 
 
+KP_TAUS = (0.0, 0.5, 1.0)
+K_LEVELS = (0.5, 0.75, 1.0, 1.5, 2.0)
+
+
+def kp_jobs():
+    """개정 A18: τ × 축 게인 스윕. 롤 M2a 는 k_p, 대조 피치 M1_0.8 은 k_q (나머지 배율 1)."""
+    from l3_indi.design import rq1_conditions
+    out = []
+    for cond in rq1_conditions(0):
+        c = {"alt_ft": cond.alt_ft, "kcas": cond.kcas}
+        for tau in KP_TAUS:
+            for k in K_LEVELS:
+                out.append(dict(c, exp="kp_roll", kind="M2a", level=0.0, tau=tau, gain=f"kp{k:g}", k=[k, 1.0, 1.0]))
+                out.append(dict(c, exp="kq_pitch", kind="M1", level=0.8, tau=tau, gain=f"kq{k:g}", k=[1.0, k, 1.0]))
+    return out
+
+
 def job_fn(job):
     from l3_indi.harness import build, run, Condition, Params
     from l3_indi.design import capability
@@ -127,7 +144,8 @@ def job_fn(job):
     cap = capability(cond)
     man = make_maneuver(job["kind"], job["tau"], cap, job["level"])
     with contextlib.redirect_stdout(io.StringIO()):
-        rig = build(cond, Params(k_scale=GAINS[job["gain"]], filt_hz=FILT))
+        k = tuple(job["k"]) if "k" in job else GAINS[job["gain"]]
+        rig = build(cond, Params(k_scale=k, filt_hz=FILT))
         ts = run(rig, man)
     w = man.window()
     row = dict(job)
@@ -344,9 +362,66 @@ def analyze(run_dir: str):
     print("->", rep)
 
 
+def analyze_kp(run_dir: str):
+    """개정 A18 판정."""
+    commit = os.path.basename(os.path.normpath(run_dir))
+    rows = list(csv.DictReader(open(os.path.join(run_dir, "runs.csv"), encoding="utf-8")))
+    J = {}
+    for r in rows:
+        ax = "J_p" if r["kind"] == "M2a" else "J_q"
+        key = (r["kind"], float(r["alt_ft"]), float(r["kcas"]), float(r["tau"]), float(r["gain"][2:]))
+        J[key] = (float(r[ax]), int(r["oscillating"]), int(r["departure"]))
+    conds = sorted({(k[1], k[2]) for k in J})
+    L = [f"# τ × 축 게인 스윕 (개정 A18, 사후 탐색) — 실험 커밋 {commit}\n",
+         "- FLCS on, filt 25 Hz, RQ1 9조건, 꼬리 5 s. 롤 M2a 는 k_p 만, 피치 M1_0.8 은 k_q 만 바꿈(나머지 배율 1).",
+         "- 개선율 = 1 − J(k = 2) / J(k = 1). 판정 규칙: A18 (실행 전 등록).\n"]
+    verdict = {}
+    for kind, label in (("M2a", "롤 M2a · J_p vs k_p"), ("M1", "피치 M1_0.8 · J_q vs k_q")):
+        L.append(f"## {label}\n")
+        L.append("| τ [s] | " + " | ".join(f"k {k:g}" for k in K_LEVELS) + " | 개선율 k 1→2 | 개선율 k 0.5→2 |")
+        L.append("|---|" + "---|" * (len(K_LEVELS) + 2))
+        imp = {}
+        for tau in KP_TAUS:
+            meds = [float(np.median([J[(kind, a, c, tau, k)][0] for a, c in conds])) for k in K_LEVELS]
+            per = [1 - J[(kind, a, c, tau, 2.0)][0] / J[(kind, a, c, tau, 1.0)][0] for a, c in conds]
+            per05 = [1 - J[(kind, a, c, tau, 2.0)][0] / J[(kind, a, c, tau, 0.5)][0] for a, c in conds]
+            imp[tau] = per
+            L.append(f"| {tau:g} | " + " | ".join(f"{m:.3f}" for m in meds) +
+                     f" | {100*np.median(per):.1f}% | {100*np.median(per05):.1f}% |")
+        n_dir = sum(1 for i in range(len(conds)) if imp[1.0][i] > imp[0.0][i])
+        med0, med1 = float(np.median(imp[0.0])), float(np.median(imp[1.0]))
+        ok = med1 > med0 and n_dir >= 7
+        verdict[kind] = (med0, med1, n_dir, ok)
+        L.append(f"\n- 조건별 개선율(k 1→2)이 τ 1.0 에서 τ 0 보다 큰 조건: **{n_dir} / {len(conds)}**, 중앙값 {100*med0:.1f}% → {100*med1:.1f}%")
+        bad = [(k, v) for k, v in J.items() if k[0] == kind and (v[1] or v[2])]
+        L.append(f"- 진동·이탈 런: {len(bad)} {[(k[1:], v[1:]) for k, v in bad][:10]}\n")
+    m2a, m1 = verdict["M2a"], verdict["M1"]
+    L.append("## A18 판정\n")
+    L.append(f"- 예측(롤): 부드러운 명령에서 롤 게인 효과가 커진다 → **{'지지' if m2a[3] else '지지 안 됨'}** "
+             f"(중앙값 {100*m2a[0]:.1f}% → {100*m2a[1]:.1f}%, 방향 일치 {m2a[2]}/9)")
+    ratio_r = m2a[1] / m2a[0] if m2a[0] > 0 else float("inf")
+    ratio_p = m1[1] / m1[0] if m1[0] > 0 else float("inf")
+    L.append(f"- 대조(피치): 중앙값 {100*m1[0]:.1f}% → {100*m1[1]:.1f}%, 방향 일치 {m1[2]}/9, 배율 롤 ×{ratio_r:.2f} vs 피치 ×{ratio_p:.2f}")
+    L.append(f"- 롤 고유 효과 판정 (롤 배율 ≥ 1.5 × 피치 배율): **{'예' if m2a[3] and ratio_r >= 1.5 * ratio_p else '아니오'}**")
+    rep = os.path.join(HERE, "reports", f"CMDSHAPE_KP_{commit}.md")
+    with open(rep, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(L) + "\n")
+    print("->", rep)
+
+
 def main():
     if len(sys.argv) >= 3 and sys.argv[1] == "--analyze":
         analyze(sys.argv[2])
+        return 0
+    if len(sys.argv) >= 2 and sys.argv[1] == "--kp":
+        from l3_indi.runner import run_experiment, git_state
+        out_dir = os.path.join(REPO, "results", "paper", "cmdshape_kp", git_state()["commit"][:10])
+        js = kp_jobs()
+        for j in js:
+            j["_out"] = out_dir
+        out = run_experiment("cmdshape_kp", js, job_fn, os.path.join(REPO, "results", "paper"))
+        print("->", out)
+        analyze_kp(out)
         return 0
     from l3_indi.runner import run_experiment, git_state
     out_dir = os.path.join(REPO, "results", "paper", "cmdshape", git_state()["commit"][:10])
