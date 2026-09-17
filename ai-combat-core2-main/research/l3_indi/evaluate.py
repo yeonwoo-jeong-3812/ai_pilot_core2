@@ -47,6 +47,14 @@ def evaluate(job: dict, ts_dir: str | None = None) -> dict:
     row["departure"] = M.departure(ts)
     row.update(M.envelope(ts))
     row.update(M.oscillation(ts, DT))
+    tail = ts["t"] >= ts["t"][-1] - 3.0                       # 개정 A19-10: 진동 주파수
+    rates = {a: np.rad2deg(ts[a][tail]) for a in "pqr"}
+    ax = max(rates, key=lambda a: np.ptp(rates[a]))
+    x = (rates[ax] - rates[ax].mean()) * np.hanning(tail.sum())
+    spec = np.abs(np.fft.rfft(x))
+    freqs = np.fft.rfftfreq(tail.sum(), DT)
+    row["osc_freq_hz"] = float(freqs[1 + int(np.argmax(spec[1:]))]) if len(spec) > 1 else float("nan")
+    row["osc_freq_axis"] = ax
     row["capability_limited"] = M.capability_limited(ts, w, cap["C_p"])
     row.update(M.saturation(ts, w))
     for a in "pqr":
