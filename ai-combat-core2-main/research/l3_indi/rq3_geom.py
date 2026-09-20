@@ -27,6 +27,9 @@ PER_SCENARIO = 30                                # A24-4: 시나리오당 30 = 1
 TRACES_RUNS = os.path.join(REPO, "results", "paper", "traces", "296ce41ff0", "runs.csv")
 CAP_CSV = os.path.join(HERE, "reports", "capability_05b869f2e4.csv")
 PLANE_TOL_DEG = 10.0                             # 적이 양력 평면 안이라고 보는 한계
+WEZ_MIN_FT, WEZ_MAX_FT = 500.0, 3000.0           # 엔진 WEZ 사거리창 (개정 A27-3 판정용)
+QUANTILE_CELLS = ((50, 50), (25, 75), (75, 25), (25, 25), (75, 75))   # A24-4 규칙 그대로
+THIN_CELL = 10                                   # 칸의 사건 수가 이보다 적으면 대표성 약함으로 표시
 COLS = ("p", "q", "phi", "theta", "psi", "alpha", "vt", "kcas", "alt",
         "px", "py", "pz", "vx", "vy", "vz")   # sp_p·sp_q 는 리미터 로그에서 따로 채운다
 
@@ -216,15 +219,119 @@ def summarize(out_dir: str) -> None:
     print("->", rep)
 
 
+# ======================================================================================
+# 시나리오별 대표 기하 (개정 A27-3) — 새 경기 없이 geometry_events.csv 재집계
+# ======================================================================================
+def _representatives(inp, prefix="G"):
+    """A24-4 와 **같은 규칙**으로 대표 기하 5 종을 뽑는다. 바뀌는 것은 모집단뿐이다."""
+    q = lambda xs, pp: float(np.percentile(xs, pp))
+    R = [r["range_ft"] for r in inp]
+    A = [r["ata_deg"] for r in inp]
+    out = []
+    for i, (pr, pa) in enumerate(QUANTILE_CELLS, 1):
+        r0, a0 = q(R, pr), q(A, pa)
+        cell = [r for r in inp if abs(r["range_ft"] - r0) <= 0.25 * r0 and abs(r["ata_deg"] - a0) <= 15.0]
+        if not cell:
+            cell = inp
+        out.append({"id": f"{prefix}{i}", "range_ft": round(r0, 1), "ata_deg": round(a0, 2),
+                    "aa_deg": round(float(np.median([r["aa_deg"] for r in cell])), 2),
+                    "bank_deg": round(float(np.median([abs(r["bank_deg"]) for r in cell])), 2),
+                    "n_events": len(cell), "cell": f"R p{pr}/ATA p{pa}"})
+    return out
+
+
+def by_scenario(out_dir: str):
+    """시나리오별 대표 기하 — 개정 A27-3. 기존 혼합 기하 G1~G5 는 폐기하지 않는다."""
+    num = ("t0", "range_ft", "ata_deg", "aa_deg", "hca_deg", "bank_deg", "alt_ft", "kcas", "plane_off_deg")
+    rows = []
+    for r in csv.DictReader(open(os.path.join(out_dir, "geometry_events.csv"), encoding="utf-8")):
+        d = dict(r)
+        for k in num:
+            d[k] = float(r[k])
+        rows.append(d)
+    inp = [r for r in rows if r["plane_off_deg"] <= PLANE_TOL_DEG]
+    scens = sorted({r["scenario"] for r in inp})
+
+    # 자체 검증: 같은 코드로 전체 모집단을 집계하면 A24-4 의 G1~G5 가 그대로 나와야 한다
+    ref_path = os.path.join(out_dir, "geometries.json")
+    ref = json.load(open(ref_path, encoding="utf-8")) if os.path.isfile(ref_path) else []
+    mine = _representatives(inp)
+    same = bool(ref) and all(
+        abs(a["range_ft"] - b["range_ft"]) < 1e-9 and abs(a["ata_deg"] - b["ata_deg"]) < 1e-9
+        and abs(a["aa_deg"] - b["aa_deg"]) < 1e-9 and abs(a["bank_deg"] - b["bank_deg"]) < 1e-9
+        for a, b in zip(mine, ref))
+
+    # 접두사는 시나리오마다 고유해야 한다 (perch_defense·perch_offense 가 둘 다 "PE" 가 되면 짝짓기 키가 깨진다)
+    prefix = {"headon": "HD", "neutral": "NT", "perch_defense": "PD", "perch_offense": "PO"}
+    out = {sc: _representatives([r for r in inp if r["scenario"] == sc],
+                                prefix=prefix.get(sc, sc[:2].upper()))
+           for sc in scens}
+    ids = [g["id"] for sc in scens for g in out[sc]]
+    assert len(set(ids)) == len(ids), f"기하 id 중복: {ids}"
+    qq = lambda xs, pp: float(np.percentile(xs, pp))
+    commit = os.path.basename(out_dir)
+    L = [f"# 시나리오별 시작 기하 (개정 A27-3) — {commit}", "",
+         f"- 새 경기를 돌리지 않았다. `geometry_events.csv` 의 당김 사건 {len(rows)} 건 중 "
+         f"양력 평면 안(≤ {PLANE_TOL_DEG:g}°) **{len(inp)} 건**을 시나리오로 나눠 다시 집계했다.",
+         "- 분위수 규칙은 A24-4 와 **완전히 같다**: (R₀, ATA₀) 의 "
+         "(p50,p50)·(p25,p75)·(p75,p25)·(p25,p25)·(p75,p75), AA₀·뱅크는 해당 칸 중앙값.",
+         f"- **자체 검증**: 같은 코드로 전체 모집단을 집계하면 A24-4 의 G1~G5 와 "
+         f"{'**일치**' if same else '**불일치 — 규칙이 달라졌다는 뜻이므로 조사 필요**'}.", "",
+         "## 1. 시나리오별 모집단", "",
+         "| 시나리오 | 평면 내 사건 | R p25/p50/p75 [ft] | ATA p25/p50/p75 [°] | 고도 p50 [ft] | KCAS p50 |",
+         "|---|---|---|---|---|---|"]
+    for sc in scens:
+        sub = [r for r in inp if r["scenario"] == sc]
+        f = lambda c: [r[c] for r in sub]
+        L.append(f"| {sc} | {len(sub)} | "
+                 f"{qq(f('range_ft'), 25):.0f} / {qq(f('range_ft'), 50):.0f} / {qq(f('range_ft'), 75):.0f} | "
+                 f"{qq(f('ata_deg'), 25):.1f} / {qq(f('ata_deg'), 50):.1f} / {qq(f('ata_deg'), 75):.1f} | "
+                 f"{qq(f('alt_ft'), 50):.0f} | {qq(f('kcas'), 50):.0f} |")
+
+    L += ["", "## 2. 대표 기하 (시나리오 × 5 칸)", "",
+          "| 시나리오 | # | 칸 | R₀ [ft] | ATA₀ [°] | AA₀ [°] | 뱅크 φ₀ [°] | 사건 수 | WEZ 창 안 | 비고 |",
+          "|---|---|---|---|---|---|---|---|---|---|"]
+    for sc in scens:
+        for g in out[sc]:
+            in_wez = WEZ_MIN_FT <= g["range_ft"] <= WEZ_MAX_FT
+            note = "사건 적음" if g["n_events"] < THIN_CELL else ""
+            L.append(f"| {sc} | {g['id']} | {g['cell']} | {g['range_ft']:.0f} | {g['ata_deg']:.1f} | "
+                     f"{g['aa_deg']:.1f} | {g['bank_deg']:.1f} | {g['n_events']} | "
+                     f"{'**예**' if in_wez else '아니오'} | {note} |")
+
+    n_cells = len(scens) * len(QUANTILE_CELLS)
+    n_wez = sum(1 for sc in scens for g in out[sc] if WEZ_MIN_FT <= g["range_ft"] <= WEZ_MAX_FT)
+    n_thin = sum(1 for sc in scens for g in out[sc] if g["n_events"] < THIN_CELL)
+    L += ["", "## 3. H30(WEZ 미측정) 해소 전망", "",
+          f"- 시작 거리가 WEZ 사거리창({WEZ_MIN_FT:.0f}~{WEZ_MAX_FT:.0f} ft) 안인 칸이 **{n_wez} / {n_cells}** 개다.",
+          "- 기존 혼합 기하 5 종은 최근접 거리 3,816~4,185 ft 로 창 밖이었다(H30). "
+          "위 칸들에서는 WEZ 체류 시간이 실제로 측정될 수 있다.",
+          f"- 사건 수가 {THIN_CELL} 건 미만인 칸은 **{n_thin} 개**이며, 대표성이 약하므로 결과에서 따로 표시한다."]
+
+    with open(os.path.join(out_dir, "geometries_by_scenario.json"), "w", encoding="utf-8") as fh:
+        json.dump(out, fh, ensure_ascii=False, indent=1)
+    rep = os.path.join(HERE, "reports", f"RQ3GEOM_SCEN_{commit}.md")
+    with open(rep, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(L) + "\n")
+    print("->", rep)
+    print("   전체 모집단 재현 검증:", "일치" if same else "불일치")
+    print(f"   WEZ 창 안 칸: {n_wez}/{n_cells}, 사건 적은 칸: {n_thin}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--selfcheck", action="store_true")
     ap.add_argument("--summarize", default=None)
+    ap.add_argument("--by-scenario", dest="by_scenario", default=None,
+                    help="개정 A27-3: 시나리오별 재집계 (결과 폴더 경로)")
     args = ap.parse_args()
     if args.selfcheck:
         return selfcheck()
     if args.summarize:
         summarize(args.summarize)
+        return 0
+    if args.by_scenario:
+        by_scenario(args.by_scenario)
         return 0
     from l3_indi.runner import run_experiment, git_state
     out_dir = os.path.join(REPO, "results", "paper", "rq3_geom", git_state()["commit"][:10])
