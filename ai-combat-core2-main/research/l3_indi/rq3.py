@@ -45,6 +45,7 @@ FLOW_HOLD_S = 0.5                                        # A24-6(b) 연속 유�
 FIDELITY_WIN = (1.0, 15.0)                               # A25-2(e) 궤적 편차 창
 ALPHA_EXCLUDE_DEG = 30.0                                 # A25-2(c) 이탈 제외 규칙
 WEZ_ATA_DEG, WEZ_TIER10, WEZ_MIN_FT, WEZ_MAX_FT = 30.0, 10.0, 500.0, 3000.0
+B_BANKS = (45.0, 60.0, 75.0)                             # A26-2(a) 충실도 축의 독립 반복
 ATA30_MIN_START = 30.0                                   # T_ATA30 은 시작 ATA 가 이보다 큰 기하에서만 정의
 
 
@@ -116,9 +117,10 @@ def maneuver_for(kind: str, cap: dict, bank0: float):
     c = cap["C_nz"]
     if kind == "A":                     # 부록 대조: 단일 당김 (뱅크 유지 + 1 s 후 당김)
         return FixedSequence([(0.0, bank0, "level"), (1.0, bank0, 0.9)], c, "A")
-    if kind == "B":                     # 충실도 축: 우선회 → 반전 → 당김
-        return FixedSequence([(0.0, 0.0, "level"), (1.0, 60.0, "level"),
-                              (3.0, -60.0, "level"), (6.0, -60.0, 0.9)], c, "B")
+    if kind.startswith("B"):            # 충실도 축: 우선회 → 반전 → 당김 (뱅크 크기 A26-2(a))
+        b = float(kind.split("_")[1]) if "_" in kind else 60.0
+        return FixedSequence([(0.0, 0.0, "level"), (1.0, b, "level"),
+                              (3.0, -b, "level"), (6.0, -b, 0.9)], c, kind)
     if kind.startswith("C"):            # 보조: 선회율 경쟁 (적 없음)
         b = float(kind.split("_")[1])
         return FixedSequence([(0.0, b, "level"), (1.0, b, 0.9)], c, kind)
@@ -376,7 +378,7 @@ def cached_track(job):
 # ======================================================================================
 def _flow_intent(kind: str, enemy: str) -> str:
     """B 는 t=3 s 에 좌선회로 반전한다 → 우선회 적(E2)과는 one_circle, 좌선회 적(E3)과는 two_circle."""
-    if kind == "B":
+    if kind.startswith("B"):
         return "one" if enemy == "E2" else ("two" if enemy == "E3" else "na")
     if kind == "D":                        # 우뱅크 80° 정렬 후 당김 → 우선회
         return "two" if enemy == "E2" else ("one" if enemy == "E3" else "na")
@@ -397,11 +399,19 @@ def build_jobs(geoms, pilot: bool):
         for s in settings:
             for g in gs:
                 for e in enemies:
-                    for kind in ("P", "A", "B"):
+                    for kind in ("P", "A"):
                         jobs.append(dict(base, setting=s, geom=g["id"], enemy=e, kind=kind,
-                                         bank0=g["bank_deg"], switch_t=(1.0 if kind != "B" else 3.0),
+                                         bank0=g["bank_deg"], switch_t=1.0,
                                          flow_intent=_flow_intent(kind, e),
                                          dur=DUR_GUIDED if kind == "P" else DUR_OPEN, _geom=g))
+            # 충실도 축 B: 청군이 적을 보지 않으므로 기하 대신 뱅크 크기로 반복을 만든다 (A26-2(a)).
+            #   적 위치는 flow 판정에만 쓰이며, 기준 기하 G1 위치를 공통으로 쓴다.
+            for bmag in B_BANKS:
+                for e in ("E2", "E3"):
+                    kind = f"B_{bmag:g}"
+                    jobs.append(dict(base, setting=s, geom=geoms[0]["id"], enemy=e, kind=kind,
+                                     bank0=geoms[0]["bank_deg"], switch_t=3.0,
+                                     flow_intent=_flow_intent(kind, e), dur=DUR_OPEN, _geom=geoms[0]))
             if pilot:
                 continue
             for bank in (45.0, 70.0):

@@ -37,12 +37,16 @@ M_DEV_POS = ("dev_pos_end_ft", "(c2) 위치 편차 [ft]", 50.0, (25.0, 100.0), F
 M_PSI90 = ("T_psi90", "T_psi90 [s]", 0.25, (0.1, 0.5), True)
 M_PSI180 = ("T_psi180", "T_psi180 [s]", 0.25, (0.1, 0.5), True)
 
+# 팔별 클러스터 단위 — 같은 청군 궤적을 공유하는 런 묶음 (A26-2(b))
+CLUSTERS = {"P": ("kcas", "geom", "enemy"), "A": ("kcas", "geom"), "B": ("kcas", "kind"),
+            "C": ("kcas", "kind"), "D": ("kcas", "geom")}
+
 # 팔(arm) = 기동 묶음. (표시명, 기동 목록, 주 지표, 보조 열)
 ARMS = [
     ("P", "주 실험 — 배치 유도(lead pursuit) 추격", ("P",),
      [M_ATA_MIN, M_ATA30, M_ATA_MEAN],
      ["T_ata10", "T_wez", "wez_s", "range_min_ft", "q_gain", "nz_mean", "J_q", "dkcas", "dalt_ft"]),
-    ("B", "기동유형 실현 충실도 — 개루프 시퀀스", ("B",),
+    ("B", "기동유형 실현 충실도 — 개루프 시퀀스", ("B_45", "B_60", "B_75"),
      [M_FLOW_DELAY, M_DEV_HDG, M_DEV_POS],
      ["flow_match_frac", "J_p", "J_q", "dkcas", "dalt_ft"]),
     ("A", "부록 음성 대조 — 유도 없는 개루프 당김", ("A",),
@@ -72,10 +76,23 @@ def _load(run_dir: str):
     return rows
 
 
-def boot_median_ci(d: np.ndarray, nboot=NBOOT, seed=SEED):
+def boot_median_ci(d: np.ndarray, clusters=None, nboot=NBOOT, seed=SEED):
+    """짝 차이 중앙값의 부트스트랩 CI. clusters 가 주어지면 **클러스터를 복원추출**한다 (A26-2(b)).
+
+    같은 청군 궤적을 공유하는 런은 독립이 아니므로 개별 짝이 아니라 궤적 단위로 재표집한다.
+    """
     rng = np.random.default_rng(seed)
-    idx = rng.integers(0, len(d), size=(nboot, len(d)))
-    meds = np.median(d[idx], axis=1)
+    if clusters is None:
+        idx = rng.integers(0, len(d), size=(nboot, len(d)))
+        meds = np.median(d[idx], axis=1)
+    else:
+        groups = {}
+        for v, c in zip(d, clusters):
+            groups.setdefault(c, []).append(v)
+        keys = sorted(groups)
+        vals = [np.asarray(groups[k], float) for k in keys]
+        pick = rng.integers(0, len(keys), size=(nboot, len(keys)))
+        meds = np.array([np.median(np.concatenate([vals[j] for j in row])) for row in pick])
     return float(np.median(d)), float(np.percentile(meds, 2.5)), float(np.percentile(meds, 97.5))
 
 
@@ -98,7 +115,7 @@ def verdict(lo: float, hi: float, delta: float) -> str:
     return "판정 불가"
 
 
-def compare(rows, col, delta, sens, is_time, kinds):
+def compare(rows, col, delta, sens, is_time, kinds, cluster_cols=PAIR_KEY):
     """기준 S2 대비 설정별 짝 차이. 이탈 런(excluded=1)은 짝에서 제외."""
     by, dropped = {}, 0
     for r in rows:
@@ -111,7 +128,7 @@ def compare(rows, col, delta, sens, is_time, kinds):
     settings = sorted({r["setting"] for r in rows} - {REF})
     out = []
     for s in settings:
-        diffs, cens, lost = [], 0, 0
+        diffs, cens, lost, cl = [], 0, 0, []
         for key, ref in by.items():
             if key[0] != REF:
                 continue
@@ -125,13 +142,15 @@ def compare(rows, col, delta, sens, is_time, kinds):
             if is_time and (a >= other["dur"] - 1e-9 or b >= ref["dur"] - 1e-9):
                 cens += 1
             diffs.append(a - b)
+            cl.append(tuple(str(ref[c]) for c in cluster_cols))
         d = np.array(diffs, float)
+        ncl = len(set(cl))
         if len(d) < 3:
-            out.append({"setting": s, "n": int(len(d)), "verdict": "표본 부족",
+            out.append({"setting": s, "n": int(len(d)), "clusters": ncl, "verdict": "표본 부족",
                         "censored": cens, "unpaired": lost})
             continue
-        med, lo, hi = boot_median_ci(d)
-        out.append({"setting": s, "n": int(len(d)), "censored": cens, "unpaired": lost,
+        med, lo, hi = boot_median_ci(d, clusters=cl)
+        out.append({"setting": s, "n": int(len(d)), "clusters": ncl, "censored": cens, "unpaired": lost,
                     "median": med, "lo": lo, "hi": hi, "verdict": verdict(lo, hi, delta),
                     "rb": rank_biserial(d), "verdict_lo": verdict(lo, hi, sens[0]),
                     "verdict_hi": verdict(lo, hi, sens[1]), "max_abs": float(np.max(np.abs(d)))})
@@ -158,7 +177,7 @@ def analyze(run_dir: str, label="RQ3"):
         L.append(f"## [{arm}] {title}  (기동 {list(kinds)}, 런 {len(sub)} 개)\n")
         js["arms"][arm] = {"metrics": {}, "insensitive": {}}
         for col, name, delta, sens, is_time in prim:
-            res, dropped = compare(rows, col, delta, sens, is_time, kinds)
+            res, dropped = compare(rows, col, delta, sens, is_time, kinds, CLUSTERS[arm])
             s5 = next((x for x in res if x["setting"] == "S5"), None)
             insens = not (s5 and s5.get("verdict") == "차이 있음")
             if insens:
@@ -172,14 +191,14 @@ def analyze(run_dir: str, label="RQ3"):
             if insens:
                 L.append("⚠ **둔감 지표**: 양성 대조 S5 가 차이를 내지 못함 → 이 지표의 '차이 없음' 은 모두 '판정 불가' 로 낮춤.")
             L.append("")
-            L.append("| 설정 | n | 중앙 차이 | 95% CI | 판정 | 민감도(하/상) | 순위 이연 | 최대 |차이| | 검열 | 짝 실패 |")
+            L.append("| 설정 | n (클러스터) | 중앙 차이 | 95% CI | 판정 | 민감도(하/상) | 순위 이연 | 최대 |차이| | 검열 | 짝 실패 |")
             L.append("|---|---|---|---|---|---|---|---|---|---|")
             for x in res:
                 if x["verdict"] == "표본 부족":
-                    L.append(f"| {x['setting']} | {x['n']} | - | - | 표본 부족 | - | - | - | "
+                    L.append(f"| {x['setting']} | {x['n']} ({x['clusters']}) | - | - | 표본 부족 | - | - | - | "
                              f"{x['censored']} | {x['unpaired']} |")
                     continue
-                L.append(f"| {x['setting']} | {x['n']} | {x['median']:+.3f} | [{x['lo']:+.3f}, {x['hi']:+.3f}] | "
+                L.append(f"| {x['setting']} | {x['n']} ({x['clusters']}) | {x['median']:+.3f} | [{x['lo']:+.3f}, {x['hi']:+.3f}] | "
                          f"**{x['verdict']}** | {x['verdict_lo']} / {x['verdict_hi']} | {x['rb']:+.2f} | "
                          f"{x['max_abs']:.3f} | {x['censored']} | {x['unpaired']} |")
             L.append("")
