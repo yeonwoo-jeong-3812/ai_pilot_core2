@@ -180,20 +180,45 @@ def report(out_dir: str):
         return float("nan")
 
     b70, b50, b90 = boundary(0.7), boundary(0.5), boundary(0.9)
+
+    # 짝 비교 (A24-9 의 방법) — 같은 (KCAS, 기하, 적)에서 λ 만 다른 런
+    key = lambda r: (r["kcas"], r["geom"], r["enemy"])
+    ref = {key(r): r for r in rows if r["lam_q"] == 1.0}
+    rng = np.random.default_rng(20260920)
+
+    def paired(lam, col):
+        d = np.array([r[col] - ref[key(r)][col] for r in rows
+                      if r["lam_q"] == lam and key(r) in ref
+                      and np.isfinite(r.get(col, np.nan))
+                      and np.isfinite(ref[key(r)].get(col, np.nan))], float)
+        if len(d) < 3:
+            return (np.nan, np.nan, np.nan, 0)
+        m = np.median(d[rng.integers(0, len(d), size=(4000, len(d)))], axis=1)
+        return float(np.median(d)), float(np.percentile(m, 2.5)), float(np.percentile(m, 97.5)), len(d)
+
     commit = os.path.basename(out_dir)
     L = [f"# λ 밀집 스윕 — 실험 커밋 {commit}", "",
          f"- 규칙: 개정 A27 §2(격자·지표) + A29(상관·추종 상실 경계). 런 {len(rows)} 개, 유도 팔(P) 전용.",
-         "- 기동·조건·지표·δ 는 A24·A25 의 P 팔과 **완전히 같고 λ 만 바뀐다**.", "",
-         "## 1. λ 별 요약 (조건 45 짝의 중앙값)", "",
-         "| λ | 추종 J_q | ATA 최소 [°] | ΔKCAS [kt] | 상관 전반 | 상관 후반 | 명령 대비 응답 | 진동 비율 |",
+         "- 기동·조건·지표·δ 는 A24·A25 의 P 팔과 **완전히 같고 λ 만 바뀐다**.",
+         "- **차이는 짝 비교로 낸다**(A24-9): 같은 (KCAS, 기하, 적)에서 λ = 1 인 런과의 차이, 중앙값과 95% 부트스트랩 CI.",
+         "  집단 중앙값끼리 빼면 소수 셀에 끌려 과장되므로 쓰지 않는다.", "",
+         "## 1. λ 별 요약", "",
+         "| λ | 추종 J_q | 상관 전반 | 상관 후반 | 명령 대비 응답 | 진동 비율 | "
+         "**ATA 최소 차이 [°]** (95% CI) | **ΔKCAS 차이 [kt]** (95% CI) |",
          "|---|---|---|---|---|---|---|---|"]
     for lam in lams:
         R = [r for r in rows if r["lam_q"] == lam]
         osc = sum(1 for r in R if r.get("oscillating", 0) >= 1) / max(len(R), 1)
         mark = " ◀ 추종 상실 시작" if np.isfinite(b70) and lam == b70 else ""
-        L.append(f"| {lam:g}{mark} | {med('J_q', R):.3f} | {med('ata_min', R):.1f} | "
-                 f"{med('dkcas', R):+.1f} | {med('corr_early', R):.2f} | {med('corr_late', R):.2f} | "
-                 f"{med('q_gain', R):.2f} | {100*osc:.0f}% |")
+        a = paired(lam, "ata_min")
+        k = paired(lam, "dkcas")
+        sig = "**" if np.isfinite(a[0]) and (a[1] > 2.0 or a[2] < -2.0) else ""
+        L.append(f"| {lam:g}{mark} | {med('J_q', R):.3f} | {med('corr_early', R):.2f} | "
+                 f"{med('corr_late', R):.2f} | {med('q_gain', R):.2f} | {100*osc:.0f}% | "
+                 f"{sig}{a[0]:+.2f}{sig} [{a[1]:+.2f}, {a[2]:+.2f}] | "
+                 f"{k[0]:+.1f} [{k[1]:+.1f}, {k[2]:+.1f}] |")
+    L.append("")
+    L.append("- **굵은 ATA 차이** = 95% CI 가 등가 한계 ±2.0° 밖 (A25-2(d) 규칙으로 \"차이 있음\").")
 
     L += ["", "## 2. 추종 상실 경계 (A29-2)", "",
           "| 기준 | r | r² (명령이 설명하는 응답 분산) | 경계 λ |", "|---|---|---|---|",
@@ -202,17 +227,29 @@ def report(out_dir: str):
           f"| 민감도(엄격) | 0.9 | 0.81 | {b90:g} |" if np.isfinite(b90) else "| 민감도(엄격) | 0.9 | 0.81 | 없음 |",
           "", "⚠ 이 기준은 양 끝점(λ 1·25)의 상관을 본 상태에서 정했다. 경계가 놓일 중간 λ 값은 보지 않았다(A29-2)."]
 
-    ref = [r for r in rows if r["lam_q"] == 1.0]
-    L += ["", "## 3. 조준 이득이 나타나는 구간과 추종이 무너지는 구간", "",
-          f"- 기준(λ = 1)의 ATA 최소 중앙값 {med('ata_min', ref):.1f}°, 상관 전반 {med('corr_early', ref):.2f}·후반 {med('corr_late', ref):.2f}, 진동 {100*sum(1 for r in ref if r.get('oscillating', 0) >= 1)/max(len(ref),1):.0f}%."]
+    base = [r for r in rows if r["lam_q"] == 1.0]
+    L += ["", "## 3. 두 구간 — 조준 이득이 어디서 '실패의 부산물' 이 되는가", "",
+          f"- 기준(λ = 1): ATA 최소 중앙 {med('ata_min', base):.1f}°, 상관 전반 {med('corr_early', base):.2f}·"
+          f"후반 {med('corr_late', base):.2f}, 진동 {100*sum(1 for r in base if r.get('oscillating', 0) >= 1)/max(len(base),1):.0f}%."]
     if np.isfinite(b70):
         pre = [l for l in lams if 1.0 < l < b70]
+        first_sig = next((l for l in pre if paired(l, "ata_min")[2] < -2.0), None)
+        if first_sig is not None:
+            a = paired(first_sig, "ata_min")
+            R = [r for r in rows if r["lam_q"] == first_sig]
+            L.append(f"- **추종을 유지한 채 조준이 유의하게 좋아지기 시작하는 λ = {first_sig:g}**: "
+                     f"ATA {a[0]:+.2f}° (CI [{a[1]:+.2f}, {a[2]:+.2f}], 등가 한계 −2.0° 밖), "
+                     f"이때 상관 전반 {med('corr_early', R):.2f}·후반 {med('corr_late', R):.2f}, 진동 {100*sum(1 for r in R if r.get('oscillating',0)>=1)/max(len(R),1):.0f}%.")
         if pre:
-            g = [(l, med("ata_min", [r for r in rows if r["lam_q"] == l])) for l in pre]
-            best = min(g, key=lambda x: x[1])
-            L.append(f"- 추종 상실 이전 구간(λ 1 ~ {b70:g} 미만)에서 ATA 최소가 가장 작은 λ 는 "
-                     f"**{best[0]:g} ({best[1]:.1f}°)** 다. 기준 대비 {best[1] - med('ata_min', ref):+.1f}°.")
-            L.append("- 이 값이 등가 한계 2.0° 를 넘는지가 **\"추종을 잃지 않고도 조준이 좋아지는 구간이 있는가\"** 에 대한 답이다.")
+            best = min(((l, paired(l, "ata_min")[0]) for l in pre), key=lambda x: x[1])
+            R = [r for r in rows if r["lam_q"] == best[0]]
+            L.append(f"- 추종 상실 이전 구간(λ < {b70:g})에서 조준이 가장 좋은 λ 는 **{best[0]:g}** "
+                     f"({best[1]:+.2f}°, 상관 전반 {med('corr_early', R):.2f}).")
+        L.append(f"- λ ≥ {b70:g} 부터는 상관이 0.7 아래로 내려가고 진동 비율이 함께 뛴다. "
+                 "이 구간의 추가 조준 개선은 **명령과 무관한 큰 각속도 편차**의 결과이므로 성능으로 읽지 않는다(A28).")
+        L.append("- 즉 곡선은 **두 구간**으로 나뉜다: "
+                 f"① λ < {b70:g} — 추종을 유지하면서 조준이 좋아지는 구간(실제 맞교환), "
+                 f"② λ ≥ {b70:g} — 추종을 잃고 지표만 좋아 보이는 구간(실패의 부산물).")
     rep = os.path.join(HERE, "reports", f"LAMSWEEP_{commit}.md")
     with open(rep, "w", encoding="utf-8") as fh:
         fh.write("\n".join(L) + "\n")

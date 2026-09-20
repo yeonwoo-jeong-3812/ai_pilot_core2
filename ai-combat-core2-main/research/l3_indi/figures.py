@@ -99,38 +99,104 @@ def boot_ci(d, n=4000, seed=20260920):
 # 1. λ 곡선 — 3 단 패널 (추종 오차 / 조준 이득 / 에너지 대가)
 # ======================================================================================
 def fig_lambda(plt):
-    """단위가 다른 세 양이므로 한 축에 겹치지 않고 x(λ)만 공유하는 3 단 패널로 낸다."""
+    """대표 그림 — x(λ)만 공유하는 5 단 패널. 단위가 다른 양을 한 축에 겹치지 않는다.
+
+    ① 추종 오차 ② 조준(짝 차이) ③ 에너지(짝 차이) ④ 명령·응답 상관 ⑤ 진동 비율.
+    추종 상실 경계(A29-2: 상관 < 0.7)를 다섯 패널 전체에 수직선으로 긋는다.
+    """
     path = newest("results/paper/lamsweep/*/runs.csv")
     if not path:
-        print("  (건너뜀) λ 스윕 결과가 아직 없다 — 9/22 실행 후 다시 돌린다")
+        print("  (건너뜀) λ 스윕 결과가 아직 없다")
         return
     rows = load_csv(path, str_cols=("setting", "geom", "enemy", "kind", "flow_intent"))
-    rows = [r for r in rows if r.get("kind") == "P" and r.get("excluded", 0) < 1]
+    rows = [r for r in rows if r.get("excluded", 0) < 1]
     lams = sorted({r["lam_q"] for r in rows})
-    panels = [("J_q", "추종 오차 $J_q$", "낮을수록 명령을 잘 따라감"),
-              ("ata_min", "조준: ATA 최소 [°]", "낮을수록 기수를 가깝게 겨눔"),
-              ("dkcas", "대가: ΔKCAS [kt]", "낮을수록 에너지를 잃음")]
-    fig, axes = plt.subplots(3, 1, figsize=(6.2, 8.0), sharex=True)
-    for i, (col, ylab, note) in enumerate(panels):
+    hi = [l for l in lams if l >= 1.0]
+    lo = [l for l in lams if l < 1.0]
+    key = lambda r: (r["kcas"], r["geom"], r["enemy"])
+    ref = {key(r): r for r in rows if r["lam_q"] == 1.0}
+
+    def med(col, lam):
+        v = [r[col] for r in rows if r["lam_q"] == lam and np.isfinite(r.get(col, np.nan))]
+        return float(np.median(v)) if v else np.nan
+
+    def paired(col, lam):
+        d = [r[col] - ref[key(r)][col] for r in rows if r["lam_q"] == lam and key(r) in ref
+             and np.isfinite(r.get(col, np.nan)) and np.isfinite(ref[key(r)].get(col, np.nan))]
+        return boot_ci(d)
+
+    def osc(lam):
+        R = [r for r in rows if r["lam_q"] == lam]
+        return 100.0 * sum(1 for r in R if r.get("oscillating", 0) >= 1) / max(len(R), 1)
+
+    # 추종 상실 경계 (A29-2)
+    bnd = next((l for l in hi if min(med("corr_early", l), med("corr_late", l)) < 0.7), np.nan)
+
+    fig, axes = plt.subplots(5, 1, figsize=(6.4, 12.4), sharex=True)
+
+    # ① 추종 오차
+    ax = axes[0]
+    ax.plot(hi, [med("J_q", l) for l in hi], LS[0], color=C[0], marker=MK[0], markersize=5,
+            linewidth=2, label="λ ≥ 1 (제어효율 과대추정)")
+    if lo:
+        ax.plot(lo, [med("J_q", l) for l in lo], LS[1], color=C[1], marker=MK[1], markersize=5,
+                linewidth=2, label="λ < 1 (과소추정)")
+    ax.legend(loc="upper left", fontsize=8.5)
+    ax.set_ylabel("① 추종 오차 $J_q$")
+    ax.text(0.99, 0.06, "클수록 명령을 못 따라감", transform=ax.transAxes, fontsize=8,
+            color=MUTED, ha="right")
+
+    # ② 조준 (짝 차이) / ③ 에너지 (짝 차이)
+    for i, (col, ylab, note) in enumerate(
+            (("ata_min", "② 조준: ATA 최소 차이 [°]", "아래 = 기수를 더 가깝게"),
+             ("dkcas", "③ 에너지: ΔKCAS 차이 [kt]", "아래 = 속도를 더 잃음")), start=1):
         ax = axes[i]
-        lo_s = [l for l in lams if l < 1.0]
-        hi_s = [l for l in lams if l >= 1.0]
-        for k, (series, label) in enumerate(((hi_s, "λ ≥ 1 (과대추정)"), (lo_s, "λ < 1 (과소추정)"))):
-            if not series:
-                continue
-            med, lo, hi = zip(*[boot_ci([r[col] for r in rows if r["lam_q"] == l]) for l in series])
-            ax.fill_between(series, lo, hi, color=C[k], alpha=0.15, linewidth=0)
-            ax.plot(series, med, LS[k], color=C[k], marker=MK[k], markersize=5,
-                    linewidth=2, label=label if i == 0 else None)
-        ax.set_xscale("log")
+        m, l_, h_ = zip(*[paired(col, x) for x in hi])
+        ax.fill_between(hi, l_, h_, color=C[0], alpha=0.15, linewidth=0)
+        ax.plot(hi, m, LS[0], color=C[0], marker=MK[0], markersize=5, linewidth=2)
+        if lo:
+            m2, l2, h2 = zip(*[paired(col, x) for x in lo])
+            ax.fill_between(lo, l2, h2, color=C[1], alpha=0.15, linewidth=0)
+            ax.plot(lo, m2, LS[1], color=C[1], marker=MK[1], markersize=5, linewidth=2)
+        ax.axhline(0, color=MUTED, linewidth=0.8)
+        if col == "ata_min":                       # 등가 한계 띠
+            ax.axhspan(-2.0, 2.0, color=MUTED, alpha=0.13, linewidth=0)
+            ax.text(lams[0], -2.0, " 등가 한계 ±2.0°", fontsize=7.5, color=INK2, va="top")
         ax.set_ylabel(ylab)
-        ax.grid(True, which="both", axis="both")
-        ax.text(0.99, 0.04, note, transform=ax.transAxes, ha="right", va="bottom",
-                fontsize=8, color=MUTED)
-        if i == 0:
-            ax.legend(loc="upper left")
-    axes[-1].set_xlabel("제어효율 모델 오차 λ = $G_{model}/G_{true}$ (피치 축, 로그 눈금)")
-    axes[0].set_title("λ 에 따른 추종·조준·에너지 (중앙값, 95% 부트스트랩 CI)", pad=10)
+        ax.text(0.01, 0.06, note, transform=ax.transAxes, fontsize=8, color=MUTED)
+
+    # ④ 명령·응답 상관
+    ax = axes[3]
+    for k, (col, lab) in enumerate((("corr_early", "전반 [1, 15) s"), ("corr_late", "후반 [15, 25] s"))):
+        ax.plot(hi, [med(col, l) for l in hi], LS[k], color=C[k], marker=MK[k], markersize=5,
+                linewidth=2, label=lab)
+    ax.axhline(0.7, color=C[3], linestyle=":", linewidth=1.6)
+    ax.text(lams[0], 0.7, " 추종 상실 기준 r = 0.7", fontsize=8, color=C[3], ha="left", va="bottom")
+    ax.set_ylim(0, 1.08)
+    ax.set_ylabel("④ 명령·응답 상관 r")
+    ax.legend(loc="lower left")
+
+    # ⑤ 진동 비율
+    ax = axes[4]
+    ax.plot(hi, [osc(l) for l in hi], LS[0], color=C[0], marker=MK[0], markersize=5, linewidth=2)
+    if lo:
+        ax.plot(lo, [osc(l) for l in lo], LS[1], color=C[1], marker=MK[1], markersize=5, linewidth=2)
+    ax.set_ylim(0, None)
+    ax.set_ylabel("⑤ 진동 판정 비율 [%]")
+    ax.set_xlabel("제어효율 모델 오차 λ = $G_{model}/G_{true}$ (피치 축, 로그 눈금)")
+
+    for i, ax in enumerate(axes):
+        ax.set_xscale("log")
+        ax.grid(True, which="both")
+        if np.isfinite(bnd):
+            ax.axvline(bnd, color=C[3], linestyle="--", linewidth=1.8, zorder=0)
+            if i == 0:
+                ax.annotate(f"추종 상실 경계 λ = {bnd:g}", xy=(bnd, 0.55),
+                            xycoords=("data", "axes fraction"), xytext=(-8, 0),
+                            textcoords="offset points", color=C[3], fontsize=9,
+                            ha="right", va="center")
+    axes[0].set_title("λ 를 키우면 조준은 좋아지지만, 어느 지점부터는 명령 추종을 잃는다", pad=12)
+    fig.subplots_adjust(hspace=0.16)
     save(plt, fig, "fig_lambda_curves")
 
 
