@@ -46,6 +46,7 @@ FIDELITY_WIN = (1.0, 15.0)                               # A25-2(e) 궤적 편�
 ALPHA_EXCLUDE_DEG = 30.0                                 # A25-2(c) 이탈 제외 규칙
 WEZ_ATA_DEG, WEZ_TIER10, WEZ_MIN_FT, WEZ_MAX_FT = 30.0, 10.0, 500.0, 3000.0
 B_BANKS = (45.0, 60.0, 75.0)                             # A26-2(a) 충실도 축의 독립 반복
+CORR_SPLIT_S = 15.0                                      # A29-1 상관 창 분할 시각
 ATA30_MIN_START = 30.0                                   # T_ATA30 은 시작 ATA 가 이보다 큰 기하에서만 정의
 
 
@@ -254,12 +255,19 @@ def ideal_track(ts: dict, pdot_max: float, qdot_max: float):
 # ======================================================================================
 # 한 런
 # ======================================================================================
+def setting_of(name: str):
+    """설정 이름 → (k_scale, filt_hz, λ_q). "L<숫자>" 는 λ 밀집 스윕 전용 설정이다 (A27-2)."""
+    if name.startswith("L"):
+        return ((1.0, 1.0, 1.0), 25.0, float(name[1:]))
+    return SETTINGS[name]
+
+
 def job_fn(job):
     from l3_indi.design import capability
     from l3_indi import metrics as M
     cond = Condition(ALT_FT, job["kcas"])
     cap = capability(cond)
-    k, filt, lam = SETTINGS[job["setting"]]
+    k, filt, lam = setting_of(job["setting"])
     dur = job["dur"]
     row = {kk: job[kk] for kk in job if not kk.startswith("_")}
     row["C_nz"] = cap["C_nz"]
@@ -286,7 +294,19 @@ def job_fn(job):
     row["nz_mean"] = float(np.mean(blue["nz"][t >= 1.0]))
     qq, sq = np.abs(np.rad2deg(blue["q"])), np.abs(np.rad2deg(blue["sp_q"]))
     m1 = t >= 1.0
-    row["q_gain"] = float(np.mean(qq[m1]) / max(np.mean(sq[m1]), 1e-9))      # 과응답 배율
+    row["q_gain"] = float(np.mean(qq[m1]) / max(np.mean(sq[m1]), 1e-9))   # 명령 대비 응답 크기 (A29-1)
+    # 명령·응답 상관 (A29-1) — 창을 둘로 나눈다. 개루프 팔은 후반이 정의되지 않는다.
+    q_s, sp_s = np.rad2deg(blue["q"]), np.rad2deg(blue["sp_q"])
+    for tag, lo, hi in (("early", 1.0, CORR_SPLIT_S), ("late", CORR_SPLIT_S, dur)):
+        m = (t >= lo) & (t <= min(hi, dur))
+        if m.sum() < 30 or np.std(sp_s[m]) < 1e-9 or np.std(q_s[m]) < 1e-9:
+            row[f"corr_{tag}"] = float("nan")
+            row[f"spq_mean_{tag}"] = float("nan")
+            row[f"q_mean_{tag}"] = float("nan")
+            continue
+        row[f"corr_{tag}"] = float(np.corrcoef(sp_s[m], q_s[m])[0, 1])
+        row[f"spq_mean_{tag}"] = float(np.mean(np.abs(sp_s[m])))
+        row[f"q_mean_{tag}"] = float(np.mean(np.abs(q_s[m])))
     # 대가
     row["dkcas"] = float(blue["kcas"][-1] - blue["kcas"][0])
     row["dalt_ft"] = float(blue["alt"][-1] - blue["alt"][0])

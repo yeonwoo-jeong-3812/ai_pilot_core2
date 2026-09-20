@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import os
 import sys
 
@@ -119,13 +120,121 @@ def precheck():
     return 0
 
 
+# ======================================================================================
+# 본 스윕 (A27-2) — A24·A25 의 P 팔과 같은 하네스·기동·조건·지표로 λ 만 바꾼다
+# ======================================================================================
+def sweep_jobs(geoms):
+    from l3_indi.ideal_share import open_loop_limits
+    from l3_indi import rq3
+    lim = open_loop_limits()
+    jobs = []
+    for kcas in rq3.KCAS_SET:
+        L = lim[(rq3.ALT_FT, kcas)]
+        for lam in LAM_MAIN + LAM_LOW:
+            for g in geoms:
+                for e in rq3.ENEMIES:
+                    jobs.append({"setting": f"L{lam:g}", "lam_q": lam, "kcas": kcas,
+                                 "geom": g["id"], "enemy": e, "kind": "P",
+                                 "bank0": g["bank_deg"], "switch_t": 1.0, "flow_intent": "na",
+                                 "dur": rq3.DUR_GUIDED, "pdot_max": L["p"], "qdot_max": L["q"],
+                                 "_geom": g})
+    return jobs
+
+
+def sweep_job(job):
+    from l3_indi import rq3
+    return rq3.job_fn(job)
+
+
+def sweep(geom_path: str):
+    from l3_indi.runner import run_experiment
+    from l3_indi import rq3
+    geoms = json.load(open(geom_path, encoding="utf-8"))
+    jobs = sweep_jobs(geoms)
+    out = run_experiment("lamsweep", jobs, sweep_job, os.path.join(REPO, "results", "paper"))
+    print("->", out, len(jobs), "runs")
+    report(out)
+    return 0
+
+
+def report(out_dir: str):
+    """λ 별 요약 + 추종 상실 경계 (A29-2)."""
+    rows = []
+    for r in csv.DictReader(open(os.path.join(out_dir, "runs.csv"), encoding="utf-8")):
+        d = dict(r)
+        for k, v in r.items():
+            if k in ("setting", "geom", "enemy", "kind", "flow_intent"):
+                continue
+            d[k] = fnum(v)
+        rows.append(d)
+    rows = [r for r in rows if r.get("excluded", 0) < 1]
+    lams = sorted({r["lam_q"] for r in rows})
+    med = lambda col, R: float(np.median([r[col] for r in R if np.isfinite(r.get(col, np.nan))]))
+
+    def boundary(thresh):
+        """상관 중앙값이 처음으로 기준 아래로 내려가는 λ (전반·후반 중 하나라도)."""
+        for lam in [l for l in lams if l >= 1.0]:
+            R = [r for r in rows if r["lam_q"] == lam]
+            if min(med("corr_early", R), med("corr_late", R)) < thresh:
+                return lam
+        return float("nan")
+
+    b70, b50, b90 = boundary(0.7), boundary(0.5), boundary(0.9)
+    commit = os.path.basename(out_dir)
+    L = [f"# λ 밀집 스윕 — 실험 커밋 {commit}", "",
+         f"- 규칙: 개정 A27 §2(격자·지표) + A29(상관·추종 상실 경계). 런 {len(rows)} 개, 유도 팔(P) 전용.",
+         "- 기동·조건·지표·δ 는 A24·A25 의 P 팔과 **완전히 같고 λ 만 바뀐다**.", "",
+         "## 1. λ 별 요약 (조건 45 짝의 중앙값)", "",
+         "| λ | 추종 J_q | ATA 최소 [°] | ΔKCAS [kt] | 상관 전반 | 상관 후반 | 명령 대비 응답 | 진동 비율 |",
+         "|---|---|---|---|---|---|---|---|"]
+    for lam in lams:
+        R = [r for r in rows if r["lam_q"] == lam]
+        osc = sum(1 for r in R if r.get("oscillating", 0) >= 1) / max(len(R), 1)
+        mark = " ◀ 추종 상실 시작" if np.isfinite(b70) and lam == b70 else ""
+        L.append(f"| {lam:g}{mark} | {med('J_q', R):.3f} | {med('ata_min', R):.1f} | "
+                 f"{med('dkcas', R):+.1f} | {med('corr_early', R):.2f} | {med('corr_late', R):.2f} | "
+                 f"{med('q_gain', R):.2f} | {100*osc:.0f}% |")
+
+    L += ["", "## 2. 추종 상실 경계 (A29-2)", "",
+          "| 기준 | r | r² (명령이 설명하는 응답 분산) | 경계 λ |", "|---|---|---|---|",
+          f"| 민감도(느슨) | 0.5 | 0.25 | {b50:g} |" if np.isfinite(b50) else "| 민감도(느슨) | 0.5 | 0.25 | 없음 |",
+          f"| **주 기준** | **0.7** | **0.49** | **{b70:g}** |" if np.isfinite(b70) else "| **주 기준** | **0.7** | **0.49** | 없음 |",
+          f"| 민감도(엄격) | 0.9 | 0.81 | {b90:g} |" if np.isfinite(b90) else "| 민감도(엄격) | 0.9 | 0.81 | 없음 |",
+          "", "⚠ 이 기준은 양 끝점(λ 1·25)의 상관을 본 상태에서 정했다. 경계가 놓일 중간 λ 값은 보지 않았다(A29-2)."]
+
+    ref = [r for r in rows if r["lam_q"] == 1.0]
+    L += ["", "## 3. 조준 이득이 나타나는 구간과 추종이 무너지는 구간", "",
+          f"- 기준(λ = 1)의 ATA 최소 중앙값 {med('ata_min', ref):.1f}°, 상관 전반 {med('corr_early', ref):.2f}·후반 {med('corr_late', ref):.2f}, 진동 {100*sum(1 for r in ref if r.get('oscillating', 0) >= 1)/max(len(ref),1):.0f}%."]
+    if np.isfinite(b70):
+        pre = [l for l in lams if 1.0 < l < b70]
+        if pre:
+            g = [(l, med("ata_min", [r for r in rows if r["lam_q"] == l])) for l in pre]
+            best = min(g, key=lambda x: x[1])
+            L.append(f"- 추종 상실 이전 구간(λ 1 ~ {b70:g} 미만)에서 ATA 최소가 가장 작은 λ 는 "
+                     f"**{best[0]:g} ({best[1]:.1f}°)** 다. 기준 대비 {best[1] - med('ata_min', ref):+.1f}°.")
+            L.append("- 이 값이 등가 한계 2.0° 를 넘는지가 **\"추종을 잃지 않고도 조준이 좋아지는 구간이 있는가\"** 에 대한 답이다.")
+    rep = os.path.join(HERE, "reports", f"LAMSWEEP_{commit}.md")
+    with open(rep, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(L) + "\n")
+    print("->", rep)
+    print(f"   추종 상실 경계 λ: 주 기준 {b70}, 민감도 {b50} / {b90}")
+    return {"b70": b70, "b50": b50, "b90": b90}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--precheck", action="store_true", help="A27-2 사전 안정성 확인")
+    ap.add_argument("--geom", default=None, help="geometries.json 경로 (본 스윕)")
+    ap.add_argument("--report", default=None, help="이미 돈 결과 폴더로 보고서만 다시 만든다")
     args = ap.parse_args()
     if args.precheck:
         return precheck()
-    print("본 스윕은 9/22 작업이다. 먼저 --precheck 를 돌려 격자 상한을 확정한다.")
+    if args.report:
+        report(args.report)
+        return 0
+    if args.geom:
+        return sweep(args.geom)
+    print("--precheck 또는 --geom <geometries.json> 중 하나가 필요하다.")
     return 1
 
 
