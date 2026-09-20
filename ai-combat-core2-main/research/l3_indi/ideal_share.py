@@ -23,6 +23,14 @@ sys.path.insert(0, os.path.dirname(HERE))
 
 from l3_indi.harness import REPO, DT            # noqa: E402
 
+NOTE_OVER_100 = """
+### 100% 를 넘는 칸의 해석
+
+이상 응답의 각가속도 한계는 **시작 트림에서 한 번** 잰 값이다. 저속 조건의 기동은 창 안에서 속도가 크게 올라(8k/250 M2a: KCAS 250 → 354,
+동압 2.00 배) 실제 한계가 커지므로, 낮은 한계로 만든 이상 응답이 실제보다 더 뒤처져 J_ideal > J_actual 이 된다.
+그 칸은 "물리 몫 ≈ 100%" 로만 읽고 정확한 비율은 쓰지 않는다.
+"""
+
 OPENLOOP_CSV = os.path.join(REPO, "results", "paper", "cmdshape", "7760bbc8b9", "runs.csv")
 MANS = ("M1_0.7", "M1_0.8", "M1_0.9", "M2a", "M2b", "M3_0.7", "M3_0.9")
 

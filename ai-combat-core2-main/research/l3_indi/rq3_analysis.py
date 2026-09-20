@@ -146,7 +146,9 @@ def compare(rows, col, delta, sens, is_time, kinds, cluster_cols=PAIR_KEY):
         d = np.array(diffs, float)
         ncl = len(set(cl))
         if len(d) < 3:
-            out.append({"setting": s, "n": int(len(d)), "clusters": ncl, "verdict": "표본 부족",
+            # 짝이 하나도 없으면 그 설정을 이 팔에서 아예 돌리지 않은 것이다 (설계상 미실행).
+            out.append({"setting": s, "n": int(len(d)), "clusters": ncl,
+                        "verdict": "해당 없음(미실행)" if len(d) == 0 else "표본 부족",
                         "censored": cens, "unpaired": lost})
             continue
         med, lo, hi = boot_median_ci(d, clusters=cl)
@@ -194,8 +196,8 @@ def analyze(run_dir: str, label="RQ3"):
             L.append("| 설정 | n (클러스터) | 중앙 차이 | 95% CI | 판정 | 민감도(하/상) | 순위 이연 | 최대 |차이| | 검열 | 짝 실패 |")
             L.append("|---|---|---|---|---|---|---|---|---|---|")
             for x in res:
-                if x["verdict"] == "표본 부족":
-                    L.append(f"| {x['setting']} | {x['n']} ({x['clusters']}) | - | - | 표본 부족 | - | - | - | "
+                if x["verdict"] in ("표본 부족", "해당 없음(미실행)"):
+                    L.append(f"| {x['setting']} | {x['n']} ({x['clusters']}) | - | - | {x['verdict']} | - | - | - | "
                              f"{x['censored']} | {x['unpaired']} |")
                     continue
                 L.append(f"| {x['setting']} | {x['n']} ({x['clusters']}) | {x['median']:+.3f} | [{x['lo']:+.3f}, {x['hi']:+.3f}] | "
