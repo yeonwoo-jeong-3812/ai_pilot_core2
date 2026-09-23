@@ -38,6 +38,14 @@ SUSTAINED_KCAS = (250.0, 300.0, 350.0, 400.0, 450.0)
 SUSTAINED_G_15K = (3.59, 4.64, 4.79, 4.81, 3.68)
 SUSTAINED_G_25K = (3.27, 3.88, 3.86, 3.27, 1.97)
 
+# 교범 해석 봉투(envelope="manual") — MCH 11-F16 Vol.5 §4.6.5.2: 최대 AoA/G 선회반경은
+# 170–330 KCAS 에서 일정(G ∝ V²), 330–440 은 선회율 플래토(G ∝ V), 최대 G 는 440 KCAS
+# 에서 도달. 교범 고정값이라 교리(corner_kcas_*) 오버라이드와 무관하다 — 참가자가
+# 코너를 낮춰 봉투를 넓히는 경로를 막는다. 교차검증: 350 KCAS → 7.16G (EEGS 9G
+# 피퍼 가정 "350 KCAS 에서 7.3G"). 근거·결정: paper.md §6.
+MANUAL_KCAS_TURN_RATE = 330.0   # 선회율 최고점
+MANUAL_KCAS_MAX_G = 440.0       # 구조한계 G 도달
+
 
 @dataclass
 class LimiterConfig:
@@ -50,6 +58,8 @@ class LimiterConfig:
     kcas_corner_hi: float = 440.0   # 코너 플래토 상한 [KCAS] (참고; 상한은 구조로 이미 포화)
     p_max_dps: float = 220.0        # 롤율 상한 [deg/s]
     r_max_dps: float = 30.0         # 요율 상한 [deg/s]
+    # 공력 G 봉투: "platform" = 코너 하한에서 구조한계 도달(기존), "manual" = 교범 해석.
+    envelope: str = "platform"
 
 
 class CombinedLimiter:
@@ -57,11 +67,21 @@ class CombinedLimiter:
 
     def __init__(self, config: LimiterConfig | None = None):
         self.cfg = config or LimiterConfig()
+        if self.cfg.envelope not in ("platform", "manual"):
+            raise ValueError(f"envelope 는 platform|manual: {self.cfg.envelope!r}")
 
     def _g_aero(self, kcas: float) -> float:
         """동압이 낼 수 있는 G 크기 (부호 없음)."""
         c = self.cfg
-        return c.g_struct_max * (max(kcas, 0.0) / c.kcas_corner_lo) ** 2
+        v = max(kcas, 0.0)
+        if c.envelope == "manual":
+            if v >= MANUAL_KCAS_MAX_G:
+                return c.g_struct_max
+            if v >= MANUAL_KCAS_TURN_RATE:
+                return c.g_struct_max * v / MANUAL_KCAS_MAX_G
+            g_knee = c.g_struct_max * MANUAL_KCAS_TURN_RATE / MANUAL_KCAS_MAX_G
+            return g_knee * (v / MANUAL_KCAS_TURN_RATE) ** 2
+        return c.g_struct_max * (v / c.kcas_corner_lo) ** 2
 
     def max_load_factor(self, kcas: float) -> float:
         """허용 최대 하중배수 = min(구조 9G, 공력 G(동압)). **순간** 봉투다."""

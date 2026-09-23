@@ -41,7 +41,28 @@ are time-aligned (this synchronization is the crux of a working INDI loop).
 """
 
 from __future__ import annotations
+from dataclasses import dataclass
+
 import numpy as np
+
+
+@dataclass(frozen=True)
+class INDIConfig:
+    """L3 튜닝 노브 (연구: paper.md §7-C). 기본값 = 기존 하드코딩과 비트 동일.
+
+    k_p/k_q/k_r : 각속도 오차 → 원하는 각가속도 게인 [1/s]
+    filt_hz     : 동기화 LPF 차단주파수 [Hz]
+    k_att       : 쿼터니언 shim 자세 게인 [1/s]
+    k_ff        : 각속도 명령 피드포워드 이득 (0 = 끔)
+    lam         : Δu 정칙화 (0 = 끔 — 정방 역행렬 그대로)
+    """
+    k_p: float = 9.0
+    k_q: float = 9.0
+    k_r: float = 6.0
+    filt_hz: float = 25.0
+    k_att: float = 4.0
+    k_ff: float = 0.0
+    lam: float = 0.0
 
 
 # ----------------------------------------------------------------------------- 
@@ -94,10 +115,15 @@ class INDIRateController:
     u_min/max : (3,) actuator command saturation (e.g. -1..1 normalised).
     filt_hz   : cutoff for the synchronization low-pass [Hz].
     qbar_min  : floor on qbar to keep G invertible at low airspeed.
+    k_ff      : gain on the (sync-filtered) derivative of omega_sp, added to nu.
+                Compensates the lag of a pure P rate law (aero damping). 0 = off.
+    lam       : Levenberg-Marquardt regularisation of du, scaled per channel so it
+                is qbar-invariant: du = (G^T G + lam*diag(G^T G))^-1 G^T e.
+                Diagonal-dominant G -> each increment shrinks ~1/(1+lam). 0 = plain solve.
     """
     def __init__(self, dt, G0, qbar_ref, k_rate=(8.0, 8.0, 6.0),
                  u_min=(-1, -1, -1), u_max=(1, 1, 1),
-                 filt_hz=20.0, qbar_min=20.0):
+                 filt_hz=20.0, qbar_min=20.0, k_ff=0.0, lam=0.0):
         self.dt = float(dt)
         self.G0 = np.asarray(G0, float).reshape(3, 3)
         self.qbar_ref = float(qbar_ref)
@@ -105,19 +131,24 @@ class INDIRateController:
         self.u_min = np.asarray(u_min, float)
         self.u_max = np.asarray(u_max, float)
         self.qbar_min = float(qbar_min)
+        self.k_ff = float(k_ff)
+        self.lam = float(lam)
         fs = 1.0 / self.dt
         # Two filters with IDENTICAL dynamics so accel and actuator stay aligned.
         self.f_acc = SecondOrderLPF(filt_hz, fs, 3)
         self.f_act = SecondOrderLPF(filt_hz, fs, 3)
         self.f_rate = SecondOrderLPF(filt_hz, fs, 3)   # rate used in the error term
+        self.f_sp = SecondOrderLPF(filt_hz, fs, 3)     # setpoint, for k_ff derivative
         self.u_prev = np.zeros(3)
         self.omega_prev = np.zeros(3)
+        self.sp_prev = None                            # filtered setpoint (k_ff)
         self._primed = False
 
     def reset(self, u0=(0, 0, 0), omega0=(0, 0, 0)):
         u0 = np.asarray(u0, float); omega0 = np.asarray(omega0, float)
         self.u_prev = u0.copy(); self.omega_prev = omega0.copy()
         self.f_acc.reset(0.0); self.f_act.reset(u0); self.f_rate.reset(omega0)
+        self.sp_prev = None
         self._primed = True
 
     def update(self, omega, omega_sp, qbar, ang_accel=None, omega_sp_dot=None):
@@ -154,11 +185,26 @@ class INDIRateController:
         nu = self.k_rate * (omega_sp - omega_f)
         if omega_sp_dot is not None:
             nu = nu + np.asarray(omega_sp_dot, float)
+        if self.k_ff:
+            # 60Hz 계단 setpoint 를 그대로 미분하면 스파이크 — 동기화 LPF 로 평활 후 미분.
+            if self.sp_prev is None:
+                self.f_sp.reset(omega_sp)
+                self.sp_prev = omega_sp.copy()
+            sp_f = self.f_sp(omega_sp)
+            nu = nu + self.k_ff * (sp_f - self.sp_prev) / self.dt
+            self.sp_prev = sp_f
 
         # --- qbar-scheduled effectiveness and increment ---
         G = (max(qbar, self.qbar_min) / self.qbar_ref) * self.G0
-        du = np.linalg.solve(G, nu - alpha_f) if abs(np.linalg.det(G)) > 1e-9 \
-            else np.linalg.pinv(G) @ (nu - alpha_f)
+        e = nu - alpha_f
+        if self.lam:
+            GtG = G.T @ G
+            # 채널별 스케일(LM 형): 단일 tr(GᵀG) 스케일은 효과가 큰 roll 이 λ 를 정해
+            # 효과가 작은 yaw 를 과도하게 억눌렀다(수렴 실패, test_indi_study).
+            du = np.linalg.solve(GtG + self.lam * np.diag(np.diag(GtG)), G.T @ e)
+        else:
+            du = np.linalg.solve(G, e) if abs(np.linalg.det(G)) > 1e-9 \
+                else np.linalg.pinv(G) @ e
 
         u = np.clip(u_f + du, self.u_min, self.u_max)
 

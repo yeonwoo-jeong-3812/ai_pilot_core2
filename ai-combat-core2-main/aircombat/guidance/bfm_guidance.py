@@ -105,13 +105,14 @@ class BFMGuidance:
 
     def __init__(self, doctrine: Doctrine | None = None,
                  limiter: CombinedLimiter | None = None,
-                 lead_time_s: float = 1.5, lag_dist_ft: float = 1500.0):
+                 lead_time_s: float = 1.5, lag_dist_ft: float = 1500.0,
+                 envelope: str = "platform"):
         self.doc = doctrine or Doctrine()
         # 코너 플래토는 교리가 단일 진실 — 미주입 시 doctrine 으로 리미터 생성
         # (LimiterConfig 기본값과의 이중 정의 제거; Pilot 은 guid.limiter 공유).
         self.limiter = limiter or CombinedLimiter(LimiterConfig(
             kcas_corner_lo=self.doc.corner_kcas_lo,
-            kcas_corner_hi=self.doc.corner_kcas_hi))
+            kcas_corner_hi=self.doc.corner_kcas_hi, envelope=envelope))
         self.lead_time_s = float(lead_time_s)
         self.lag_dist_ft = float(lag_dist_ft)
 
