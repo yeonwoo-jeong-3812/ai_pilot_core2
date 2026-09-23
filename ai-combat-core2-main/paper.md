@@ -161,7 +161,7 @@ G_max(V) = 6.75·(V/330)²    V < 330 KCAS      (6.75 = 9·330/440)
 |---|---|---|---|---|
 | 1 | `k_p` 롤 각속도 게인 [1/s] | 9 | 4–20 | 논문 2·5, 롤 RMS 18.8°/s |
 | 2 | `k_q` 피치 각속도 게인 [1/s] | 9 | 4–20 | G 추종·명중 정밀도 |
-| 3 | `filt_hz` 동기화 필터 [Hz] | 25 | 8–40 | 논문 2·4·5 (나이퀴스트 60 Hz 미만) |
+| 3 | `filt_hz` 동기화 필터 [Hz] | 25 | **3–40** (로그 간격) | 논문 2·4·5, §8-C: 실기 사례 3.2 Hz(Grondman)·구동기 대역 2배(LADAC) → 하한 8→3 Hz 확장 |
 | 4 | `k_att` 자세 게인 [1/s] | 4.0 | 2–8 | 논문 2 |
 | 5 | `k_ff` 각속도 명령 피드포워드 이득 | 0 | 0–1 | 논문 2·4 |
 | 6 | `λ` Δu 정칙화 | 0 | 0–0.5 | 논문 3·4·6 |
@@ -173,3 +173,38 @@ G_max(V) = 6.75·(V/330)²    V < 330 KCAS      (6.75 = 9·330/440)
 
 달성 하중배수 max/min, 명령 대비 G 오버슈트, G onset [G/s], AoA max, 롤레이트 max, 승강타 명령 포화율.
 §6 봉투·−3G 초과 설정은 **실격**, E4 비용함수에 위반량으로 반영.
+
+---
+
+## 8. 외부 공개 자료 조사 (2026-09-25)
+
+### A. JSBSim F-16 flaperon 결함 — 상류 현황
+- JSBSim 공식 저장소 master 의 `aircraft/f16/f16.xml` 도 동일 혼합식(`left=−tef−ail`, `right=+tef−ail`) — **2026-09 현재 미수정**.
+- 공식 토론 [#814 "F-16 FCS Issues"](https://github.com/JSBSim-Team/jsbsim/discussions/814)(2023-01 ~ 2026-08): 롤·요 드리프트,
+  비스케줄 롤 PID, `Clb_M` 부호 의문 등이 보고됐으나 **flaperon 대칭 양력은 언급·수정 없음**. 한 참여자가
+  "The pitch channel is also coupled with the ailerons"(2023-01-16) 라고만 남김 — 본 연구가 원인을 특정.
+- **논문 서술**: "공개 JSBSim F-16 모델의 flaperon 혼합 부호 결함을 식별·수정(f16fix)" — 방법론 기여로 기술 가능.
+
+### B. 기준 공력 데이터와의 정합 (f16fix 정당화)
+- NASA TP-1538 (Nguyen et al., 1979, [NTRS](https://ntrs.nasa.gov/citations/19800005879)) → Stevens & Lewis (1992) →
+  Garza & Morelli NASA TM-2003-212145 의 F-16 공력 모델([DAVE-ML 판](https://daveml.org/examples/F16_aero.html)):
+  수직력 계수 **CZ = f(α, β, δe, q)** — 에일러론 항 없음. 에일러론은 Cl·Cn·CY 에만 기여.
+- ∴ "에일러론이 대칭 양력을 만들지 않는다"는 f16fix 의 가정은 원전 공력 데이터와 일치.
+- 한계(논문 명시): f16fix 도 원본처럼 저속(<250 kt) 후연 플랩 양력이 0 — 코너 플래토(330–440 KCAS) 밖이라 교전 영향 작음.
+
+### C. 고정익 INDI 실기·공개 구현의 설계값
+
+| 출처 | 기체 | 샘플링 | 각속도 필터 | 구동기 | 측정 지연 | 비고 |
+|---|---|---|---|---|---|---|
+| Grondman et al., AIAA 2018-0385 ([TU Delft](https://repository.tudelft.nl/record/uuid:964e1942-5c83-45e7-8ace-507a33ea3146)) | Cessna Citation II (CS-25 최초 INDI 비행시험) | 제어 100 Hz, 센서 52 Hz | 2차 LPF **ωn 20 rad/s(3.2 Hz), ζ=1** | 1차 ωact 12.4 rad/s + 지연 39.8 ms, 에일러론 19.7°/s | p,q,r **90 ms** | 자이로 잡음 분산 4.0e-7 (rad/s)² → **σ ≈ 0.036°/s**. INDI 자세게인 Kφ 5.51, Kφ̇ 4.80 |
+| Steffensen et al., Aerospace Systems 6:285 (2023, CC BY, [Springer](https://link.springer.com/article/10.1007/s42401-022-00186-2)) | 일반 고정익 롤레이트 | — | 필터 30 rad/s, 센서 100 rad/s | 50 rad/s | 30 ms | 동기화 없는 필터 미분기 → 진동/불안정. 강결합 효과행렬에선 상보필터 권장 |
+| iff-gsc LADAC `LindiPlane` ([GitHub](https://github.com/iff-gsc/LADAC)) | 범용 고정익 UAV (ArduPilot) | 400 Hz | 2차 **ωf = 2·ω_servo**, ζ 0.71, 2단 직렬 | 2차 서보 + 지연 | 파라미터 | 게인을 총 지연 T_h = 2/ω_servo + τ + 2/ω_f 로 극배치 |
+
+**본 연구 반영**
+1. **filt_hz 탐색 하한 8 → 3 Hz** (§7-C 수정): 실기(3.2 Hz)·LADAC 규칙(F-16 구동기 ≈ 20 rad/s 가정 시 ≈ 6.4 Hz) 모두 8 Hz 미만.
+   F-16 구동기 20.2 rad/s 는 Stevens & Lewis 통용값 — 원전 대조 필요.
+2. **자이로 잡음 명목값 근거**: 실기 σ ≈ 0.036°/s(52 Hz). 백색잡음 PSD 동일 가정 시 120 Hz 환산 ≈ 0.055°/s →
+   본 연구 명목 0.1°/s 는 실기의 약 2배(보수적), 스트레스 0.3°/s 는 약 5배.
+3. **E5 지연 수준**: 실기 30–90 ms → `delay_ticks` 4, 11 (120 Hz) 를 강건성 조건으로.
+4. **게인-필터 결합**: LADAC 은 게인을 루프 총 지연에 묶음 → E2 단일 변수 스윕 외에 E4 PSO 가 (k, filt_hz) 결합을 탐색하는 근거.
+5. 미확보: 논문 3 저자 Liu 계열 `ardupi` 저장소는 404 (J. Aerosp. Eng. 35(6), 2022 논문만 존재).
