@@ -103,6 +103,36 @@ class TestRateSensor(unittest.TestCase):
             RateSensor(SensorConfig(kind="lidar"))
 
 
+class TestF16FixModel(unittest.TestCase):
+    """연구용 f16fix: 롤 명령이 대칭 양력을 만들지 않고, 롤 성능은 원본과 같다."""
+
+    @staticmethod
+    def _aileron_only(model, ail):
+        from aircombat.fdm.plant import F16Plant
+        p = F16Plant(dt=1.0 / 120.0, model=model)
+        p.set_ic(alt_ft=5000.0, vc_kts=400.0)
+        p["fcs/throttle-cmd-norm"] = 0.85
+        p.trim()
+        p["fcs/aileron-cmd-norm"] = ail
+        nz = []
+        for _ in range(36):
+            p.step(1)
+            nz.append(p["accelerations/Nz"])
+        return min(nz), max(nz), p["velocities/p-rad_sec"]
+
+    def test_no_roll_induced_lift_and_symmetric(self):
+        lo_r, hi_r, p_r = self._aileron_only("f16fix", 1.0)
+        lo_l, hi_l, p_l = self._aileron_only("f16fix", -1.0)
+        for lo, hi in ((lo_r, hi_r), (lo_l, hi_l)):
+            self.assertLess(hi - lo, 0.1)                       # 원본은 +3G/−3G 급변
+        self.assertAlmostEqual(p_r, -p_l, delta=np.radians(0.5))
+
+    def test_stock_model_still_has_defect(self):
+        # 원본은 건드리지 않았다(플랫폼 물리 불변) — 결함이 그대로 재현돼야 한다.
+        lo, hi, _ = self._aileron_only("f16", -1.0)
+        self.assertGreater(hi, 3.0)
+
+
 class TestManualEnvelope(unittest.TestCase):
     def setUp(self):
         self.man = CombinedLimiter(LimiterConfig(envelope="manual"))

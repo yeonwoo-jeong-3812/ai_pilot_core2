@@ -28,17 +28,17 @@ def load_policy(yaml_path: str) -> tuple[TacticPolicy, Doctrine]:
 def make_pilot(color: str, ic: dict, policy: TacticPolicy, doctrine: Doctrine,
                name: str = "F-16", indi_cfg: INDIConfig | None = None,
                envelope: str = "platform",
-               sensor_cfg: SensorConfig | None = None) -> Pilot:
+               sensor_cfg: SensorConfig | None = None, model: str = "f16") -> Pilot:
     """시나리오 IC 한쪽({pos, psi, kcas, alt})으로 Pilot 조립.
 
     파일럿별 트리 별도 build 전제 — Commit/Cooldown 노드가 상태를 가지므로
     두 기체가 policy 를 공유하면 안 된다 (호출자 책임).
     """
-    plant = F16Plant(dt=1.0 / 120.0)
+    plant = F16Plant(dt=1.0 / 120.0, model=model)
     plant.set_ic(alt_ft=ic["alt"], vc_kts=ic["kcas"], psi_deg=ic["psi"])
     plant["fcs/throttle-cmd-norm"] = 0.85
     plant.trim()
-    # indi_cfg/envelope/sensor_cfg 는 연구 하네스(research/indi) 전용 — 서버 경로(bridge)는 기본값.
+    # indi_cfg/envelope/sensor_cfg/model 은 연구 하네스(research/indi) 전용 — 서버 경로(bridge)는 기본값.
     pilot = Pilot(plant, color=color, init_pos_ned=tuple(ic["pos"]), policy=policy,
                   guidance=BFMGuidance(doctrine=doctrine, envelope=envelope),
                   indi_cfg=indi_cfg, sensor_cfg=sensor_cfg)   # ACMI Name 은 항상 기체 모델(F-16) — Tacview 심볼/3D 모델 선택 키

@@ -5,7 +5,7 @@
   p3211    롤레이트 3211, 60°/s, Δt 0.5 s               — 논문 5
   q_dbl    ΔG ±2 더블릿(각 1 s) + 2 s 유지              — 논문 4·5
   q_step   ΔG +4 스텝 3 s → 해제 2 s
-제어 경로는 Pilot.control_step 과 동일: shim → 한계(manual 봉투 + Nz 보호) → 센서 → INDI.
+제어 경로는 Pilot.control_step 과 동일: shim → 한계(manual 봉투) → 센서 → INDI. 모델 f16fix.
 오차 기준은 **한계 통과 후 명령**(리미터 절단은 제어기 오차가 아님), bank 는 뱅크각.
 
     python research/indi/bench.py                 # 기준 INDIConfig, 명목 센서(gyro 0.1°/s)
@@ -29,6 +29,7 @@ from aircombat.control.indi import INDIConfig, INDIRateController, RateSensor, S
 from aircombat.control.limiter import CombinedLimiter, LimiterConfig, G_FT_S2
 from aircombat.fdm.plant import F16Plant
 from limits import LimitMonitor
+from runner import MODEL, NZ_PROTECT
 
 DT = 1.0 / 120.0
 POINTS = [(kcas, alt) for alt in (15000.0, 25000.0) for kcas in (250.0, 350.0, 450.0)]
@@ -55,7 +56,7 @@ AMP = {"bank": BANK_DEG, "p3211": P_DPS, "q_dbl": DBL_G, "q_step": STEP_G}
 
 def run_test(cfg: INDIConfig, test: str, kcas: float, alt: float,
              sensor: SensorConfig = NOMINAL_SENSOR) -> dict:
-    p = F16Plant(dt=DT)
+    p = F16Plant(dt=DT, model=MODEL)
     p.set_ic(alt_ft=alt, vc_kts=kcas)
     p["fcs/throttle-cmd-norm"] = 0.85
     p.trim()
@@ -64,7 +65,8 @@ def run_test(cfg: INDIConfig, test: str, kcas: float, alt: float,
                               filt_hz=cfg.filt_hz, k_ff=cfg.k_ff, lam=cfg.lam)
     indi.reset(u0=[p["fcs/aileron-cmd-norm"], p["fcs/elevator-cmd-norm"], p["fcs/rudder-cmd-norm"]])
     shim = QuaternionAttitudeShim(k_att=cfg.k_att, k_yaw_damp=1.5, rate_limit_dps=(180.0, 60.0, 30.0))
-    lim = CombinedLimiter(LimiterConfig(envelope="manual", nz_protect=True))
+    lim = CombinedLimiter(LimiterConfig(envelope="manual", nz_protect=NZ_PROTECT is not None,
+                                        **(NZ_PROTECT or {})))
     # 공통 난수(CRN): 같은 (시험, 운용점)은 config 와 무관하게 같은 잡음열 → 대응 비교.
     sen = RateSensor(dataclasses.replace(sensor, seed=zlib.crc32(f"{test}{kcas}{alt}".encode())))
     mon = LimitMonitor(p, DT)

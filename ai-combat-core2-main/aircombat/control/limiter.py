@@ -60,13 +60,11 @@ class LimiterConfig:
     r_max_dps: float = 30.0         # 요율 상한 [deg/s]
     # 공력 G 봉투: "platform" = 코너 하한에서 구조한계 도달(기존), "manual" = 교범 해석.
     envelope: str = "platform"
-    # Nz 보호(연구 옵션, 기본 끔): q 클램프는 정상상태 환산이라 받음각이 급변하면 달성 Nz 가
-    # 봉투를 크게 넘는다(실측 manual 봉투 8.4G 에서 10.7G — 배면 당김 중 AoA 감소). 실기
-    # FLCS 처럼 측정 Nz 를 되먹임: 예측 Nz = Nz + lead·dNz/dt 가 (봉투 − margin) 을 넘으면
-    # 초과분 × gain 만큼 q 상한을 내린다(음의 한계 대칭).
+    # Nz 보호(옵션, 기본 끔): 실기 FLCS 처럼 측정 Nz 를 되먹임 — 예측 Nz = Nz + lead·dNz/dt 가
+    # (봉투 − margin) 을 넘으면 초과분 × gain 만큼 q 상한을 내린다(음의 한계 대칭).
+    # 도입 계기였던 원본 모델의 10.7G 초과는 flaperon 부호 결함(롤→대칭 양력) 탓으로 판명,
+    # f16fix 에선 보호 없이 초과 0 — 튜닝 제어기가 봉투를 넘을 때의 안전망으로만 남긴다.
     nz_protect: bool = False
-    # 기본값 = 30경기·60기체 실측에서 봉투 초과 최대 0.14G·9G 초과 0 (약한 설정 0.1/2/0.3 은
-    # 10.4G 까지 넘었다). research/indi 결정 기록: plan.md 9/25.
     nz_lead_s: float = 0.25
     nz_gain: float = 5.0
     nz_margin_g: float = 0.8
