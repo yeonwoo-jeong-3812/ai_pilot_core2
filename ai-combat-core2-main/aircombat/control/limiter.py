@@ -60,6 +60,17 @@ class LimiterConfig:
     r_max_dps: float = 30.0         # 요율 상한 [deg/s]
     # 공력 G 봉투: "platform" = 코너 하한에서 구조한계 도달(기존), "manual" = 교범 해석.
     envelope: str = "platform"
+    # Nz 보호(연구 옵션, 기본 끔): q 클램프는 정상상태 환산이라 받음각이 급변하면 달성 Nz 가
+    # 봉투를 크게 넘는다(실측 manual 봉투 8.4G 에서 10.7G — 배면 당김 중 AoA 감소). 실기
+    # FLCS 처럼 측정 Nz 를 되먹임: 예측 Nz = Nz + lead·dNz/dt 가 (봉투 − margin) 을 넘으면
+    # 초과분 × gain 만큼 q 상한을 내린다(음의 한계 대칭).
+    nz_protect: bool = False
+    # 기본값 = 30경기·60기체 실측에서 봉투 초과 최대 0.14G·9G 초과 0 (약한 설정 0.1/2/0.3 은
+    # 10.4G 까지 넘었다). research/indi 결정 기록: plan.md 9/25.
+    nz_lead_s: float = 0.25
+    nz_gain: float = 5.0
+    nz_margin_g: float = 0.8
+    nz_dt: float = 1.0 / 120.0
 
 
 class CombinedLimiter:
@@ -69,6 +80,7 @@ class CombinedLimiter:
         self.cfg = config or LimiterConfig()
         if self.cfg.envelope not in ("platform", "manual"):
             raise ValueError(f"envelope 는 platform|manual: {self.cfg.envelope!r}")
+        self._nz_prev = None     # Nz 보호 상태 (limit_omega_sp 만 사용 — 틱당 1회 호출 전제)
 
     def _g_aero(self, kcas: float) -> float:
         """동압이 낼 수 있는 G 크기 (부호 없음)."""
@@ -121,7 +133,7 @@ class CombinedLimiter:
         return min(0.0, (self.min_load_factor(kcas) - g_lift) * G_FT_S2 / v)
 
     def limit_omega_sp(self, omega_sp, v_fps: float, kcas: float,
-                       g_lift: float = 0.0):
+                       g_lift: float = 0.0, nz: float | None = None):
         """omega_sp=[p,q,r] (rad/s) 를 기체 한계로 클램프.
 
         returns (clamped omega_sp, flags). flags 는 어떤 축이 포화됐는지 +
@@ -131,6 +143,20 @@ class CombinedLimiter:
         omega_sp = np.asarray(omega_sp, float)
         q_max = self.max_pitch_rate(v_fps, kcas, g_lift)
         q_min = self.min_pitch_rate(v_fps, kcas, g_lift)   # 음수 — 밀기 한계(비대칭)
+        nz_limited = False
+        if c.nz_protect and nz is not None:
+            nz_dot = 0.0 if self._nz_prev is None else (nz - self._nz_prev) / c.nz_dt
+            self._nz_prev = nz
+            nz_pred = nz + c.nz_lead_s * nz_dot
+            k = c.nz_gain * G_FT_S2 / max(float(v_fps), 1.0)
+            over = nz_pred - (self.max_load_factor(kcas) - c.nz_margin_g)
+            under = (self.min_load_factor(kcas) + c.nz_margin_g) - nz_pred
+            if over > 0.0:
+                q_max = max(q_max - k * over, q_min)
+                nz_limited = True
+            elif under > 0.0:
+                q_min = min(q_min + k * under, q_max)
+                nz_limited = True
         p_max = np.deg2rad(c.p_max_dps)
         r_max = np.deg2rad(c.r_max_dps)
         lo = np.array([-p_max, q_min, -r_max])
@@ -145,5 +171,6 @@ class CombinedLimiter:
             "g_min": self.min_load_factor(kcas),
             "q_max": float(q_max),
             "q_min": float(q_min),
+            "nz_limited": nz_limited,
         }
         return clamped, flags

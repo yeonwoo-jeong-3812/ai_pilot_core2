@@ -14,37 +14,46 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from aircombat.control.indi import INDIConfig, SensorConfig
 from aircombat.engine.factory import load_policy, make_pilot
 from aircombat.engine.match import Match
 from aircombat.engine.scenarios import initial_conditions
+from limits import attach
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 ENVELOPE = "manual"   # 연구 확정 기준 (paper.md §0)
+NZ_PROTECT: dict | None = {}   # Nz 보호 켬(기본 파라미터) — 없으면 기준 제어기도 10.7G 도달 (plan.md 9/25)
 
 
 def play(blue_yaml: str, red_yaml: str, scenario: str = "headon", seed: int | None = None,
          blue_cfg: INDIConfig | None = None, red_cfg: INDIConfig | None = None,
          duration_s: float = 300.0, envelope: str = ENVELOPE,
-         sensor: SensorConfig | None = None) -> dict:
+         sensor: SensorConfig | None = None, nz_protect: dict | None = NZ_PROTECT) -> dict:
     """1경기 → 결과 dict (JSON 직렬화 가능). 참가자 DQ 개념 없음 — 예외는 그대로 전파.
-    봉투·센서는 평가 조건이라 양측 동일(잡음열만 측별로 다름)."""
+    봉투·센서·Nz 보호는 평가 조건이라 양측 동일(잡음열만 측별로 다름).
+    nz_protect: None = 끔, dict = LimiterConfig nz_* 필드 오버라이드({} = 기본값으로 켬)."""
     ic = initial_conditions(scenario, seed=seed)
     blue = make_pilot("Blue", ic["blue"], *load_policy(blue_yaml),
                       indi_cfg=blue_cfg, envelope=envelope, sensor_cfg=sensor)
     red = make_pilot("Red", ic["red"], *load_policy(red_yaml),
                      indi_cfg=red_cfg, envelope=envelope, sensor_cfg=sensor)
+    if nz_protect is not None:
+        for pl in (blue, red):
+            pl.limiter.cfg = dataclasses.replace(pl.limiter.cfg, nz_protect=True, **nz_protect)
+    mon = {"blue": attach(blue), "red": attach(red)}
     r = Match(blue, red, duration_s=duration_s, log_hz=0.0).run()
     wez = r.wez_time or {"blue": 0.0, "red": 0.0}
     ata = r.ata_mean or {"blue": 0.0, "red": 0.0}
     return dict(scenario=scenario, seed=seed, envelope=envelope,
-                sensor=dataclasses.asdict(sensor or SensorConfig()),
+                sensor=dataclasses.asdict(sensor or SensorConfig()), nz_protect=nz_protect,
                 blue_cfg=dataclasses.asdict(blue_cfg or INDIConfig()),
                 red_cfg=dataclasses.asdict(red_cfg or INDIConfig()),
                 winner=r.winner, condition=r.condition, time_s=r.time_s,
                 hp_blue=r.hp_blue, hp_red=r.hp_red,
                 wez_blue=wez["blue"], wez_red=wez["red"],
-                ata_blue=ata["blue"], ata_red=ata["red"])
+                ata_blue=ata["blue"], ata_red=ata["red"],
+                limits_blue=mon["blue"].summary(), limits_red=mon["red"].summary())
 
 
 def main() -> int:

@@ -6,6 +6,9 @@
   perch_defense DBFM   perch_offense 의 진영 스왑 — blue 가 열위
   neutral       중립 머지 — blue 3시(E=+1,500ft) 남향, red 9시(E=-1,500ft) 북향,
                 3,000ft 측방 이격. 역할 대칭 → turning room 배분(1/2-circle) 판단
+  p1_neutral    논문 1(이민석 외 2022, ADD) 실험조건 재현 — neutral 기하, 분리 2,000–3,000 ft
+                (100 ft), 고도 5,000–20,000 ft(500 ft), 속도 300–450 kts(1 kt) 양측 공통.
+                seed=None 이면 범위 중앙(12,500 ft·375 kts·2,500 ft). 연구 전용(리그 미사용).
   duel          headon 과 같은 기하. 단 방위·속도 지터를 **양측 공통**으로 뽑아
                 180° 회전 대칭 IC 를 만든다 → 어느 진영에도 조준 우위(ΔATA)가 없다.
                 진영 스왑이 불가능한 단판(현장 결선 토너먼트)용.
@@ -20,7 +23,7 @@ import random
 
 NM_TO_FT = 6076.12
 
-SCENARIOS = ("headon", "perch_offense", "perch_defense", "neutral", "duel")
+SCENARIOS = ("headon", "perch_offense", "perch_defense", "neutral", "duel", "p1_neutral")
 
 # 시드 지터 범위 — 분포는 룰북에 공지되는 값 (좁게 시작, 밸런스 리그에서 조정)
 # 건드리지 말 것 (2026-07-31 실측, 배터리 80경기 × 3설정). 현행이 국소 최적:
@@ -68,6 +71,8 @@ def initial_conditions(scenario: str, range_nm: float = 6.0,
     """시나리오 IC. seed 지정 시 결정론 지터(고도·속도·방위·분리거리) 적용."""
     if scenario not in SCENARIOS:
         raise ValueError(f"scenario 는 {SCENARIOS} 중 하나: {scenario!r}")
+    if scenario == "p1_neutral":
+        return _p1_neutral_ic(seed)
     ic = _base_ic(scenario, range_nm * NM_TO_FT)
     if seed is None:
         return ic
@@ -95,6 +100,22 @@ def initial_conditions(scenario: str, range_nm: float = 6.0,
         s["psi"] = (s["psi"] + dpsi) % 360.0
         s["kcas"] += dkcas
     return ic
+
+
+def _p1_neutral_ic(seed: int | None) -> dict:
+    """논문 1 §5: 이산 격자에서 균일 추첨 (별도 분기 — 기존 시나리오 추첨 순서 불변)."""
+    if seed is None:
+        alt, kcas, sep = 12500.0, 375.0, 2500.0
+    else:
+        rng = random.Random(seed)
+        alt = 5000.0 + 500.0 * rng.randint(0, 30)
+        kcas = float(rng.randint(300, 450))
+        sep = 2000.0 + 100.0 * rng.randint(0, 10)
+    half = sep / 2.0
+    return {   # neutral 과 같은 역할 대칭 기하 (blue 3시 남향, red 9시 북향)
+        "blue": dict(pos=(0.0, half, -alt), psi=180.0, kcas=kcas, alt=alt),
+        "red": dict(pos=(0.0, -half, -alt), psi=0.0, kcas=kcas, alt=alt),
+    }
 
 
 def swap_sides(ic: dict) -> dict:

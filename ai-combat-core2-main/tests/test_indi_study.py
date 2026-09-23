@@ -137,6 +137,26 @@ class TestManualEnvelope(unittest.TestCase):
     def test_platform_default_unchanged(self):
         self.assertAlmostEqual(self.plat.max_load_factor(330.0), 9.0)
 
+    def test_nz_protect_off_ignores_nz(self):
+        a, fa = self.man.limit_omega_sp([0.0, 0.3, 0.0], 700.0, 400.0, 1.0)
+        b, fb = self.man.limit_omega_sp([0.0, 0.3, 0.0], 700.0, 400.0, 1.0, nz=12.0)
+        np.testing.assert_array_equal(a, b)
+        self.assertFalse(fb["nz_limited"])
+
+    def test_nz_protect_cuts_q_on_predicted_overshoot(self):
+        L = CombinedLimiter(LimiterConfig(envelope="manual", nz_protect=True))
+        free, _ = L.limit_omega_sp([0.0, 0.3, 0.0], 700.0, 400.0, 1.0, nz=5.0)
+        cut, f = L.limit_omega_sp([0.0, 0.3, 0.0], 700.0, 400.0, 1.0, nz=7.6)  # 급상승 → 예측 초과
+        self.assertTrue(f["nz_limited"])
+        self.assertLess(cut[1], free[1])
+
+    def test_nz_protect_negative_side(self):
+        L = CombinedLimiter(LimiterConfig(envelope="manual", nz_protect=True))
+        L.limit_omega_sp([0.0, -0.3, 0.0], 700.0, 400.0, 1.0, nz=-1.0)
+        cut, f = L.limit_omega_sp([0.0, -0.3, 0.0], 700.0, 400.0, 1.0, nz=-2.5)
+        self.assertTrue(f["nz_limited"])
+        self.assertGreater(cut[1], -0.3)
+
     def test_rejects_unknown_envelope(self):
         with self.assertRaises(ValueError):
             CombinedLimiter(LimiterConfig(envelope="bogus"))
