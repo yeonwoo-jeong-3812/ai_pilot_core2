@@ -65,6 +65,48 @@ class INDIConfig:
     lam: float = 0.0
 
 
+@dataclass(frozen=True)
+class SensorConfig:
+    """INDI 측정 모델 (평가 조건 — 튜닝 변수 아님). 기본 "truth" = 기존 동작.
+
+    kind            : "truth" = JSBSim 참값 p,q,r + pdot,qdot,rdot
+                      "gyro"  = 자이로 p,q,r + 백색잡음, 각가속도는 INDI 내부 차분 추정
+                      (논문 4·5 처럼 잡음이 있어야 filt_hz·λ 의 잡음↔지연 상충이 생긴다)
+    gyro_sigma_dps  : 자이로 백색잡음 1σ [deg/s] (120 Hz 샘플 기준)
+    delay_ticks     : 측정 지연 [물리 틱 = 1/120 s] (논문 2·5 지연 강건성)
+    seed            : 잡음 시드 (결정론 — 같은 seed 는 같은 잡음열)
+    """
+    kind: str = "truth"
+    gyro_sigma_dps: float = 0.1
+    delay_ticks: int = 0
+    seed: int = 0
+
+
+class RateSensor:
+    """SensorConfig → 측정 (pqr, ang_accel|None). ang_accel=None 이면 INDI 가 차분 추정."""
+
+    def __init__(self, cfg: SensorConfig | None = None, salt: int = 0):
+        self.cfg = cfg or SensorConfig()
+        if self.cfg.kind not in ("truth", "gyro"):
+            raise ValueError(f"sensor kind 는 truth|gyro: {self.cfg.kind!r}")
+        self._rng = np.random.default_rng([self.cfg.seed, salt]) \
+            if self.cfg.kind == "gyro" else None
+        self._buf = []
+
+    def __call__(self, pqr_true, acc_true):
+        pqr = np.asarray(pqr_true, float)
+        acc = np.asarray(acc_true, float)
+        if self._rng is not None:
+            pqr = pqr + self._rng.normal(0.0, np.deg2rad(self.cfg.gyro_sigma_dps), 3)
+            acc = None
+        if not self.cfg.delay_ticks:
+            return pqr, acc
+        self._buf.append((pqr, acc))
+        if len(self._buf) > self.cfg.delay_ticks + 1:
+            self._buf.pop(0)
+        return self._buf[0]          # 버퍼가 차기 전(시작 직후)엔 가장 오래된 값
+
+
 # ----------------------------------------------------------------------------- 
 # Second-order low-pass (Butterworth biquad), vectorised over channels.
 # Used as the INDI "synchronization" filter on rates/accel and on actuators.

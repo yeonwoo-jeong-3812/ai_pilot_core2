@@ -38,9 +38,13 @@
 - `research/indi/bench.py` : 더블릿·3211·스텝(p, q 채널) × 운용점 6개(250/350/450 KCAS × 15k/25k ft)
   → 정규화 ISE, RMSE, 오버슈트, 정착시간, 승강타 포화율
 - `research/indi/limits.py` : 달성 Nz max/min, G 오버슈트, G onset, AoA max, p max → 봉투 위반량(매치·벤치 공용)
-- **추가(건의 채택)**: 센서 모델 옵션 `sensor="truth"|"gyro"` — gyro = 자이로 잡음 + 각가속도 차분 추정
-  (`INDIRateController` 의 기존 `ang_accel=None` 경로). 참값 각가속도에서는 filt_hz·λ 의 존재 이유
-  (잡음↔지연 상충)가 사라져 최적화가 filt_hz→상한, λ→0 으로 자명하게 수렴하기 때문 (논문 4·5 모두 잡음 포함)
+- [x] **센서 모델 (9/24 선행 완료)**: `SensorConfig(kind="truth"|"gyro", gyro_sigma_dps, delay_ticks, seed)`,
+  `RateSensor` — gyro = 자이로 백색잡음 + 각가속도 INDI 차분 추정, delay_ticks = 측정 지연(E5 겸용), 시드 결정론
+  - 실측(45° 뱅크, 정상구간): truth 에선 filt_hz 8–40 무영향 / gyro 0.1°/s 에서 filt_hz↑ → 조종면 떨림 ×12 /
+    gyro 0.3°/s·25 Hz↑ 에서 피치 붕괴(q RMS 7°/s) → λ 0.3 으로 0.34°/s 회복. **잡음 없이는 filt_hz·λ 실험 무의미**
+  - 연구 기본 조건: **gyro 0.1°/s(명목)**, 0.3°/s(스트레스) — E1·E2·E4 는 명목 조건에서 수행
+- **추가(건의)**: 단판 결과가 잡음 한 줄로 뒤집힘(동일 IC 9경기 승자 교대) → E2·E3 는 **공통 시드 대응비교**
+  (같은 시드·IC 에서 기준 vs 변경) + 부트스트랩 CI, 표본은 효과크기 보고 재산정
 - `scenarios.py` 에 `p1_neutral` (고도 5–20 kft/500, 속도 300–450, 거리 2–3 kft/100, 시드 결정론)
 
 ### 9/26 (토) — E2 단일 변수 민감도 드라이버

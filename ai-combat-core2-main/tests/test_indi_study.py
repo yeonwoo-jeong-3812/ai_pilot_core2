@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from aircombat.control.indi import INDIConfig, INDIRateController
+from aircombat.control.indi import INDIConfig, INDIRateController, RateSensor, SensorConfig
 from aircombat.control.limiter import CombinedLimiter, LimiterConfig
 
 DT = 1.0 / 120.0
@@ -71,6 +71,36 @@ class TestINDIConfig(unittest.TestCase):
         step = lambda t: np.array([0.2, 0.1, -0.05])
         _, w, _ = _run(step, n=1200, lam=0.3)
         np.testing.assert_allclose(w[-1], step(0), atol=2e-3)
+
+
+class TestRateSensor(unittest.TestCase):
+    PQR = np.array([0.1, -0.2, 0.05]); ACC = np.array([1.0, 2.0, 3.0])
+
+    def test_truth_passthrough(self):
+        pqr, acc = RateSensor()(self.PQR, self.ACC)
+        np.testing.assert_array_equal(pqr, self.PQR)
+        np.testing.assert_array_equal(acc, self.ACC)
+
+    def test_gyro_noise_deterministic_and_sized(self):
+        cfg = SensorConfig(kind="gyro", gyro_sigma_dps=0.5, seed=7)
+        a, b, c = RateSensor(cfg), RateSensor(cfg), RateSensor(cfg, salt=1)
+        xa = np.array([a(self.PQR, self.ACC)[0] for _ in range(4000)])
+        xb = np.array([b(self.PQR, self.ACC)[0] for _ in range(4000)])
+        xc = np.array([c(self.PQR, self.ACC)[0] for _ in range(4000)])
+        np.testing.assert_array_equal(xa, xb)                 # 같은 seed·salt = 같은 잡음열
+        self.assertFalse(np.array_equal(xa, xc))              # 측(salt)별로 다름
+        std = np.rad2deg((xa - self.PQR).std(axis=0))
+        np.testing.assert_allclose(std, 0.5, rtol=0.05)
+        self.assertIsNone(a(self.PQR, self.ACC)[1])           # 각가속도는 INDI 차분 추정
+
+    def test_delay_ticks(self):
+        s = RateSensor(SensorConfig(delay_ticks=3))
+        out = [s(np.full(3, float(k)), np.zeros(3))[0][0] for k in range(8)]
+        self.assertEqual(out, [0, 0, 0, 0, 1, 2, 3, 4])
+
+    def test_rejects_unknown_kind(self):
+        with self.assertRaises(ValueError):
+            RateSensor(SensorConfig(kind="lidar"))
 
 
 class TestManualEnvelope(unittest.TestCase):

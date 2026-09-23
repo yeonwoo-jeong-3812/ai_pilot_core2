@@ -14,7 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from aircombat.control.indi import INDIConfig
+from aircombat.control.indi import INDIConfig, SensorConfig
 from aircombat.engine.factory import load_policy, make_pilot
 from aircombat.engine.match import Match
 from aircombat.engine.scenarios import initial_conditions
@@ -25,17 +25,20 @@ ENVELOPE = "manual"   # 연구 확정 기준 (paper.md §0)
 
 def play(blue_yaml: str, red_yaml: str, scenario: str = "headon", seed: int | None = None,
          blue_cfg: INDIConfig | None = None, red_cfg: INDIConfig | None = None,
-         duration_s: float = 300.0, envelope: str = ENVELOPE) -> dict:
-    """1경기 → 결과 dict (JSON 직렬화 가능). 참가자 DQ 개념 없음 — 예외는 그대로 전파."""
+         duration_s: float = 300.0, envelope: str = ENVELOPE,
+         sensor: SensorConfig | None = None) -> dict:
+    """1경기 → 결과 dict (JSON 직렬화 가능). 참가자 DQ 개념 없음 — 예외는 그대로 전파.
+    봉투·센서는 평가 조건이라 양측 동일(잡음열만 측별로 다름)."""
     ic = initial_conditions(scenario, seed=seed)
     blue = make_pilot("Blue", ic["blue"], *load_policy(blue_yaml),
-                      indi_cfg=blue_cfg, envelope=envelope)
+                      indi_cfg=blue_cfg, envelope=envelope, sensor_cfg=sensor)
     red = make_pilot("Red", ic["red"], *load_policy(red_yaml),
-                     indi_cfg=red_cfg, envelope=envelope)
+                     indi_cfg=red_cfg, envelope=envelope, sensor_cfg=sensor)
     r = Match(blue, red, duration_s=duration_s, log_hz=0.0).run()
     wez = r.wez_time or {"blue": 0.0, "red": 0.0}
     ata = r.ata_mean or {"blue": 0.0, "red": 0.0}
     return dict(scenario=scenario, seed=seed, envelope=envelope,
+                sensor=dataclasses.asdict(sensor or SensorConfig()),
                 blue_cfg=dataclasses.asdict(blue_cfg or INDIConfig()),
                 red_cfg=dataclasses.asdict(red_cfg or INDIConfig()),
                 winner=r.winner, condition=r.condition, time_s=r.time_s,
@@ -52,12 +55,16 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--duration", type=float, default=300.0)
     ap.add_argument("--envelope", default=ENVELOPE, choices=("platform", "manual"))
+    ap.add_argument("--sensor", default="truth", choices=("truth", "gyro"))
+    ap.add_argument("--gyro_sigma_dps", type=float, default=SensorConfig.gyro_sigma_dps)
+    ap.add_argument("--delay_ticks", type=int, default=0)
     for f in dataclasses.fields(INDIConfig):       # blue 측 노브: --k_p 12 ...
         ap.add_argument(f"--{f.name}", type=float, default=f.default)
     a = ap.parse_args()
     cfg = INDIConfig(**{f.name: getattr(a, f.name) for f in dataclasses.fields(INDIConfig)})
     print(play(a.blue, a.red, a.scenario, a.seed, blue_cfg=cfg,
-               duration_s=a.duration, envelope=a.envelope))
+               duration_s=a.duration, envelope=a.envelope,
+               sensor=SensorConfig(a.sensor, a.gyro_sigma_dps, a.delay_ticks, a.seed)))
     return 0
 
 
