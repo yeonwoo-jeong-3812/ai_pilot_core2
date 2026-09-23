@@ -185,7 +185,8 @@ class Pilot:
         # 중력의 양력방향 성분 cosφ·cosθ — G↔pitch-rate 환산에 반드시 들어간다.
         omega_sp, self.last_flags = self.limiter.limit_omega_sp(
             omega_sp, p["velocities/vt-fps"], p["velocities/vc-kts"],
-            g_lift=float(np.cos(phi) * np.cos(theta)), nz=p["accelerations/Nz"])
+            g_lift=float(np.cos(phi) * np.cos(theta)), nz=p["accelerations/Nz"],
+            q_meas=float(pqr[1]))
 
         pqr_m, acc_m = self.sensor(pqr, [
             p["accelerations/pdot-rad_sec2"], p["accelerations/qdot-rad_sec2"],

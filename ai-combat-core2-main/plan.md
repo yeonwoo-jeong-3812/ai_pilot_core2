@@ -34,18 +34,17 @@
 - 발견: 단일 tr(GᵀG) 스케일 λ 는 약한 yaw 채널 수렴 실패 → 채널별 스케일로 교체.
   무잡음 합성 플랜트에서 λ 는 "평활"이 아니라 **내곽 지연**으로 작용(λ=1 → 1 s 시점 롤 +32% 오버슈트)
 
-### 9/25 (금) — E1 추종 벤치 + 한계 로거 + E6 시나리오
-- `research/indi/bench.py` : 더블릿·3211·스텝(p, q 채널) × 운용점 6개(250/350/450 KCAS × 15k/25k ft)
-  → 정규화 ISE, RMSE, 오버슈트, 정착시간, 승강타 포화율
-- `research/indi/limits.py` : 달성 Nz max/min, G 오버슈트, G onset, AoA max, p max → 봉투 위반량(매치·벤치 공용)
-- [x] **센서 모델 (9/24 선행 완료)**: `SensorConfig(kind="truth"|"gyro", gyro_sigma_dps, delay_ticks, seed)`,
-  `RateSensor` — gyro = 자이로 백색잡음 + 각가속도 INDI 차분 추정, delay_ticks = 측정 지연(E5 겸용), 시드 결정론
-  - 실측(45° 뱅크, 정상구간): truth 에선 filt_hz 8–40 무영향 / gyro 0.1°/s 에서 filt_hz↑ → 조종면 떨림 ×12 /
-    gyro 0.3°/s·25 Hz↑ 에서 피치 붕괴(q RMS 7°/s) → λ 0.3 으로 0.34°/s 회복. **잡음 없이는 filt_hz·λ 실험 무의미**
-  - 연구 기본 조건: **gyro 0.1°/s(명목)**, 0.3°/s(스트레스) — E1·E2·E4 는 명목 조건에서 수행
-- **추가(건의)**: 단판 결과가 잡음 한 줄로 뒤집힘(동일 IC 9경기 승자 교대) → E2·E3 는 **공통 시드 대응비교**
-  (같은 시드·IC 에서 기준 vs 변경) + 부트스트랩 CI, 표본은 효과크기 보고 재산정
-- `scenarios.py` 에 `p1_neutral` (고도 5–20 kft/500, 속도 300–450, 거리 2–3 kft/100, 시드 결정론)
+### 9/25 (금) — E1 추종 벤치 + 한계 로거 + E6 시나리오 (진행 중 — 모델 결함 결정 대기)
+- [x] `research/indi/limits.py` 한계 기록기(Nz vs 교범 봉투, G onset, AoA, 롤레이트, 승강타 포화, 실격)
+- [x] `research/indi/bench.py` E1: 6 운용점 × {bank, p3211, q_dbl, q_step}, 공통 난수, 1회 평가 13 s
+- [x] `scenarios.py` `p1_neutral` (논문 1 조건)
+- [x] Nz 보호 옵션(`LimiterConfig.nz_protect`) — 측정 Nz·예측으로 q 상한 절감, 측정 q 기준, dNz/dt LPF
+- **발견 1**: 기준 제어기도 교범 봉투 초과(36기체 중 28, 최대 10.7G) — q 클램프는 Nz 를 구속 못함
+- **발견 2 (근본 원인)**: JSBSim 공식 F-16 모델(pip 1.3.1 과 동일)의 flaperon 혼합 부호 결함 —
+  `left=−tef−ail, right=+tef−ail` → 합 = −2·ail → **롤 명령이 대칭 양력·항력 생성**
+  (5,000 ft/400 KCAS, 승강타 고정 에일러론 단독: 오른쪽 롤 Nz −2.1G, 왼쪽 롤 +4.1G / 좌우 비대칭).
+  남은 봉투 초과는 전부 롤 반전 순간의 CLDflaps ±7만 lbf 역전 → 제어기 튜닝으로 해결 불가.
+  → **모델 처리 방침 결정 필요** (수정 모델 / 원본 유지)
 
 ### 9/26 (토) — E2 단일 변수 민감도 드라이버
 - `research/indi/sweep.py` : 변수당 5수준(기준 대비 ×0.5, ×0.75, ×1, ×1.5, ×2 / k_ff·λ 는 절대값), joblib 병렬

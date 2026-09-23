@@ -70,6 +70,9 @@ class LimiterConfig:
     nz_lead_s: float = 0.25
     nz_gain: float = 5.0
     nz_margin_g: float = 0.8
+    # dNz/dt 1차 LPF 시상수 — 틱 차분 그대로면 자이로 잡음으로 떨리는 Nz 를 급상승으로 오인해
+    # q 상한이 튀고 승강타가 ±1 뱅뱅 진동했다(bench q_dbl 350KCAS/15kft, ISE 0.09→1.0).
+    nz_dot_tau_s: float = 0.05
     nz_dt: float = 1.0 / 120.0
 
 
@@ -81,6 +84,7 @@ class CombinedLimiter:
         if self.cfg.envelope not in ("platform", "manual"):
             raise ValueError(f"envelope 는 platform|manual: {self.cfg.envelope!r}")
         self._nz_prev = None     # Nz 보호 상태 (limit_omega_sp 만 사용 — 틱당 1회 호출 전제)
+        self._nz_dot = 0.0
 
     def _g_aero(self, kcas: float) -> float:
         """동압이 낼 수 있는 G 크기 (부호 없음)."""
@@ -133,7 +137,8 @@ class CombinedLimiter:
         return min(0.0, (self.min_load_factor(kcas) - g_lift) * G_FT_S2 / v)
 
     def limit_omega_sp(self, omega_sp, v_fps: float, kcas: float,
-                       g_lift: float = 0.0, nz: float | None = None):
+                       g_lift: float = 0.0, nz: float | None = None,
+                       q_meas: float | None = None):
         """omega_sp=[p,q,r] (rad/s) 를 기체 한계로 클램프.
 
         returns (clamped omega_sp, flags). flags 는 어떤 축이 포화됐는지 +
@@ -145,17 +150,22 @@ class CombinedLimiter:
         q_min = self.min_pitch_rate(v_fps, kcas, g_lift)   # 음수 — 밀기 한계(비대칭)
         nz_limited = False
         if c.nz_protect and nz is not None:
-            nz_dot = 0.0 if self._nz_prev is None else (nz - self._nz_prev) / c.nz_dt
+            raw = 0.0 if self._nz_prev is None else (nz - self._nz_prev) / c.nz_dt
             self._nz_prev = nz
-            nz_pred = nz + c.nz_lead_s * nz_dot
+            self._nz_dot += (raw - self._nz_dot) * c.nz_dt / (c.nz_dot_tau_s + c.nz_dt)
+            nz_pred = nz + c.nz_lead_s * self._nz_dot
             k = c.nz_gain * G_FT_S2 / max(float(v_fps), 1.0)
             over = nz_pred - (self.max_load_factor(kcas) - c.nz_margin_g)
             under = (self.min_load_factor(kcas) + c.nz_margin_g) - nz_pred
+            # 기준 = 측정 q (있으면). 초과 국면(배면 당김·AoA 감소)에선 유도 명령 q 가 이미
+            # 정상상태 q_max 보다 한참 아래라, q_max 를 깎아서는 구속이 안 걸린다.
             if over > 0.0:
-                q_max = max(q_max - k * over, q_min)
+                ref = q_max if q_meas is None else min(q_max, q_meas)
+                q_max = max(ref - k * over, q_min)
                 nz_limited = True
             elif under > 0.0:
-                q_min = min(q_min + k * under, q_max)
+                ref = q_min if q_meas is None else max(q_min, q_meas)
+                q_min = min(ref + k * under, q_max)
                 nz_limited = True
         p_max = np.deg2rad(c.p_max_dps)
         r_max = np.deg2rad(c.r_max_dps)
