@@ -10,7 +10,7 @@
     "blue_policy": "config/tactics.yaml",
     "reds": ["red_adaptive", "red_extender", "red_phangman", "red_prime", "red_reactive"],
     "scenarios": ["headon", "perch_offense", "perch_defense", "neutral"],
-    "salts": ["battery-v1", "battery-v1b", "l3dog-c", "l3dog-d"],
+    "salts": ["battery-v1", "battery-v1b", "l3dog-c", "l3dog-d", "l3dog-e", "l3dog-f", "l3dog-g", "l3dog-h"],
     "duration_s": 300.0
   },
   "baseline": {
