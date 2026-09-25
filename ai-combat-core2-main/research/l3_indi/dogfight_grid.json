@@ -1,0 +1,76 @@
+{
+  "_doc": [
+    "E층 도그파이트 실험 격자 (개정 A31). 이 파일이 설정·배터리의 단일 진실이다.",
+    "값을 바꾸려면 docs/PREREGISTRATION_AMENDMENTS.md 에 먼저 기록하고 커밋한 뒤 실행한다.",
+    "모든 설정은 baseline 위에 'set' 의 항목만 덮어쓴다. 연구 변수는 청군 INDI 에만 들어간다.",
+    "delay_ticks: 1 틱 = 1/120 s = 8.33 ms. delay_sync=true 는 INDI 액추에이터 되먹임도 같은 틱만큼 늦춘다(A10-4 동기 변형).",
+    "turb: none/light/moderate/severe = JSBSim MIL-Spec(Dryden) 난류, 초과확률 1e-2/1e-3/1e-5 (dogfight.TURB_LEVELS)."
+  ],
+  "battery": {
+    "blue_policy": "config/tactics.yaml",
+    "reds": ["red_adaptive", "red_extender", "red_phangman", "red_prime", "red_reactive"],
+    "scenarios": ["headon", "perch_offense", "perch_defense", "neutral"],
+    "salts": ["battery-v1", "battery-v1b", "l3dog-c", "l3dog-d"],
+    "duration_s": 300.0
+  },
+  "baseline": {
+    "k_scale": [1.0, 1.0, 1.0],
+    "filt_hz": 25.0,
+    "lam_q": 1.0,
+    "delay_ticks": 0,
+    "delay_sync": true,
+    "gyro_sigma": 0.0,
+    "turb": "none",
+    "turb_side": "blue"
+  },
+  "settings": [
+    {"name": "BASE", "family": "baseline", "variable": "-", "level": "base", "set": {}},
+    {"name": "SHAM", "family": "sham", "variable": "-", "level": "1+1e-6", "set": {"lam_q": 1.000001}},
+
+    {"name": "V1_kq_0.5", "family": "ofat", "variable": "V1_kq", "level": 0.5, "set": {"k_scale": [1.0, 0.5, 1.0]}},
+    {"name": "V1_kq_0.75", "family": "ofat", "variable": "V1_kq", "level": 0.75, "set": {"k_scale": [1.0, 0.75, 1.0]}},
+    {"name": "V1_kq_1.5", "family": "ofat", "variable": "V1_kq", "level": 1.5, "set": {"k_scale": [1.0, 1.5, 1.0]}},
+    {"name": "V1_kq_2", "family": "ofat", "variable": "V1_kq", "level": 2.0, "set": {"k_scale": [1.0, 2.0, 1.0]}},
+
+    {"name": "V2_filt_10", "family": "ofat", "variable": "V2_filt", "level": 10.0, "set": {"filt_hz": 10.0}},
+    {"name": "V2_filt_15", "family": "ofat", "variable": "V2_filt", "level": 15.0, "set": {"filt_hz": 15.0}},
+    {"name": "V2_filt_35", "family": "ofat", "variable": "V2_filt", "level": 35.0, "set": {"filt_hz": 35.0}},
+    {"name": "V2_filt_50", "family": "ofat", "variable": "V2_filt", "level": 50.0, "set": {"filt_hz": 50.0}},
+
+    {"name": "V3_lam_0.5", "family": "ofat", "variable": "V3_lam", "level": 0.5, "set": {"lam_q": 0.5}},
+    {"name": "V3_lam_4", "family": "ofat", "variable": "V3_lam", "level": 4.0, "set": {"lam_q": 4.0}},
+    {"name": "V3_lam_8", "family": "ofat", "variable": "V3_lam", "level": 8.0, "set": {"lam_q": 8.0}},
+    {"name": "V3_lam_16", "family": "ofat", "variable": "V3_lam", "level": 16.0, "set": {"lam_q": 16.0}},
+    {"name": "V3_lam_25", "family": "ofat", "variable": "V3_lam", "level": 25.0, "set": {"lam_q": 25.0}},
+
+    {"name": "V4_sync_2t", "family": "ofat", "variable": "V4_delay", "level": 2, "set": {"delay_ticks": 2, "delay_sync": true}},
+    {"name": "V4_sync_4t", "family": "ofat", "variable": "V4_delay", "level": 4, "set": {"delay_ticks": 4, "delay_sync": true}},
+    {"name": "V4_sync_8t", "family": "ofat", "variable": "V4_delay", "level": 8, "set": {"delay_ticks": 8, "delay_sync": true}},
+    {"name": "V4_async_1t", "family": "ofat", "variable": "V4_delay_async", "level": 1, "set": {"delay_ticks": 1, "delay_sync": false}},
+    {"name": "V4_async_2t", "family": "ofat", "variable": "V4_delay_async", "level": 2, "set": {"delay_ticks": 2, "delay_sync": false}},
+
+    {"name": "V5_noise_0.01", "family": "ofat", "variable": "V5_noise", "level": 0.01, "set": {"gyro_sigma": 0.01}},
+    {"name": "V5_noise_0.03", "family": "ofat", "variable": "V5_noise", "level": 0.03, "set": {"gyro_sigma": 0.03}},
+    {"name": "V5_noise_0.1", "family": "ofat", "variable": "V5_noise", "level": 0.1, "set": {"gyro_sigma": 0.1}},
+
+    {"name": "V6_turb_light", "family": "ofat", "variable": "V6_turb", "level": "light", "set": {"turb": "light"}},
+    {"name": "V6_turb_moderate", "family": "ofat", "variable": "V6_turb", "level": "moderate", "set": {"turb": "moderate"}},
+    {"name": "V6_turb_severe", "family": "ofat", "variable": "V6_turb", "level": "severe", "set": {"turb": "severe"}}
+  ],
+  "combined": {
+    "_doc": [
+      "2^(6-2) 부분요인설계, 해상도 IV (개정 A31 §6). A~D 는 완전요인, E = ABC, F = BCD.",
+      "낮음 = baseline, 높음 = 아래 'high'. 전부 낮음인 칸은 BASE 와 같은 설정이라 새로 돌리지 않는다.",
+      "칸 이름 X01~X16 = A,B,C,D 표준 순서(A 가 가장 빨리 바뀜)."
+    ],
+    "generators": {"E": "ABC", "F": "BCD"},
+    "factors": {
+      "A": {"label": "k_q", "high": {"k_scale": [1.0, 1.5, 1.0]}},
+      "B": {"label": "filt_hz", "high": {"filt_hz": 15.0}},
+      "C": {"label": "lam_q", "high": {"lam_q": 8.0}},
+      "D": {"label": "delay_sync", "high": {"delay_ticks": 4, "delay_sync": true}},
+      "E": {"label": "gyro_sigma", "high": {"gyro_sigma": 0.03}},
+      "F": {"label": "turb", "high": {"turb": "moderate"}}
+    }
+  }
+}
