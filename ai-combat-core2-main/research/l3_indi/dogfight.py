@@ -730,6 +730,82 @@ def selfcheck(processes: int = 8) -> int:
 
 
 # ======================================================================================
+# 체크포인트 실행 — 경기마다 즉시 저장하고, 다시 부르면 끝난 경기를 건너뛴다
+# ======================================================================================
+def _keep_awake(on: bool) -> None:
+    """실행 중 Windows 절전 진입을 막는다(ES_CONTINUOUS | ES_SYSTEM_REQUIRED). 끝나면 해제. 설정은 바꾸지 않는다."""
+    if os.name != "nt":
+        return
+    import ctypes
+    ctypes.windll.kernel32.SetThreadExecutionState(0x80000001 if on else 0x80000000)
+
+
+def run_checkpointed(name: str, jobs: list, processes: int) -> str:
+    """runner.run_experiment 와 같은 산출물(runs.csv·jobs.json·manifest.json)을 만들되,
+    끝난 경기를 partial.jsonl 에 한 줄씩 덧붙여 중단에도 살아남게 한다.
+
+    같은 커밋·같은 이름으로 다시 부르면 partial.jsonl 에 있는 match_id 는 건너뛴다(결정론이므로 다시 돌려도 같은 값).
+    커밋 안 된 변경이 있으면 거부한다(runner 와 같은 규칙).
+    """
+    import csv
+    import platform
+    from l3_indi.runner import git_state, DirtyTreeError, _init_worker
+    st = git_state()
+    if not st["clean"]:
+        raise DirtyTreeError("커밋 안 된 변경이 있어 실행을 거부함:\n  " + "\n  ".join(st["dirty_files"]))
+    out_dir = os.path.join(REPO, "results", "paper", name, st["commit"][:10])
+    os.makedirs(out_dir, exist_ok=True)
+    part = os.path.join(out_dir, "partial.jsonl")
+    done = {}
+    if os.path.isfile(part):
+        with open(part, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:                                     # 중단 순간의 잘린 마지막 줄은 버린다
+                    try:
+                        r = json.loads(line)
+                        done[r["match_id"]] = r
+                    except json.JSONDecodeError:
+                        pass
+    ids = {j["match_id"] for j in jobs}
+    todo = [j for j in jobs if j["match_id"] not in done]
+    print(f"[dogfight] {out_dir}: 완료 {sum(1 for k in done if k in ids)} / {len(jobs)}, "
+          f"남은 경기 {len(todo)}", flush=True)
+    t0 = time.time()
+    _keep_awake(True)
+    try:
+        if todo:
+            with mp.get_context("spawn").Pool(processes, initializer=_init_worker) as pool, \
+                    open(part, "a", encoding="utf-8") as f:
+                for k, r in enumerate(pool.imap_unordered(job_fn, todo, chunksize=1), 1):
+                    f.write(json.dumps(r, ensure_ascii=False) + "\n")
+                    f.flush()
+                    os.fsync(f.fileno())
+                    done[r["match_id"]] = r
+                    if k % 20 == 0 or k == len(todo):
+                        el = time.time() - t0
+                        print(f"  {time.strftime('%H:%M:%S')} {k}/{len(todo)} "
+                              f"(경기당 {el / k:.1f}s, 남은 약 {el / k * (len(todo) - k) / 60:.0f} 분)", flush=True)
+    finally:
+        _keep_awake(False)
+    rows = [done[j["match_id"]] for j in jobs]                # jobs 순서로 정렬
+    keys = sorted({k for r in rows for k in r})
+    with open(os.path.join(out_dir, "runs.csv"), "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=keys)
+        w.writeheader()
+        w.writerows(rows)
+    manifest = {"experiment": name, "git": st, "allow_dirty": False, "n_jobs": len(jobs),
+                "wall_s_last_session": round(time.time() - t0, 1), "processes": processes,
+                "checkpointed": True, "python": sys.version, "platform": platform.platform(),
+                "created": time.strftime("%Y-%m-%d %H:%M:%S"), "preregistration": "docs/PREREGISTRATION.md"}
+    with open(os.path.join(out_dir, "manifest.json"), "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+    with open(os.path.join(out_dir, "jobs.json"), "w", encoding="utf-8") as f:
+        json.dump(jobs, f, ensure_ascii=False)
+    return out_dir
+
+
+# ======================================================================================
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--selfcheck", action="store_true")
@@ -750,13 +826,11 @@ def main() -> int:
                   f"벽시계 {r['wall_s']:.1f}s, WEZ 재계산 {'OK' if r['wez_recount_ok'] else 'FAIL'}")
         return 0
     if args.run:
-        from l3_indi.runner import run_experiment
         names = select_settings(grid, args.run)
         jobs = build_jobs(grid, names, n_salts=args.salts)
         print(f"[dogfight] 설정 {len(names)} × 경기 {len(jobs) // max(len(names), 1)} = {len(jobs)} 경기, "
-              f"프로세스 {args.processes}")
-        out = run_experiment(args.name, jobs, job_fn, os.path.join(REPO, "results", "paper"),
-                             processes=args.processes)
+              f"프로세스 {args.processes}", flush=True)
+        out = run_checkpointed(args.name, jobs, args.processes)
         print("->", out)
         return 0
     ap.print_help()
