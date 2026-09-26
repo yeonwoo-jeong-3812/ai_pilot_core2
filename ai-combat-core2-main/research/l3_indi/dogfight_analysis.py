@@ -263,12 +263,48 @@ def combined_effects(rows, design) -> dict:
     return out
 
 
+def combined_high_settings(grid: dict) -> dict:
+    """결합 설계 인자별 '높음' 과 같은 설정을 가진 OFAT 수준 이름 {인자: 설정 이름} (격자에서 자동 대응)."""
+    from l3_indi.dogfight import FACTORS
+    out = {}
+    for f in FACTORS:
+        high = grid["combined"]["factors"][f]["high"]
+        match = [s["name"] for s in grid["settings"] if s["family"] == "ofat" and s["set"] == high]
+        if len(match) != 1:
+            raise RuntimeError(f"인자 {f} 의 높음 {high} 에 대응하는 OFAT 수준이 {len(match)} 개")
+        out[f] = match[0]
+    return out
+
+
+def gate_check(dirs) -> int:
+    """A31 §6·§8: OFAT 실행이 무결하고, 결합 설계의 '높음' 수준 6 개가 F-16 봉투 게이트를 통과하면 0."""
+    from l3_indi.dogfight import load_grid
+    grid = load_grid()
+    high = combined_high_settings(grid)
+    rows = load_runs(dirs)
+    ok = True
+    for name, passed, ev in integrity(rows):
+        print(f"  [{'PASS' if passed else 'FAIL'}] {name}: {ev}")
+        ok &= bool(passed)
+    env = {r["setting"]: r for r in envelope_table(rows)}
+    for f, name in high.items():
+        r = env.get(name)
+        if r is None:
+            print(f"  [FAIL] 인자 {f} 높음 = {name}: OFAT 결과에 없음")
+            ok = False
+            continue
+        print(f"  [{'FAIL' if r['flag'] else 'PASS'}] 인자 {f} 높음 = {name}: 봉투 초과 {100 * r['exceed_frac']:.1f}% "
+              f"(n {r['n']}, 최대 Nz {r['nz_max_max']:.2f}, 최소 Nz {r['nz_min_min']:.2f}, α 최대 {r['alpha_max_max']:.1f}°)")
+        ok &= not r["flag"]
+    print(f"[gate-check] {'PASS → 결합 설계 그대로 실행' if ok else 'FAIL → A31 §6 규칙 적용 필요(자동 실행 중단)'}")
+    return 0 if ok else 1
+
+
 def additivity(effects: list[dict], comb: dict, grid: dict) -> dict:
     """OFAT 단독 효과의 합 vs 결합 X16 실측 (A31 §6)."""
     if not comb:
         return {}
-    high_names = {"A": "V1_kq_1.5", "B": "V2_filt_15", "C": "V3_lam_8", "D": "V4_sync_4t",
-                  "E": "V5_noise_0.03", "F": "V6_turb_moderate"}
+    high_names = combined_high_settings(grid)
     out = {}
     for metric in PRIMARY:
         parts = {f: next((r["mean"] for r in effects if r["setting"] == n and r["metric"] == metric), float("nan"))
@@ -469,12 +505,16 @@ def main():
     ap.add_argument("dirs", nargs="*")
     ap.add_argument("--pilot", default=None)
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--gate-check", action="store_true",
+                    help="OFAT 폴더(들)로 A31 §6 게이트만 확인 (결합 실행 전 필수)")
     ap.add_argument("--label", default=None)
     ap.add_argument("--salts", type=int, default=None,
                     help="격자 솔트 앞 N 개만 분석 (A32: A31 원래 등록분 = 4)")
     args = ap.parse_args()
     if args.selftest:
         return selftest()
+    if args.gate_check:
+        return gate_check(args.dirs)
     if args.pilot:
         return pilot(args.pilot)
     if not args.dirs:
