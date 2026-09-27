@@ -200,18 +200,37 @@ def chaos_floor(rows) -> dict:
             "abs_dwez_p50": float(np.percentile(dwez, 50)), "abs_dwez_p95": float(np.percentile(dwez, 95))}
 
 
+def _exceed(r) -> bool:
+    """한 경기의 봉투 초과 (A31 §5 정의: 청군 Nz > +9 / < −3 G 또는 α > 30°)."""
+    return (r["nz_max"] > GATE_NZ_MAX) or (r["nz_min"] < GATE_NZ_MIN) or (r["alpha_max_deg"] > GATE_ALPHA_DEG)
+
+
 def envelope_table(rows) -> list[dict]:
-    """설정별 F-16 봉투 사용량과 게이트 판정 (A31 §5)."""
+    """설정별 F-16 봉투 사용량과 게이트 판정.
+
+    판정(A33 ⚠, A31 §5 의 절대 5% 규칙을 대체): 같은 IC 짝에서 (설정 초과 여부 − BASE 초과 여부) 평균의
+    부트스트랩 95% CI 하한이 0 보다 크면 "기준보다 봉투를 더 넘는 수준" 으로 표시한다(flag).
+    A31 원래 규칙(절대 초과율 > 5%)은 flag_abs 로 함께 남긴다.
+    """
     S = by_setting(rows)
+    B = S.get(BASE)
     meta = {r["setting_name"]: r for r in rows}
     out = []
     for name, M in S.items():
         rs = list(M.values())
-        exc = [(r["nz_max"] > GATE_NZ_MAX) or (r["nz_min"] < GATE_NZ_MIN) or (r["alpha_max_deg"] > GATE_ALPHA_DEG)
-               for r in rs]
-        f = float(np.mean(exc))
+        f = float(np.mean([_exceed(r) for r in rs]))
+        d_mean = d_lo = d_hi = 0.0
+        if B is not None and name != BASE:
+            keys = sorted(set(M) & set(B))
+            if len(keys) != len(B) or len(keys) != len(M):
+                raise RuntimeError(f"봉투 짝이 맞지 않음: {name}")
+            d = np.array([float(_exceed(M[k])) - float(_exceed(B[k])) for k in keys])
+            d_mean = float(d.mean())
+            d_lo, d_hi = boot_ci(d)
         out.append({"setting": name, "family": meta[name]["family"], "variable": meta[name]["variable"],
-                    "level": meta[name]["level"], "n": len(rs), "exceed_frac": f, "flag": int(f > GATE_FRAC),
+                    "level": meta[name]["level"], "n": len(rs), "exceed_frac": f,
+                    "d_vs_base": d_mean, "d_ci_lo": d_lo, "d_ci_hi": d_hi,
+                    "flag": int(d_lo > 0), "flag_abs": int(f > GATE_FRAC),
                     "nz_max_max": max(r["nz_max"] for r in rs), "nz_min_min": min(r["nz_min"] for r in rs),
                     "alpha_max_p95": float(np.percentile([r["alpha_max_deg"] for r in rs], 95)),
                     "alpha_max_max": max(r["alpha_max_deg"] for r in rs),
@@ -277,7 +296,7 @@ def combined_high_settings(grid: dict) -> dict:
 
 
 def gate_check(dirs) -> int:
-    """A31 §6·§8: OFAT 실행이 무결하고, 결합 설계의 '높음' 수준 6 개가 F-16 봉투 게이트를 통과하면 0."""
+    """A31 §6·§8: OFAT 실행이 무결하고, 결합 설계의 '높음' 수준 6 개가 F-16 봉투 게이트(A33 ⚠: 기준 대비)를 통과하면 0."""
     from l3_indi.dogfight import load_grid
     grid = load_grid()
     high = combined_high_settings(grid)
@@ -287,6 +306,9 @@ def gate_check(dirs) -> int:
         print(f"  [{'PASS' if passed else 'FAIL'}] {name}: {ev}")
         ok &= bool(passed)
     env = {r["setting"]: r for r in envelope_table(rows)}
+    if BASE not in env:
+        print("  [FAIL] BASE 가 OFAT 결과에 없음")
+        return 1
     for f, name in high.items():
         r = env.get(name)
         if r is None:
@@ -294,7 +316,9 @@ def gate_check(dirs) -> int:
             ok = False
             continue
         print(f"  [{'FAIL' if r['flag'] else 'PASS'}] 인자 {f} 높음 = {name}: 봉투 초과 {100 * r['exceed_frac']:.1f}% "
-              f"(n {r['n']}, 최대 Nz {r['nz_max_max']:.2f}, 최소 Nz {r['nz_min_min']:.2f}, α 최대 {r['alpha_max_max']:.1f}°)")
+              f"(기준 {100 * env[BASE]['exceed_frac']:.1f}%, 짝 차 {100 * r['d_vs_base']:+.1f}%p "
+              f"[{100 * r['d_ci_lo']:+.1f}, {100 * r['d_ci_hi']:+.1f}]; "
+              f"n {r['n']}, 최대 Nz {r['nz_max_max']:.2f}, 최소 Nz {r['nz_min_min']:.2f}, α 최대 {r['alpha_max_max']:.1f}°)")
         ok &= not r["flag"]
     print(f"[gate-check] {'PASS → 결합 설계 그대로 실행' if ok else 'FAIL → A31 §6 규칙 적용 필요(자동 실행 중단)'}")
     return 0 if ok else 1
@@ -371,11 +395,15 @@ def figures(effects, envelope, comb, out_dir, sham_ci):
         fig, ax = plt.subplots(figsize=(max(6, 0.35 * len(env)), 3.2))
         xs = np.arange(len(env))
         ax.bar(xs, [100 * r["exceed_frac"] for r in env], color=["#c62828" if r["flag"] else "#607d8b" for r in env])
+        base_f = next((r["exceed_frac"] for r in env if r["setting"] == BASE), None)
+        if base_f is not None:
+            ax.axhline(100 * base_f, color="#1565c0", ls="-", lw=0.8)
         ax.axhline(100 * GATE_FRAC, color="k", ls="--", lw=0.8)
         ax.set_xticks(xs)
         ax.set_xticklabels([r["setting"] for r in env], rotation=70, fontsize=6)
         ax.set_ylabel("봉투 초과 경기 [%]", fontsize=8)
-        ax.set_title("F-16 봉투 게이트 (Nz > 9 / < −3 G 또는 α > 30°; 점선 = 5%)", fontsize=9)
+        ax.set_title("F-16 봉투 (Nz > 9 / < −3 G 또는 α > 30°). 빨강 = 기준보다 유의하게 더 초과(A33), "
+                     "파랑 실선 = 기준, 점선 = 5%", fontsize=8)
         fig.tight_layout()
         for ext in ("png", "pdf"):
             fig.savefig(os.path.join(out_dir, f"fig_dogfight_envelope.{ext}"), dpi=200)
@@ -496,6 +524,21 @@ def selftest() -> int:
           ", ".join(f"{f} {e[f]['effect']:+.2f}" for f in "BDEF"))
     x16 = comb["hp_diff_d8"]["x16_minus_base"]["mean"]
     check("결합: X16 − 기준 = 2·(10+5) = 30 (A·C 교호작용은 두 칸 모두 +3)", abs(x16 - 30) < 1.0, f"{x16:.2f}")
+    # 봉투 게이트 (A33): 기준 5% 초과 → 같은 5% 인 설정은 통과, 기준보다 20%p 더 넘는 설정은 표시
+    erows = []
+    for name, extra in ((BASE, set()), ("E_same", set()), ("E_more", set(range(20, 36))), ("E_less", set())):
+        for k in range(80):
+            r = mk(name, "baseline" if name == BASE else "ofat", "x", "1", k, 0.0, 0.0)
+            hot = (k < 4 and name != "E_less") or k in extra
+            r.update(nz_max=9.5 if hot else 8.0, nz_min=-1.0, alpha_max_deg=15.0, p_max_dps=100.0,
+                     turn_rate_max_dps=15.0, kcas_min=200.0)
+            erows.append(r)
+    ev = {r["setting"]: r for r in envelope_table(erows)}
+    check("봉투: 기준 초과 5%, 표시 없음", abs(ev[BASE]["exceed_frac"] - 0.05) < 1e-12 and ev[BASE]["flag"] == 0)
+    check("봉투: 기준과 같은 초과 → 표시 없음", ev["E_same"]["flag"] == 0 and ev["E_same"]["d_vs_base"] == 0.0)
+    check("봉투: 기준보다 +20%p → 표시", ev["E_more"]["flag"] == 1 and abs(ev["E_more"]["d_vs_base"] - 0.2) < 1e-12,
+          f"CI [{ev['E_more']['d_ci_lo']:+.3f}, {ev['E_more']['d_ci_hi']:+.3f}]")
+    check("봉투: 기준보다 적게 넘음 → 표시 없음", ev["E_less"]["flag"] == 0 and ev["E_less"]["d_vs_base"] < 0)
     print(f"[selftest] {'PASS' if ok_all else 'FAIL'}")
     return 0 if ok_all else 1
 
@@ -597,10 +640,14 @@ def write_report(path, dirs, rows, checks, effects, status, floor, env, comb, ad
             r = next((x for x in effects if x["setting"] == n and x["metric"] == m), None)
             cells.append("–" if r is None else f"{r['mean']:+.3g} [{r['ci_lo']:+.3g}, {r['ci_hi']:+.3g}]")
         L.append(f"| {n} | " + " | ".join(cells) + " |")
-    L.append("\n## 6. F-16 성능 봉투 (A31 §5 게이트: Nz > 9 / < −3 G 또는 α > 30° 인 경기 비율 > 5% 이면 표시)\n")
-    L.append("| 설정 | 초과 비율 | 표시 | 최대 Nz | 최소 Nz | α 최대 p95 / 최대 [°] | 최대 롤율 [°/s] | 선회율 p95 [°/s] | 최저 KCAS | 종료 사유 |\n|---|---|---|---|---|---|---|---|---|---|")
+    L.append("\n## 6. F-16 성능 봉투 (A33 ⚠ 게이트: Nz > 9 / < −3 G 또는 α > 30° 인 경기 여부의 기준 대비 짝 차이, "
+             "95% CI 하한 > 0 이면 표시. A31 §5 원래 규칙 = 절대 비율 > 5%)\n")
+    L.append("| 설정 | 초과 비율 | 기준 대비 [%p] | 95% CI | 표시 (A33) | 절대 > 5% (A31) | 최대 Nz | 최소 Nz | α 최대 p95 / 최대 [°] | 최대 롤율 [°/s] | 선회율 p95 [°/s] | 최저 KCAS | 종료 사유 |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for r in sorted(env, key=lambda r: (r["family"] != "baseline", r["setting"])):
-        L.append(f"| {r['setting']} | {100 * r['exceed_frac']:.1f}% | {'**초과**' if r['flag'] else '–'} | {r['nz_max_max']:.2f} | "
+        rel = ("–", "–") if r["setting"] == BASE else \
+            (f"{100 * r['d_vs_base']:+.1f}", f"[{100 * r['d_ci_lo']:+.1f}, {100 * r['d_ci_hi']:+.1f}]")
+        L.append(f"| {r['setting']} | {100 * r['exceed_frac']:.1f}% | {rel[0]} | {rel[1]} | "
+                 f"{'**초과**' if r['flag'] else '–'} | {'예' if r['flag_abs'] else '–'} | {r['nz_max_max']:.2f} | "
                  f"{r['nz_min_min']:.2f} | {r['alpha_max_p95']:.1f} / {r['alpha_max_max']:.1f} | {r['p_max_max']:.0f} | "
                  f"{r['turn_rate_max_p95']:.1f} | {r['kcas_min_min']:.0f} | {r['cond']} |")
     if comb:
