@@ -130,6 +130,16 @@ def judge(lo: float, hi: float, delta: float) -> str:
     return "판정 불가"
 
 
+def final_judge(j: str, st: dict) -> str:
+    """A31 §5: 가짜 짝 보정에 실패한 지표는 제외하고, 양성 대조를 못 잡은(둔감) 지표의 '차이 없음' 은
+    OFAT·결합 효과 모두 '판정 불가' 로 낮춘다."""
+    if st["calibration_failed"]:
+        return "제외(가짜 짝 보정 실패)"
+    if not st["sensitive"] and j == "차이 없음":
+        return "판정 불가(둔감 지표)"
+    return j
+
+
 def paired(S: dict, B: dict, metric: str):
     keys = sorted(set(S) & set(B))
     if len(keys) != len(B) or len(keys) != len(S):
@@ -173,14 +183,8 @@ def effect_table(rows) -> tuple[list[dict], dict]:
         status[metric] = {"sham": sham["judge"] if sham else "없음", "calibration_failed": calib_fail,
                           "sensitive": sensitive, "pc": {r["setting"]: r["judge"] for r in pcs}}
         for r in out:
-            if r["metric"] != metric:
-                continue
-            final = r["judge"]
-            if calib_fail:
-                final = "제외(가짜 짝 보정 실패)"
-            elif not sensitive and final == "차이 없음":
-                final = "판정 불가(둔감 지표)"
-            r["judge_final"] = final
+            if r["metric"] == metric:
+                r["judge_final"] = final_judge(r["judge"], status[metric])
     return out, status
 
 
@@ -241,8 +245,9 @@ def envelope_table(rows) -> list[dict]:
     return out
 
 
-def combined_effects(rows, design) -> dict:
-    """2^(6-2) 주효과·2 원 교호작용(별칭 묶음)·가산성 (A31 §6). IC 단위 클러스터 부트스트랩."""
+def combined_effects(rows, design, status: dict | None = None) -> dict:
+    """2^(6-2) 주효과·2 원 교호작용(별칭 묶음)·가산성 (A31 §6). IC 단위 클러스터 부트스트랩.
+    status(effect_table 의 지표 상태)를 주면 A31 §5 규칙을 적용한 judge_final 도 붙인다."""
     from l3_indi.dogfight import FACTORS
     S = by_setting(rows)
     cells = {d["name"]: (BASE if not d["set"] else d["name"]) for d in design}
@@ -274,6 +279,8 @@ def combined_effects(rows, design) -> dict:
             lo, hi = float(np.percentile(bs, 2.5)), float(np.percentile(bs, 97.5))
             eff[name] = {"effect": float(per_ic.mean()), "ci_lo": lo, "ci_hi": hi,
                          "judge": judge(lo, hi, PRIMARY[metric])}
+            if status is not None:
+                eff[name]["judge_final"] = final_judge(eff[name]["judge"], status[metric])
         x16 = [i for i, d in enumerate(design) if all(v > 0 for v in d["_code"].values())][0]
         x01 = [i for i, d in enumerate(design) if all(v < 0 for v in d["_code"].values())][0]
         obs = Y[:, x16] - Y[:, x01]
@@ -349,7 +356,13 @@ def _level_sort_key(var, lev):
     return float(lev)
 
 
-def figures(effects, envelope, comb, out_dir, sham_ci):
+def _insensitive_tag(status, metric) -> str:
+    """둔감 지표(A31 §5)면 그림 라벨에 붙일 꼬리표."""
+    st = (status or {}).get(metric)
+    return "\n(둔감 지표: '차이 없음' 판정 불가)" if st and not st["sensitive"] else ""
+
+
+def figures(effects, envelope, comb, out_dir, sham_ci, status=None):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -382,7 +395,7 @@ def figures(effects, envelope, comb, out_dir, sham_ci):
                     ax.set_title(VAR_LABEL[var], fontsize=8)
                 if ci == 0:
                     ax.set_ylabel({"hp_diff_d8": "Δ 체력차 [HP]", "net_wez": "Δ WEZ 시간차 [s]",
-                                   "J_q": "Δ J_q (경기 중)"}[metric], fontsize=8)
+                                   "J_q": "Δ J_q (경기 중)"}[metric] + _insensitive_tag(status, metric), fontsize=8)
                 ax.tick_params(labelsize=7)
         fig.suptitle("변수별 단독 효과 (기준 대비 짝 차이 평균, 95% CI; 녹색 = ±δ, 회색 빗금 = 가짜 짝 CI)", fontsize=9)
         fig.tight_layout()
@@ -423,7 +436,7 @@ def figures(effects, envelope, comb, out_dir, sham_ci):
             ax.axhspan(-PRIMARY[metric], PRIMARY[metric], color="#2e7d32", alpha=0.12, lw=0)
             ax.set_xticks(xs)
             ax.set_xticklabels(names, rotation=60, fontsize=6)
-            ax.set_title(f"결합 설계 효과 — {PRIMARY_LABEL[metric]}", fontsize=8)
+            ax.set_title(f"결합 설계 효과 — {PRIMARY_LABEL[metric]}{_insensitive_tag(status, metric)}", fontsize=8)
         fig.tight_layout()
         for ext in ("png", "pdf"):
             fig.savefig(os.path.join(out_dir, f"fig_dogfight_combined.{ext}"), dpi=200)
@@ -524,6 +537,14 @@ def selftest() -> int:
           ", ".join(f"{f} {e[f]['effect']:+.2f}" for f in "BDEF"))
     x16 = comb["hp_diff_d8"]["x16_minus_base"]["mean"]
     check("결합: X16 − 기준 = 2·(10+5) = 30 (A·C 교호작용은 두 칸 모두 +3)", abs(x16 - 30) < 1.0, f"{x16:.2f}")
+    # A31 §5 둔감 지표 규칙은 결합 효과의 '차이 없음' 에도 적용된다
+    dull = {m: {"calibration_failed": False, "sensitive": False} for m in PRIMARY}
+    cd = combined_effects(rows, design, dull)["hp_diff_d8"]["effects"]
+    check("결합: 둔감 지표면 '차이 없음'(B·D·E·F) → 판정 불가(둔감 지표)",
+          all(cd[f]["judge"] == "차이 없음" and cd[f]["judge_final"] == "판정 불가(둔감 지표)" for f in "BDEF"))
+    check("결합: 둔감 지표라도 '차이 있음'(A) 은 그대로", cd["A"]["judge"] == cd["A"]["judge_final"] == "차이 있음")
+    cs = combined_effects(rows, design, status)["hp_diff_d8"]["effects"]
+    check("결합: 민감 지표면 최종 = 판정", all(e["judge_final"] == e["judge"] for e in cs.values()))
     # 봉투 게이트 (A33): 기준 5% 초과 → 같은 5% 인 설정은 통과, 기준보다 20%p 더 넘는 설정은 표시
     erows = []
     for name, extra in ((BASE, set()), ("E_same", set()), ("E_more", set(range(20, 36))), ("E_less", set())):
@@ -574,14 +595,14 @@ def main():
     effects, status = effect_table(rows)
     floor = chaos_floor(rows)
     env = envelope_table(rows)
-    comb = combined_effects(rows, grid["_combined_design"])
+    comb = combined_effects(rows, grid["_combined_design"], status)
     add = additivity(effects, comb, grid)
     tag = f"_s{args.salts}" if args.salts else ""
     out_dir = os.path.join(args.dirs[0], "analysis" + tag)
     os.makedirs(out_dir, exist_ok=True)
     sham_ci = {m: (r["ci_lo"], r["ci_hi"]) for r in effects if r["setting"] == SHAM and r["metric"] in PRIMARY
                for m in [r["metric"]]}
-    figures(effects, env, comb, out_dir, sham_ci)
+    figures(effects, env, comb, out_dir, sham_ci, status)
     with open(os.path.join(out_dir, "effects.csv"), "w", newline="", encoding="utf-8") as f:
         keys = sorted({k for r in effects for k in r})
         w = csv.DictWriter(f, fieldnames=keys)
@@ -653,9 +674,10 @@ def write_report(path, dirs, rows, checks, effects, status, floor, env, comb, ad
     if comb:
         for m in PRIMARY:
             L.append(f"\n## 7. 결합 설계 — {PRIMARY_LABEL[m]}\n")
-            L.append("| 효과 | 추정 | 95% CI | 판정 |\n|---|---|---|---|")
+            L.append("| 효과 | 추정 | 95% CI | 판정 | 최종 |\n|---|---|---|---|---|")
             for name, e in comb[m]["effects"].items():
-                L.append(f"| {name} | {_f(e['effect'])} | [{_f(e['ci_lo'])}, {_f(e['ci_hi'])}] | {e['judge']} |")
+                L.append(f"| {name} | {_f(e['effect'])} | [{_f(e['ci_lo'])}, {_f(e['ci_hi'])}] | {e['judge']} | "
+                         f"**{e.get('judge_final', e['judge'])}** |")
             o = comb[m]["x16_minus_base"]
             L.append(f"\n- 전부 높음(X16) − 기준: {_f(o['mean'])} [{_f(o['ci_lo'])}, {_f(o['ci_hi'])}]")
             if add:
