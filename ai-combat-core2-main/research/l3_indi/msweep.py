@@ -231,6 +231,19 @@ def analyze(out_dir: str) -> int:
             cells.append(f"{r['median']:+.3g} [{r['ci_lo']:+.3g}, {r['ci_hi']:+.3g}]{j}")
         meta = next(x for x in table if x["setting"] == name)
         L.append(f"| {name} | {meta['variable']} | {meta['level']} | " + " | ".join(cells) + " |")
+    # oscillating 은 이진 지표라 짝 차이 중앙값만으로는 읽기 어렵다 → 판정 경기 수와 해석 주의를 함께 싣는다
+    from l3_indi.metrics import (OSC_WINDOW_S, OSC_RATE_P2P_DPS, OSC_NZ_P2P, OSC_SIGNCHG_HZ,
+                                 OSC_SIGNCHG_MIN_RATE_P2P_DPS)
+    L += ["\n## oscillating 해석 주의\n",
+          f"- 판정 규칙(`metrics.oscillation`, 사전등록 §7.1·개정 A3): 마지막 {OSC_WINDOW_S:g} s 창에서 각속도 봉우리-골 폭 > "
+          f"{OSC_RATE_P2P_DPS:g} °/s, 또는 Nz 폭 > {OSC_NZ_P2P:g} G, 또는 조종면 부호반전 > {OSC_SIGNCHG_HZ:g} Hz"
+          f"(각속도 폭 ≥ {OSC_SIGNCHG_MIN_RATE_P2P_DPS:g} °/s 일 때)이면 1 이다.",
+          "- 이 규칙은 기동 중의 큰 각속도 변화나 돌풍에 의한 요동에도 걸린다. 그래서 기준(BASE)도 일부 경기가 1 이다. "
+          "난류 칸의 값은 제어 루프 진동과 구분되지 않으므로 진동 지표로 쓰지 않는다.\n",
+          "| 설정 | oscillating = 1 경기 |", "|---|---|"]
+    for name, S in by.items():
+        k = sum(int(float(r["oscillating"])) for r in S.values())
+        L.append(f"| {name} | {k} / {len(S)} |")
     rep = os.path.join(ad, "MSWEEP_report.md")
     with open(rep, "w", encoding="utf-8") as f:
         f.write("\n".join(L) + "\n")

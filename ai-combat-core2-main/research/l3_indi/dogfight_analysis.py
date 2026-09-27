@@ -25,6 +25,7 @@ sys.path.insert(0, os.path.dirname(HERE))
 N_BOOT = 10_000
 BOOT_SEED = 20260925                          # A31 §5
 PRIMARY = {"hp_diff_d8": 9.4, "net_wez": 0.25}          # A31 §4 δ
+SENS = {"hp_diff_d8": (4.7, 18.8), "net_wez": (0.1, 0.5)}   # A31 §4 민감도 δ (작게, 크게) — 표에 등록된 값 그대로
 PRIMARY_LABEL = {"hp_diff_d8": "종료 체력차 [HP] (D8)", "net_wez": "WEZ 체류시간 차 [s]"}
 POSITIVE_CONTROLS = ("V3_lam_25", "V4_async_2t")      # A31 §5
 SHAM = "SHAM"
@@ -32,7 +33,8 @@ BASE = "BASE"
 GATE_NZ_MAX, GATE_NZ_MIN, GATE_ALPHA_DEG, GATE_FRAC = 9.0, -3.0, 30.0, 0.05   # A31 §5 (사전등록 §7.1·§8)
 REPORTED = ("blue_pts", "frac_ata30_blue", "frac_slant_band", "frac_ata_band_blue",
             "frac_fight_speed_blue", "frac_corner_blue", "kcas_mean_blue", "dalt_blue_ft",
-            "t_first_wez_blue", "J_q", "corr_q", "q_gain", "sat_ele")
+            "t_first_wez_blue", "wez_censored_blue", "J_q", "J_p", "corr_q", "q_gain", "sat_ele")
+# 첫 WEZ 진입이 없는 경기는 t_first_wez = 종료 시각(검열)이고 wez_censored = 1 이다 (A31 §4 '검열 표시').
 E_KEYS_FOR_IDENTITY = ("winner", "condition", "time_s", "hp_blue", "hp_red", "wez_time_blue", "wez_time_red")
 PAIR_KEY = ("scenario", "red", "salt")
 VAR_ORDER = ("V1_kq", "V2_filt", "V3_lam", "V4_delay", "V4_delay_async", "V5_noise", "V6_turb")
@@ -170,8 +172,8 @@ def effect_table(rows) -> tuple[list[dict], dict]:
             if metric in PRIMARY:
                 dl = PRIMARY[metric]
                 row["judge"] = judge(lo, hi, dl)
-                row["judge_half"] = judge(lo, hi, dl / 2)
-                row["judge_double"] = judge(lo, hi, dl * 2)
+                row["judge_sens_lo"] = judge(lo, hi, SENS[metric][0])
+                row["judge_sens_hi"] = judge(lo, hi, SENS[metric][1])
             out.append(row)
     # 가짜 짝 보정과 양성 대조 규칙 (주 지표만)
     status = {}
@@ -204,9 +206,10 @@ def chaos_floor(rows) -> dict:
             "abs_dwez_p50": float(np.percentile(dwez, 50)), "abs_dwez_p95": float(np.percentile(dwez, 95))}
 
 
-def _exceed(r) -> bool:
-    """한 경기의 봉투 초과 (A31 §5 정의: 청군 Nz > +9 / < −3 G 또는 α > 30°)."""
-    return (r["nz_max"] > GATE_NZ_MAX) or (r["nz_min"] < GATE_NZ_MIN) or (r["alpha_max_deg"] > GATE_ALPHA_DEG)
+def _exceed(r, prefix: str = "") -> bool:
+    """한 경기의 봉투 초과 (A31 §5 정의: Nz > +9 / < −3 G 또는 α > 30°). prefix '' = 청군(게이트), 'red_' = 적군(보고만)."""
+    return (r[f"{prefix}nz_max"] > GATE_NZ_MAX) or (r[f"{prefix}nz_min"] < GATE_NZ_MIN) or \
+        (r[f"{prefix}alpha_max_deg"] > GATE_ALPHA_DEG)
 
 
 def envelope_table(rows) -> list[dict]:
@@ -239,9 +242,49 @@ def envelope_table(rows) -> list[dict]:
                     "alpha_max_p95": float(np.percentile([r["alpha_max_deg"] for r in rs], 95)),
                     "alpha_max_max": max(r["alpha_max_deg"] for r in rs),
                     "p_max_max": max(r["p_max_dps"] for r in rs),
+                    "q_max_max": max(r["q_max_dps"] for r in rs),
                     "turn_rate_max_p95": float(np.percentile([r["turn_rate_max_dps"] for r in rs], 95)),
+                    "turn_rate_max_max": max(r["turn_rate_max_dps"] for r in rs),
                     "kcas_min_min": min(r["kcas_min"] for r in rs),
+                    "alt_min_min": min(r["alt_min_ft"] for r in rs),
+                    # 적군 (A31 §4 '청군·적군' 봉투 — 판정 없이 기술 통계만)
+                    "red_exceed_frac": float(np.mean([_exceed(r, "red_") for r in rs])),
+                    "red_nz_max_max": max(r["red_nz_max"] for r in rs),
+                    "red_nz_min_min": min(r["red_nz_min"] for r in rs),
+                    "red_alpha_max_max": max(r["red_alpha_max_deg"] for r in rs),
+                    "red_p_max_max": max(r["red_p_max_dps"] for r in rs),
+                    "red_q_max_max": max(r["red_q_max_dps"] for r in rs),
+                    "red_turn_rate_max_max": max(r["red_turn_rate_max_dps"] for r in rs),
+                    "red_kcas_min_min": min(r["red_kcas_min"] for r in rs),
+                    "red_alt_min_min": min(r["red_alt_min_ft"] for r in rs),
                     "cond": dict(Counter(r["condition"] for r in rs))})
+    return out
+
+
+FORFEIT_CONDS = ("hard_deck", "stall", "health_zero")      # 엔진 _judge: 이 사유를 낸 쪽이 진다(양측이면 무승부)
+
+
+def outcome_table(rows) -> list[dict]:
+    """설정별 승패와 종료 사유 분해 (A31 §4 보고 지표, 기술 통계). 판정패·격추는 누가 졌는지까지 나눈다."""
+    S = by_setting(rows)
+    meta = {r["setting_name"]: r for r in rows}
+    out = []
+    for name, M in S.items():
+        rs = list(M.values())
+        c = Counter((r["condition"], r["winner"]) for r in rs)
+        row = {"setting": name, "family": meta[name]["family"], "n": len(rs),
+               "blue_win": sum(r["winner"] == "blue" for r in rs), "red_win": sum(r["winner"] == "red" for r in rs),
+               "draw": sum(r["winner"] == "draw" for r in rs)}
+        for cond in FORFEIT_CONDS:
+            row[f"blue_lost_{cond}"] = c[(cond, "red")]
+            row[f"red_lost_{cond}"] = c[(cond, "blue")]
+            row[f"both_{cond}"] = c[(cond, "draw")]
+        row["timeout"] = sum(r["condition"] == "timeout" for r in rs)
+        row["no_contact"] = sum(r["condition"] == "no_contact" for r in rs)
+        row["other"] = len(rs) - row["timeout"] - row["no_contact"] - sum(
+            row[f"{k}_{cond}"] for cond in FORFEIT_CONDS for k in ("blue_lost", "red_lost", "both"))
+        row["blue_wez_censored_frac"] = float(np.mean([r["wez_censored_blue"] for r in rs]))
+        out.append(row)
     return out
 
 
@@ -345,6 +388,45 @@ def additivity(effects: list[dict], comb: dict, grid: dict) -> dict:
         out[metric] = {"ofat_parts": parts, "predicted_sum": pred, "observed": obs,
                        "inside_ci": bool(obs["ci_lo"] <= pred <= obs["ci_hi"])}
     return out
+
+
+TREND_METRICS = tuple(PRIMARY) + ("J_q",)
+
+
+def _monotone(vals) -> str:
+    """수준 순서로 늘어놓은 점추정의 단조 여부 (A31 §5 '변수별 경향(단조 여부)', 기술 통계)."""
+    d = np.diff(np.asarray(vals, float))
+    if np.all(d == 0):
+        return "일정"
+    if np.all(d >= 0):
+        return "단조 증가"
+    if np.all(d <= 0):
+        return "단조 감소"
+    return "비단조"
+
+
+def trend_table(effects) -> list[dict]:
+    """OFAT 변수별로 수준 순서(기준 수준 포함, 기준 = 0)에 따른 짝 차이 평균과 단조 여부."""
+    out = []
+    for var in VAR_ORDER:
+        for metric in TREND_METRICS:
+            rs = [r for r in effects if r["variable"] == var and r["metric"] == metric]
+            if not rs:
+                continue
+            pts = sorted([(BASE_LEVEL[var], 0.0)] + [(r["level"], r["mean"]) for r in rs],
+                         key=lambda p: _level_sort_key(var, p[0]))
+            out.append({"variable": var, "metric": metric, "levels": [str(p[0]) for p in pts],
+                        "means": [float(p[1]) for p in pts], "trend": _monotone([p[1] for p in pts])})
+    return out
+
+
+def analyze_rows(rows, grid) -> dict:
+    """한 경기 묶음의 분석 전체 (보고서·CSV·비교가 같은 계산을 쓰도록 한곳에 모은다)."""
+    effects, status = effect_table(rows)
+    comb = combined_effects(rows, grid["_combined_design"], status)
+    return {"checks": integrity(rows), "effects": effects, "status": status, "floor": chaos_floor(rows),
+            "env": envelope_table(rows), "comb": comb, "add": additivity(effects, comb, grid),
+            "trend": trend_table(effects), "outcome": outcome_table(rows)}
 
 
 # ======================================================================================
@@ -551,8 +633,10 @@ def selftest() -> int:
         for k in range(80):
             r = mk(name, "baseline" if name == BASE else "ofat", "x", "1", k, 0.0, 0.0)
             hot = (k < 4 and name != "E_less") or k in extra
-            r.update(nz_max=9.5 if hot else 8.0, nz_min=-1.0, alpha_max_deg=15.0, p_max_dps=100.0,
-                     turn_rate_max_dps=15.0, kcas_min=200.0)
+            r.update(nz_max=9.5 if hot else 8.0, nz_min=-1.0, alpha_max_deg=15.0, p_max_dps=100.0, q_max_dps=30.0,
+                     turn_rate_max_dps=15.0, kcas_min=200.0, alt_min_ft=9000.0,
+                     red_nz_max=8.0, red_nz_min=-3.5 if k == 0 else -1.0, red_alpha_max_deg=14.0, red_p_max_dps=90.0,
+                     red_q_max_dps=25.0, red_turn_rate_max_dps=14.0, red_kcas_min=210.0, red_alt_min_ft=9500.0)
             erows.append(r)
     ev = {r["setting"]: r for r in envelope_table(erows)}
     check("봉투: 기준 초과 5%, 표시 없음", abs(ev[BASE]["exceed_frac"] - 0.05) < 1e-12 and ev[BASE]["flag"] == 0)
@@ -560,6 +644,41 @@ def selftest() -> int:
     check("봉투: 기준보다 +20%p → 표시", ev["E_more"]["flag"] == 1 and abs(ev["E_more"]["d_vs_base"] - 0.2) < 1e-12,
           f"CI [{ev['E_more']['d_ci_lo']:+.3f}, {ev['E_more']['d_ci_hi']:+.3f}]")
     check("봉투: 기준보다 적게 넘음 → 표시 없음", ev["E_less"]["flag"] == 0 and ev["E_less"]["d_vs_base"] < 0)
+    check("봉투: 적군 초과는 적군 값으로 따로 (최소 Nz −3.5 인 1/80 경기)",
+          abs(ev[BASE]["red_exceed_frac"] - 1 / 80) < 1e-12 and ev[BASE]["red_nz_min_min"] == -3.5)
+    # 민감도 δ 는 A31 §4 표의 값 그대로 (WEZ 는 δ/2 = 0.125 가 아니라 0.1)
+    row = next(r for r in eff if r["metric"] == "net_wez" and r["setting"] == "V1_kq_1.5")
+    check("민감도 δ: 등록값 (4.7, 18.8) / (0.1, 0.5) 로 판정",
+          SENS == {"hp_diff_d8": (4.7, 18.8), "net_wez": (0.1, 0.5)}
+          and row["judge_sens_lo"] == judge(row["ci_lo"], row["ci_hi"], 0.1)
+          and row["judge_sens_hi"] == judge(row["ci_lo"], row["ci_hi"], 0.5))
+    check("민감도 δ: CI [−0.11, +0.11] 은 δ 0.1 에서 판정 불가 (0.125 였다면 차이 없음)",
+          judge(-0.11, 0.11, SENS["net_wez"][0]) == "판정 불가" and judge(-0.11, 0.11, 0.125) == "차이 없음")
+    # 경향(단조 여부)
+    check("경향: 단조 증가 / 감소 / 비단조 / 일정",
+          _monotone([0, 1, 1, 3]) == "단조 증가" and _monotone([0.5, 0, -2]) == "단조 감소"
+          and _monotone([0, 2, 1]) == "비단조" and _monotone([0, 0]) == "일정")
+    tr = {(t["variable"], t["metric"]): t for t in trend_table([
+        {"setting": "V1_kq_2", "variable": "V1_kq", "level": "2.0", "metric": "net_wez", "mean": -0.3},
+        {"setting": "V1_kq_0.5", "variable": "V1_kq", "level": "0.5", "metric": "net_wez", "mean": 0.1},
+        {"setting": "V6_turb_severe", "variable": "V6_turb", "level": "severe", "metric": "net_wez", "mean": -0.9},
+        {"setting": "V6_turb_light", "variable": "V6_turb", "level": "light", "metric": "net_wez", "mean": 0.2}])}
+    check("경향: 기준 수준(0)을 끼워 수준 순서로 정렬",
+          tr[("V1_kq", "net_wez")]["levels"] == ["0.5", "1.0", "2.0"] and tr[("V1_kq", "net_wez")]["trend"] == "단조 감소"
+          and tr[("V6_turb", "net_wez")]["levels"] == ["none", "light", "severe"]
+          and tr[("V6_turb", "net_wez")]["trend"] == "비단조")
+    # 승패 분해: 판정패·격추는 진 쪽 기준
+    orows = []
+    for k, (cond, win) in enumerate([("hard_deck", "red"), ("hard_deck", "blue"), ("health_zero", "red"),
+                                     ("stall", "blue"), ("hard_deck", "draw"), ("timeout", "blue"), ("no_contact", "draw")]):
+        r = mk(BASE, "baseline", "-", "-", k, 0.0, 0.0)
+        r.update(condition=cond, winner=win, wez_censored_blue=1 if cond == "no_contact" else 0)
+        orows.append(r)
+    o = outcome_table(orows)[0]
+    check("승패 분해: 청군 hard deck 1·격추 1, 적군 hard deck 1·실속 1, 동시 1, 시간 1, 무접촉 1, 기타 0",
+          (o["blue_lost_hard_deck"], o["blue_lost_health_zero"], o["red_lost_hard_deck"], o["red_lost_stall"],
+           o["both_hard_deck"], o["timeout"], o["no_contact"], o["other"]) == (1, 1, 1, 1, 1, 1, 1, 0)
+          and (o["blue_win"], o["red_win"], o["draw"]) == (3, 2, 2) and abs(o["blue_wez_censored_frac"] - 1 / 7) < 1e-12)
     print(f"[selftest] {'PASS' if ok_all else 'FAIL'}")
     return 0 if ok_all else 1
 
@@ -574,6 +693,8 @@ def main():
     ap.add_argument("--label", default=None)
     ap.add_argument("--salts", type=int, default=None,
                     help="격자 솔트 앞 N 개만 분석 (A32: A31 원래 등록분 = 4)")
+    ap.add_argument("--compare-salts", type=int, default=None,
+                    help="전체와 앞 솔트 N 개 분석의 결론 차이 보고서 (A32 §2)")
     args = ap.parse_args()
     if args.selftest:
         return selftest()
@@ -584,48 +705,128 @@ def main():
     if not args.dirs:
         ap.print_help()
         return 0
+    if args.compare_salts:
+        return compare_salts(args.dirs, args.compare_salts)
     from l3_indi.dogfight import load_grid
     rows = load_runs(args.dirs)
     grid = load_grid()
     if args.salts:
-        keep = set(grid["battery"]["salts"][:args.salts])
-        rows = [r for r in rows if r["salt"] in keep]
-        print(f"[분석] 솔트 {sorted(keep)} 만 사용 → {len(rows)} 경기")
-    checks = integrity(rows)
-    effects, status = effect_table(rows)
-    floor = chaos_floor(rows)
-    env = envelope_table(rows)
-    comb = combined_effects(rows, grid["_combined_design"], status)
-    add = additivity(effects, comb, grid)
+        rows = _first_salts(rows, grid, args.salts)
+    a = analyze_rows(rows, grid)
     tag = f"_s{args.salts}" if args.salts else ""
     out_dir = os.path.join(args.dirs[0], "analysis" + tag)
     os.makedirs(out_dir, exist_ok=True)
-    sham_ci = {m: (r["ci_lo"], r["ci_hi"]) for r in effects if r["setting"] == SHAM and r["metric"] in PRIMARY
+    sham_ci = {m: (r["ci_lo"], r["ci_hi"]) for r in a["effects"] if r["setting"] == SHAM and r["metric"] in PRIMARY
                for m in [r["metric"]]}
-    figures(effects, env, comb, out_dir, sham_ci, status)
-    with open(os.path.join(out_dir, "effects.csv"), "w", newline="", encoding="utf-8") as f:
-        keys = sorted({k for r in effects for k in r})
-        w = csv.DictWriter(f, fieldnames=keys)
-        w.writeheader()
-        w.writerows(effects)
-    with open(os.path.join(out_dir, "envelope.csv"), "w", newline="", encoding="utf-8") as f:
-        keys = [k for k in env[0] if k != "cond"] + ["cond"]
-        w = csv.DictWriter(f, fieldnames=keys)
-        w.writeheader()
-        for r in env:
-            w.writerow(dict(r, cond=json.dumps(r["cond"], ensure_ascii=False)))
+    figures(a["effects"], a["env"], a["comb"], out_dir, sham_ci, a["status"])
+    _write_csv(os.path.join(out_dir, "effects.csv"), a["effects"])
+    _write_csv(os.path.join(out_dir, "envelope.csv"),
+               [dict(r, cond=json.dumps(r["cond"], ensure_ascii=False)) for r in a["env"]])
+    _write_csv(os.path.join(out_dir, "outcomes.csv"), a["outcome"])
+    _write_csv(os.path.join(out_dir, "trends.csv"),
+               [dict(r, levels=json.dumps(r["levels"]), means=json.dumps(r["means"])) for r in a["trend"]])
     with open(os.path.join(out_dir, "summary.json"), "w", encoding="utf-8") as f:
-        json.dump({"integrity": checks, "status": status, "chaos_floor": floor, "combined": comb,
-                   "additivity": add}, f, ensure_ascii=False, indent=2, default=str)
-    commit = json.load(open(os.path.join(args.dirs[0], "manifest.json"), encoding="utf-8"))["git"]["commit"]
-    label = args.label or f"DOGFIGHT_{commit[:10]}{tag}"
+        json.dump({"integrity": a["checks"], "status": a["status"], "chaos_floor": a["floor"], "combined": a["comb"],
+                   "additivity": a["add"]}, f, ensure_ascii=False, indent=2, default=str)
+    label = args.label or f"DOGFIGHT_{_commit10(args.dirs[0])}{tag}"
     rep = os.path.join(HERE, "reports", f"{label}.md")
-    write_report(rep, args.dirs, rows, checks, effects, status, floor, env, comb, add)
+    write_report(rep, args.dirs, rows, a)
     print("->", rep)
     return 0
 
 
-def write_report(path, dirs, rows, checks, effects, status, floor, env, comb, add):
+def _first_salts(rows, grid, n: int) -> list:
+    keep = set(grid["battery"]["salts"][:n])
+    out = [r for r in rows if r["salt"] in keep]
+    print(f"[분석] 솔트 {sorted(keep)} 만 사용 → {len(out)} 경기")
+    return out
+
+
+def _commit10(d: str) -> str:
+    return json.load(open(os.path.join(d, "manifest.json"), encoding="utf-8"))["git"]["commit"][:10]
+
+
+def _write_csv(path: str, rows: list) -> None:
+    keys = []
+    for r in rows:
+        keys += [k for k in r if k not in keys]
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=keys)
+        w.writeheader()
+        w.writerows(rows)
+
+
+def compare_salts(dirs, n_salts: int) -> int:
+    """A32 §2: 주 결과(전체 솔트)와 A31 등록분(앞 솔트 n 개)의 결론이 다른 곳을 모두 표로 낸다."""
+    from l3_indi.dogfight import load_grid
+    grid = load_grid()
+    rows = load_runs(dirs)
+    full = analyze_rows(rows, grid)
+    sub_rows = _first_salts(rows, grid, n_salts)
+    sub = analyze_rows(sub_rows, grid)
+    n_full = len(rows) // len({r["setting_name"] for r in rows})
+    n_sub = len(sub_rows) // len({r["setting_name"] for r in sub_rows})
+    A, B = f"{n_full} 경기", f"{n_sub} 경기"
+    L = [f"# 표본 크기에 따른 결론 차이 — {A} (A32 주 결과) vs {B} (A31 등록분, 앞 솔트 {n_salts} 개)\n",
+         f"- 같은 데이터·같은 규칙(A31 §5, A33)이다. 차이는 표본 크기뿐이다. 설정당 {A} / {B}.\n",
+         "## 1. 주 지표 상태\n", f"| 지표 | 가짜 짝 ({A}) | 가짜 짝 ({B}) | 양성 대조 ({A}) | 양성 대조 ({B}) | 감지 가능 ({A} / {B}) |",
+         "|---|---|---|---|---|---|"]
+    for m in PRIMARY:
+        s, t = full["status"][m], sub["status"][m]
+        L.append(f"| {PRIMARY_LABEL[m]} | {s['sham']} | {t['sham']} | "
+                 f"{', '.join(f'{k}: {v}' for k, v in s['pc'].items())} | {', '.join(f'{k}: {v}' for k, v in t['pc'].items())} | "
+                 f"{'예' if s['sensitive'] else '아니오'} / {'예' if t['sensitive'] else '아니오'} |")
+    F = {(r["setting"], r["metric"]): r for r in full["effects"] if r["metric"] in PRIMARY}
+    H = {(r["setting"], r["metric"]): r for r in sub["effects"] if r["metric"] in PRIMARY}
+    diff = [k for k in sorted(F) if F[k]["judge_final"] != H[k]["judge_final"]]
+    L += [f"\n## 2. 설정별 최종 판정이 다른 곳 ({len(diff)} / {len(F)})\n",
+          f"| 설정 | 지표 | {A}: 평균 [95% CI] → 최종 | {B}: 평균 [95% CI] → 최종 |", "|---|---|---|---|"]
+    for k in diff:
+        f, h = F[k], H[k]
+        L.append(f"| {k[0]} | {k[1]} | {_f(f['mean'])} [{_f(f['ci_lo'])}, {_f(f['ci_hi'])}] → {f['judge_final']} | "
+                 f"{_f(h['mean'])} [{_f(h['ci_lo'])}, {_f(h['ci_hi'])}] → {h['judge_final']} |")
+    if full["comb"] and sub["comb"]:
+        L += ["\n## 3. 결합 효과 최종 판정이 다른 곳\n", f"| 지표 | 효과 | {A} | {B} |", "|---|---|---|---|"]
+        for m in PRIMARY:
+            for name, e in full["comb"][m]["effects"].items():
+                g = sub["comb"][m]["effects"][name]
+                if e["judge_final"] != g["judge_final"]:
+                    L.append(f"| {m} | {name} | {_f(e['effect'])} [{_f(e['ci_lo'])}, {_f(e['ci_hi'])}] → {e['judge_final']} | "
+                             f"{_f(g['effect'])} [{_f(g['ci_lo'])}, {_f(g['ci_hi'])}] → {g['judge_final']} |")
+        L.append("")
+        for m in PRIMARY:
+            L.append(f"- 가산성 ({m}): {A} 실측 CI 안 = {full['add'][m]['inside_ci']}, {B} = {sub['add'][m]['inside_ci']}")
+    E1 = {r["setting"]: r for r in full["env"]}
+    E2 = {r["setting"]: r for r in sub["env"]}
+    ediff = [k for k in E1 if E1[k]["flag"] != E2[k]["flag"]]
+    L += [f"\n## 4. F-16 봉투 표시(A33)가 다른 곳 — 기준 초과 비율 {A} {100 * E1[BASE]['exceed_frac']:.2f}% / "
+          f"{B} {100 * E2[BASE]['exceed_frac']:.2f}%\n",
+          f"| 설정 | {A}: 초과 / 기준 대비 [95% CI] | {B}: 초과 / 기준 대비 [95% CI] |", "|---|---|---|"]
+    for k in ediff:
+        a, b = E1[k], E2[k]
+        L.append(f"| {k} | {100 * a['exceed_frac']:.1f}% / {100 * a['d_vs_base']:+.1f}%p [{100 * a['d_ci_lo']:+.1f}, "
+                 f"{100 * a['d_ci_hi']:+.1f}] {'**표시**' if a['flag'] else '–'} | {100 * b['exceed_frac']:.1f}% / "
+                 f"{100 * b['d_vs_base']:+.1f}%p [{100 * b['d_ci_lo']:+.1f}, {100 * b['d_ci_hi']:+.1f}] "
+                 f"{'**표시**' if b['flag'] else '–'} |")
+    high = combined_high_settings(grid)
+    L.append(f"\n- 결합 설계 높음 수준 6 개의 게이트: {A} {'통과' if not any(E1[n]['flag'] for n in high.values()) else '불통과'}, "
+             f"{B} {'통과' if not any(E2[n]['flag'] for n in high.values()) else '불통과'}")
+    T1 = {(r["variable"], r["metric"]): r["trend"] for r in full["trend"]}
+    T2 = {(r["variable"], r["metric"]): r["trend"] for r in sub["trend"]}
+    tdiff = [k for k in T1 if T1[k] != T2[k]]
+    L += [f"\n## 5. 변수별 경향(단조 여부)이 다른 곳 ({len(tdiff)} / {len(T1)})\n", f"| 변수 | 지표 | {A} | {B} |", "|---|---|---|---|"]
+    L += [f"| {k[0]} | {k[1]} | {T1[k]} | {T2[k]} |" for k in tdiff]
+    label = f"DOGFIGHT_{_commit10(dirs[0])}_s{n_salts}_vs_full"
+    rep = os.path.join(HERE, "reports", f"{label}.md")
+    with open(rep, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(L) + "\n")
+    print("->", rep)
+    return 0
+
+
+def write_report(path, dirs, rows, a):
+    checks, effects, status, floor = a["checks"], a["effects"], a["status"], a["floor"]
+    env, comb, add = a["env"], a["comb"], a["add"]
     L = []
     L.append(f"# E층 도그파이트 결과 — {', '.join(os.path.basename(os.path.normpath(os.path.dirname(d))) + '/' + os.path.basename(os.path.normpath(d)) for d in dirs)}\n")
     L.append("- 규칙: 개정 A31 (§4 지표, §5 판정, §6 결합). 짝 = 같은 (시나리오, 레드, 솔트). 통계량 = 짝 차이 평균, "
@@ -646,13 +847,23 @@ def write_report(path, dirs, rows, checks, effects, status, floor, env, comb, ad
         L.append(f"| {PRIMARY_LABEL[m]} | {PRIMARY[m]} | {st['sham']} | {'실패 → 제외' if st['calibration_failed'] else '통과'} | "
                  f"{', '.join(f'{k}: {v}' for k, v in st['pc'].items())} | {'예' if st['sensitive'] else '아니오'} |")
     for m in PRIMARY:
-        L.append(f"\n## 4. 설정별 효과 — {PRIMARY_LABEL[m]} (δ = {PRIMARY[m]})\n")
-        L.append("| 설정 | 변수 | 수준 | 짝 | 평균 차 | 95% CI | 중앙 차 | 판정 | δ/2 | 2δ | 최종 |\n|---|---|---|---|---|---|---|---|---|---|---|")
+        lo_d, hi_d = SENS[m]
+        L.append(f"\n## 4. 설정별 효과 — {PRIMARY_LABEL[m]} (δ = {PRIMARY[m]}; 민감도 δ = {lo_d} / {hi_d})\n")
+        L.append(f"| 설정 | 변수 | 수준 | 짝 | 평균 차 | 95% CI | 중앙 차 | 판정 (δ {PRIMARY[m]}) | δ {lo_d} | δ {hi_d} | 최종 |"
+                 "\n|---|---|---|---|---|---|---|---|---|---|---|")
         for r in sorted((r for r in effects if r["metric"] == m), key=lambda r: (r["family"], r["variable"], r["setting"])):
             L.append(f"| {r['setting']} | {r['variable']} | {r['level']} | {r['n']} | {_f(r['mean'])} | "
-                     f"[{_f(r['ci_lo'])}, {_f(r['ci_hi'])}] | {_f(r['median'])} | {r['judge']} | {r['judge_half']} | "
-                     f"{r['judge_double']} | **{r['judge_final']}** |")
+                     f"[{_f(r['ci_lo'])}, {_f(r['ci_hi'])}] | {_f(r['median'])} | {r['judge']} | {r['judge_sens_lo']} | "
+                     f"{r['judge_sens_hi']} | **{r['judge_final']}** |")
+    L.append("\n## 4b. 변수별 경향 (A31 §5 '단조 여부', 기술 통계)\n")
+    L.append("- 수준 순서대로 짝 차이 평균(점추정)을 늘어놓았다. 기준 수준은 0 이다. 단조 여부는 점추정의 인접 차이 부호로만 정한다(CI 는 §4).\n")
+    L.append("| 변수 | 지표 | 수준 → 평균 차 | 경향 |\n|---|---|---|---|")
+    for t in a["trend"]:
+        seq = ", ".join(f"{lv}: {mv:+.3g}" for lv, mv in zip(t["levels"], t["means"]))
+        L.append(f"| {VAR_LABEL[t['variable']]} | {t['metric']} | {seq} | {t['trend']} |")
     L.append("\n## 5. 보고 지표 (판정 없음, 짝 차이 평균 [95% CI])\n")
+    L.append("- `t_first_wez_blue`: 청군이 WEZ 에 한 번도 들지 못한 경기는 종료 시각으로 **검열**된 값이다. "
+             "`wez_censored_blue` 열이 그 검열 비율의 변화다(A31 §4 '검열 표시'). 설정별 검열 비율 자체는 §5b.\n")
     L.append("| 설정 | " + " | ".join(REPORTED) + " |\n|---|" + "---|" * len(REPORTED))
     names = sorted({r["setting"] for r in effects}, key=lambda n: (n != SHAM, n))
     for n in names:
@@ -661,16 +872,37 @@ def write_report(path, dirs, rows, checks, effects, status, floor, env, comb, ad
             r = next((x for x in effects if x["setting"] == n and x["metric"] == m), None)
             cells.append("–" if r is None else f"{r['mean']:+.3g} [{r['ci_lo']:+.3g}, {r['ci_hi']:+.3g}]")
         L.append(f"| {n} | " + " | ".join(cells) + " |")
+    L.append("\n## 5b. 승패와 종료 사유 분해 (경기 수, 기술 통계)\n")
+    L.append("- 판정패(hard deck·실속)와 격추(health_zero)는 **진 쪽** 기준이다. 양측이 같은 틱에 걸리면 무승부로 따로 센다.\n")
+    L.append("| 설정 | 경기 | 청군 승 | 적군 승 | 무 | 청군 패: hard deck / 실속 / 격추 | 적군 패: hard deck / 실속 / 격추 | "
+             "양측 동시 | 시간 종료 | 무접촉 | 기타 | 청군 WEZ 미진입(검열) |\n|---|---|---|---|---|---|---|---|---|---|---|---|")
+    for o in sorted(a["outcome"], key=lambda r: (r["family"] != "baseline", r["setting"])):
+        both = sum(o[f"both_{c}"] for c in FORFEIT_CONDS)
+        L.append(f"| {o['setting']} | {o['n']} | {o['blue_win']} | {o['red_win']} | {o['draw']} | "
+                 f"{o['blue_lost_hard_deck']} / {o['blue_lost_stall']} / {o['blue_lost_health_zero']} | "
+                 f"{o['red_lost_hard_deck']} / {o['red_lost_stall']} / {o['red_lost_health_zero']} | {both} | "
+                 f"{o['timeout']} | {o['no_contact']} | {o['other']} | {100 * o['blue_wez_censored_frac']:.1f}% |")
     L.append("\n## 6. F-16 성능 봉투 (A33 ⚠ 게이트: Nz > 9 / < −3 G 또는 α > 30° 인 경기 여부의 기준 대비 짝 차이, "
              "95% CI 하한 > 0 이면 표시. A31 §5 원래 규칙 = 절대 비율 > 5%)\n")
-    L.append("| 설정 | 초과 비율 | 기준 대비 [%p] | 95% CI | 표시 (A33) | 절대 > 5% (A31) | 최대 Nz | 최소 Nz | α 최대 p95 / 최대 [°] | 최대 롤율 [°/s] | 선회율 p95 [°/s] | 최저 KCAS | 종료 사유 |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    L.append("| 설정 | 초과 비율 | 기준 대비 [%p] | 95% CI | 표시 (A33) | 절대 > 5% (A31) | 최대 Nz | 최소 Nz | α 최대 p95 / 최대 [°] | "
+             "최대 롤율 [°/s] | 최대 피치율 [°/s] | 선회율 p95 / 최대 [°/s] | 최저 KCAS | 최저 고도 [ft] | 종료 사유 |"
+             "\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     for r in sorted(env, key=lambda r: (r["family"] != "baseline", r["setting"])):
         rel = ("–", "–") if r["setting"] == BASE else \
             (f"{100 * r['d_vs_base']:+.1f}", f"[{100 * r['d_ci_lo']:+.1f}, {100 * r['d_ci_hi']:+.1f}]")
         L.append(f"| {r['setting']} | {100 * r['exceed_frac']:.1f}% | {rel[0]} | {rel[1]} | "
                  f"{'**초과**' if r['flag'] else '–'} | {'예' if r['flag_abs'] else '–'} | {r['nz_max_max']:.2f} | "
                  f"{r['nz_min_min']:.2f} | {r['alpha_max_p95']:.1f} / {r['alpha_max_max']:.1f} | {r['p_max_max']:.0f} | "
-                 f"{r['turn_rate_max_p95']:.1f} | {r['kcas_min_min']:.0f} | {r['cond']} |")
+                 f"{r['q_max_max']:.0f} | {r['turn_rate_max_p95']:.1f} / {r['turn_rate_max_max']:.1f} | {r['kcas_min_min']:.0f} | "
+                 f"{r['alt_min_min']:.0f} | {r['cond']} |")
+    L.append("\n## 6b. 적군 봉투 (A31 §4 '청군·적군', 판정 없음)\n")
+    L.append("- 적군에는 설정을 주입하지 않는다(난류도 청군만). 같은 정의(Nz > 9 / < −3 G 또는 α > 30°)의 초과 비율을 참고로 싣는다.\n")
+    L.append("| 설정 | 초과 비율 | 최대 Nz | 최소 Nz | α 최대 [°] | 최대 롤율 [°/s] | 최대 피치율 [°/s] | 선회율 최대 [°/s] | "
+             "최저 KCAS | 최저 고도 [ft] |\n|---|---|---|---|---|---|---|---|---|---|")
+    for r in sorted(env, key=lambda r: (r["family"] != "baseline", r["setting"])):
+        L.append(f"| {r['setting']} | {100 * r['red_exceed_frac']:.1f}% | {r['red_nz_max_max']:.2f} | {r['red_nz_min_min']:.2f} | "
+                 f"{r['red_alpha_max_max']:.1f} | {r['red_p_max_max']:.0f} | {r['red_q_max_max']:.0f} | "
+                 f"{r['red_turn_rate_max_max']:.1f} | {r['red_kcas_min_min']:.0f} | {r['red_alt_min_min']:.0f} |")
     if comb:
         for m in PRIMARY:
             L.append(f"\n## 7. 결합 설계 — {PRIMARY_LABEL[m]}\n")
