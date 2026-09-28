@@ -66,6 +66,8 @@ def main() -> int:
     ap.add_argument("--gamma", type=float, nargs="+", default=[0.3],
                     help="B 로 쓸 γ — 여러 개면 B 여러 개(기준 A 경기는 한 번만)")
     ap.add_argument("--b", nargs="*", default=[], help="B 설정 직접 지정 key=value (기준 대비 변경분)")
+    ap.add_argument("--red-gamma", type=float, default=None,
+                    help="대항군도 --best 의 해당 γ 튜닝 INDI 로 (양측 튜닝 실험). 생략 = 기준 INDI")
     ap.add_argument("--conds", nargs="+", default=list(CONDS))
     ap.add_argument("--seeds", nargs="+", type=int, default=[1, 2, 3, 4])
     ap.add_argument("--reds", nargs="+", default=list(REDS))
@@ -86,6 +88,11 @@ def main() -> int:
             Bs = {"B": dataclasses.asdict(dataclasses.replace(INDIConfig(), filt_hz=4.0, lam=0.35))}
     bat = battery(tuple(a.seeds), tuple(a.reds), tuple(a.scens))
     cfgs = [("A", A)] + list(Bs.items())
+    red_cfg = None
+    if a.red_gamma is not None:
+        red_cfg = next(b["cfg"] for b in json.load(open(a.best, encoding="utf-8"))["best"]
+                       if abs(b["gamma"] - a.red_gamma) < 1e-9)
+        print(f"red 전원 튜닝 INDI (γ={a.red_gamma:g}) = {red_cfg}", flush=True)
     for name, c in cfgs:
         print(f"{name}={c}", flush=True)
     print(f"조건 {a.conds} × {len(bat)}경기 × {len(cfgs)} = {len(a.conds) * len(bat) * len(cfgs)}경기", flush=True)
@@ -95,7 +102,8 @@ def main() -> int:
         cond, sigma, delay = CONDS[cname]
         for _, cfg in cfgs:
             for r, sc, sd in bat:
-                jobs.append((cfg, r, sc, sd, cond if cond is not None else _mc_cond(r, sc, sd), sigma, delay))
+                job = (cfg, r, sc, sd, cond if cond is not None else _mc_cond(r, sc, sd), sigma, delay)
+                jobs.append(job + (red_cfg,) if red_cfg else job)
     flat = pmap(game, jobs, a.workers)
 
     out = {}
@@ -114,7 +122,7 @@ def main() -> int:
     if a.out:
         os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
         with open(a.out, "w", encoding="utf-8") as f:
-            json.dump(dict(A=A, B=Bs, battery=bat, conds=out), f, indent=1)
+            json.dump(dict(A=A, B=Bs, red_cfg=red_cfg, battery=bat, conds=out), f, indent=1)
     return 0
 
 

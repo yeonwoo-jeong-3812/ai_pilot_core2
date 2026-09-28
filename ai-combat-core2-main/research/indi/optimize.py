@@ -28,8 +28,23 @@ from aircombat.control.indi import INDIConfig
 # (이름, 하한, 상한, 로그) — paper.md §7-C
 BOX = [("k_p", 4.0, 20.0, False), ("k_q", 4.0, 20.0, False), ("filt_hz", 3.0, 40.0, True),
        ("k_att", 2.0, 8.0, False), ("k_ff", 0.0, 1.0, False), ("lam", 0.0, 0.5, False)]
-LO = np.array([np.log(b[1]) if b[3] else b[1] for b in BOX])
-HI = np.array([np.log(b[2]) if b[3] else b[2] for b in BOX])
+def _bounds():
+    return (np.array([np.log(b[1]) if b[3] else b[1] for b in BOX]),
+            np.array([np.log(b[2]) if b[3] else b[2] for b in BOX]))
+
+
+LO, HI = _bounds()
+
+
+def set_box(overrides: list[str]) -> None:
+    """--box k_p=4,40 k_att=2,16 → 탐색 범위 변경 (상한 접촉 해의 재탐색용)."""
+    global LO, HI
+    for item in overrides:
+        name, rng = item.split("=")
+        lo, hi = (float(v) for v in rng.split(","))
+        i = next(i for i, b in enumerate(BOX) if b[0] == name)
+        BOX[i] = (name, lo, hi, BOX[i][3])
+    LO, HI = _bounds()
 DQ_PENALTY = 10.0
 
 
@@ -93,12 +108,14 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--workers", type=int, default=7)
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--box", nargs="*", default=[], help="탐색 범위 변경, 예: k_p=4,40 k_att=2,16")
     ap.add_argument("--out")
     a = ap.parse_args()
+    set_box(a.box)
     if a.smoke:
         a.gammas, a.particles, a.iters = [0.3], 4, 2
     ref = _eval(dataclasses.asdict(INDIConfig()))
-    print(f"기준 J₀={ref['J']:.4f} A₀={ref['A']:.5f}", flush=True)
+    print(f"기준 J₀={ref['J']:.4f} A₀={ref['A']:.5f}  box={BOX}", flush=True)
     log: list = []
     best: list = []
     for k, g in enumerate(a.gammas):
@@ -107,7 +124,7 @@ def main() -> int:
         if a.out:   # γ 마다 체크포인트 — 장시간 실행이 중단돼도 끝난 γ 는 남는다
             os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
             with open(a.out, "w", encoding="utf-8") as f:
-                json.dump(dict(ref=ref, best=best, pareto=front, log=log), f, indent=1)
+                json.dump(dict(ref=ref, best=best, pareto=front, log=log, box=BOX), f, indent=1)
     print("파레토 (J/J₀, A/A₀):", [(round(p["J_ratio"], 3), round(p["A_ratio"], 3)) for p in front])
     return 0
 
