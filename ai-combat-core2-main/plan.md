@@ -4,18 +4,16 @@
 원칙: 기존 코드 재사용(`tournament.play_game`, `sweep_doctrine.py` 구조, `joblib` 병렬), 신규 의존성 0,
 **기본값 = 현행과 비트 동일**(플랫폼·159 회귀 테스트 보존), 연구 하네스에서만 새 설정 사용.
 
-## 실측 예산
+## 실측 예산 (본 실행, 7 워커)
 
-매치 1회 ≈ 20 s(격추 종료), 최대 ≈ 40 s. 8코어 → 7 워커 ≈ **시간당 700~1,200경기**.
+| 실험 | 명령 | 규모 | 예상 |
+|---|---|---|---|
+| E4 PSO | `optimize.py --out results/indi/e4.json` | γ 4 × 20입자 × 30세대 = 2,400 평가(13 s) | ≈ 1.3 h |
+| E2 민감도 | `sweep.py --out results/indi/e2.json` | 25 config × 50경기 + bench | ≈ 1.5–2 h |
+| E3 명목 | `duel.py --best …e4.json --conds nominal --seeds 1…13` | 2 × 325경기 (대항당 65) | ≈ 1 h |
+| E5 강건성 | `duel.py --best …e4.json --conds stress delay30 delay90 g0_lo g0_hi turb mc` | 7 × 2 × 100경기 | ≈ 2 h |
 
-| 실험 | 규모 | 예상 |
-|---|---|---|
-| E2 Dogfight 민감도 | 6변수 × 5수준 = 30 config × 40경기 | ≈ 1–2 h |
-| E3 기준 vs 최적 | 2 config × 4 대항군 × 64전 | ≈ 0.5–1 h |
-| E4 PSO | 추종 벤치 비용(≈ 5 s/평가) × 20입자 × 30세대 | ≈ 1 h |
-| E5 강건성 | 3 조건 × 2 config × 128전 + MC | ≈ 1–2 h |
-
-→ 9/29 까지 **코드 + 스모크 실행**, 본 실행은 이후 배치.
+결과는 `results/indi/` (gitignore — 논문 확정본만 별도 보관).
 
 ## 일정
 
@@ -47,21 +45,18 @@
 - Nz 보호(`nz_protect`)는 옵션으로만 유지, 연구 기본 **끔** — 켜면 튜닝 제어기 오버슈트를 가림
 - 기준 벤치(f16fix, gyro 0.1°/s): J = 0.229, 실격 없음
 
-### 9/26 (토) — E2 단일 변수 민감도 드라이버
-- `research/indi/sweep.py` : 변수당 5수준(기준 대비 ×0.5, ×0.75, ×1, ×1.5, ×2 / k_ff·λ 는 절대값), joblib 병렬
-- 출력: 추종 벤치 비율 + Dogfight(고정 blue 트리, red = 기준 INDI 대항군 배터리) 승률·HP차·WEZ(ATA<2°) 체류 → JSON
-- 실패 300% 절단, 봉투 위반 config 실격 플래그. 스모크(변수 1개 × 2수준)
-
-### 9/27 (일) — E4 PSO 복합 최적화
-- `research/indi/optimize.py` : numpy PSO(≈40줄, 논문 4 결과로 선택), 6차원 박스 = `paper.md` §7-C 범위
-- 비용 = 정규화 ISE(E1) + γ·봉투위반량. γ ∈ {0, 0.1, 1, 10} → 파레토 JSON
-- 스모크: 5입자 × 3세대
-
-### 9/28 (월) — E3 Dogfight ablation + E5 강건성
-- `research/indi/duel.py` : config A(기준) vs B(최적) — 대항군 4종 × 시나리오 5종(+p1_neutral) × 시드, 대항당 ≥ 64전
-  → 승률(Wilson 95% CI), HP차, 교전시간, WEZ 체류, 한계 지표
-- 강건성: G0 ×0.7/×1.3(`identify_G0` 결과 스케일), JSBSim 난류(`atmosphere/turb-type`), 측정 지연(n틱 버퍼)
-- 몬테카를로: 초기 연료·G0 스케일 무작위, 시드 결정론
+### 9/26–9/28 — E2·E4·E3+E5 드라이버 ✅ (9/28 일괄 작성, 일정 2일 지연분 흡수)
+- [x] `runner.py` 공용: 평가조건 `cond`(G0 스케일·MIL-SPEC 난류, 측별 시드 고정 — setup 래핑, 엔진 무수정),
+      대응비교 배터리(blue 트리 고정 × red 5종 × 시나리오 5종 × 시드), `pmap` 병렬, `game`(잡음 시드 = 경기 시드 = CRN)
+- [x] `sweep.py` E2: 6변수 × 5수준(filt_hz 3/6/12/25/40), bench J/J₀(실격 3.0 절단) + 기준과의 **대응 차이**
+      Δ승점·ΔHP + 부트스트랩 95% CI. 스모크 73 s — k_q ×2 → J ×6(잡음 증폭), ΔHP −62
+- [x] `optimize.py` E4: numpy PSO(w .7, c1=c2 1.5), filt_hz 로그축, 비용 J/J₀ + γ·A/A₀ + 실격 10,
+      전 평가점 비지배 전선 = 파레토. **변경**: g_x 를 봉투 위반 → 조종면 활동량 A 로 (f16fix 에서 위반이 항상 0 이라
+      파레토 불성립; 교범 "신속함과 부드러움"). 스모크 8평가 만에 J/J₀ 0.97·A/A₀ 0.16 (filt ≈ 4 Hz, λ ≈ 0.35)
+- [x] `duel.py` E3+E5 통합: A(기준) vs B(E4 최적 또는 직접 지정) × 조건 8종
+      {nominal, stress 0.3°/s, delay 33/92 ms, G0 ×0.7/×1.3, 난류 sev 4, MC(G0 U(0.7,1.3)·난류 0–4)},
+      승률 Wilson CI·대응 Δ·격추 수·한계 실격. 스모크 2분
+- [x] 순수 함수 테스트 5건(파레토, 로그축 왕복, Wilson, MC 결정론, 대응 차이) — 전체 249 통과
 
 ### 9/29 (화) — 통합·동결
 - 전체 파이프라인 드라이런(E1→E2→E4→E3→E5 소규모), `pytest -q` 전체 통과
@@ -75,7 +70,7 @@ aircombat/control/indi.py      INDIConfig, λ, k_ff          (수정)
 aircombat/control/limiter.py   envelope="manual"            (수정)
 aircombat/engine/{pilot,factory}.py, guidance/bfm_guidance.py (인자 관통 ✅)
 aircombat/engine/scenarios.py                                (p1_neutral)
-research/indi/{runner,bench,limits,sweep,optimize,duel}.py  (신규, runner ✅)
+research/indi/{runner,bench,limits,sweep,optimize,duel}.py  (신규 ✅)
 tests/test_indi_study.py                                    (신규)
 ```
 

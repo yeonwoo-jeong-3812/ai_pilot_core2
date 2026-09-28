@@ -194,3 +194,46 @@ class TestManualEnvelope(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "research", "indi")))
+
+
+class TestStudyDrivers(unittest.TestCase):
+    """E2·E3·E4 드라이버의 순수 함수 (JSBSim 불필요)."""
+
+    def test_pareto_keeps_only_nondominated(self):
+        from optimize import pareto
+        ref = dict(J=1.0, A=1.0)
+        pts = [dict(cfg=i, J=j, A=a, dq=dq) for i, (j, a, dq) in
+               enumerate([(1.0, 1.0, False), (0.9, 0.5, False), (0.8, 0.9, False),
+                          (0.95, 0.6, False), (0.1, 0.1, True)])]
+        front = pareto(pts, ref)
+        self.assertEqual([p["cfg"] for p in front], [2, 1])     # 실격(0.1,0.1)·지배된 점 제외
+
+    def test_pso_box_round_trip_log_axis(self):
+        from optimize import to_cfg, LO, HI
+        lo, hi = to_cfg(LO), to_cfg(HI)
+        self.assertAlmostEqual(lo["filt_hz"], 3.0)
+        self.assertAlmostEqual(hi["filt_hz"], 40.0)
+        self.assertEqual((lo["k_r"], hi["k_r"]), (6.0, 6.0))    # k_r 은 탐색 대상 아님
+
+    def test_wilson_interval(self):
+        from duel import wilson
+        lo, hi = wilson(50, 100)
+        self.assertAlmostEqual(lo, 0.4038, places=3)
+        self.assertAlmostEqual(hi, 0.5962, places=3)
+
+    def test_mc_condition_deterministic(self):
+        from duel import _mc_cond
+        a, b = _mc_cond("red_prime", "headon", 3), _mc_cond("red_prime", "headon", 3)
+        self.assertEqual(a, b)
+        self.assertTrue(0.7 <= a["g0_scale"] <= 1.3 and 0 <= a["turb_severity"] <= 4)
+
+    def test_paired_difference(self):
+        from sweep import paired
+        lim = {"disqualified": False, "nz_max": 5.0}
+        g = lambda w, hb, hr: dict(winner=w, hp_blue=hb, hp_red=hr, limits_blue=lim)
+        s = paired([g("red", 10, 60), g("draw", 50, 50)], [g("blue", 70, 0), g("draw", 50, 50)])
+        self.assertAlmostEqual(s["d_points"], 0.5)              # (1−0 + 0.5−0.5)/2
+        self.assertAlmostEqual(s["d_hp"], 60.0)                 # ((70−0)−(10−60) + 0)/2
