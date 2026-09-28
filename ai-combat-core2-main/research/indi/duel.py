@@ -9,7 +9,7 @@ blue 트리 고정, blue 의 INDIConfig 만 A/B, red 대항군 5종은 전부 �
   g0_lo     G0 × 0.7                     g0_hi     G0 × 1.3
   turb      MIL-SPEC 난류 severity 4     mc        경기마다 G0 × U(0.7,1.3), 난류 0–4 (시드 결정론)
 
-    python research/indi/duel.py --best results/indi/e4.json --gamma 0.3 --out results/indi/e3.json
+    python research/indi/duel.py --best results/indi/e4.json --gamma 0 0.3 --out results/indi/e3.json
     python research/indi/duel.py --b k_q=12 filt_hz=6 lam=0.2 --conds nominal delay90 --seeds 1 2
     python research/indi/duel.py --smoke
 """
@@ -63,7 +63,8 @@ def _parse_kv(items) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--best", help="optimize.py 결과 JSON (B = 해당 γ 최적해)")
-    ap.add_argument("--gamma", type=float, default=0.3)
+    ap.add_argument("--gamma", type=float, nargs="+", default=[0.3],
+                    help="B 로 쓸 γ — 여러 개면 B 여러 개(기준 A 경기는 한 번만)")
     ap.add_argument("--b", nargs="*", default=[], help="B 설정 직접 지정 key=value (기준 대비 변경분)")
     ap.add_argument("--conds", nargs="+", default=list(CONDS))
     ap.add_argument("--seeds", nargs="+", type=int, default=[1, 2, 3, 4])
@@ -76,45 +77,57 @@ def main() -> int:
     A = dataclasses.asdict(INDIConfig())
     if a.best:
         best = json.load(open(a.best, encoding="utf-8"))["best"]
-        B = next(b["cfg"] for b in best if abs(b["gamma"] - a.gamma) < 1e-9)
+        Bs = {f"g{g:g}": next(b["cfg"] for b in best if abs(b["gamma"] - g) < 1e-9) for g in a.gamma}
     else:
-        B = dataclasses.asdict(dataclasses.replace(INDIConfig(), **_parse_kv(a.b)))
+        Bs = {"B": dataclasses.asdict(dataclasses.replace(INDIConfig(), **_parse_kv(a.b)))}
     if a.smoke:
         a.conds, a.seeds, a.reds, a.scens = ["nominal", "mc"], [1], ["red_prime"], ["headon", "neutral"]
         if not a.best and not a.b:
-            B = dataclasses.asdict(dataclasses.replace(INDIConfig(), filt_hz=4.0, lam=0.35))
+            Bs = {"B": dataclasses.asdict(dataclasses.replace(INDIConfig(), filt_hz=4.0, lam=0.35))}
     bat = battery(tuple(a.seeds), tuple(a.reds), tuple(a.scens))
-    print(f"A={A}\nB={B}\n조건 {a.conds} × {len(bat)}경기 × 2 = {len(a.conds) * len(bat) * 2}경기", flush=True)
+    cfgs = [("A", A)] + list(Bs.items())
+    for name, c in cfgs:
+        print(f"{name}={c}", flush=True)
+    print(f"조건 {a.conds} × {len(bat)}경기 × {len(cfgs)} = {len(a.conds) * len(bat) * len(cfgs)}경기", flush=True)
 
     jobs = []
     for cname in a.conds:
         cond, sigma, delay = CONDS[cname]
-        for cfg in (A, B):
+        for _, cfg in cfgs:
             for r, sc, sd in bat:
                 jobs.append((cfg, r, sc, sd, cond if cond is not None else _mc_cond(r, sc, sd), sigma, delay))
     flat = pmap(game, jobs, a.workers)
 
     out = {}
-    n = len(bat)
+    n, k = len(bat), len(cfgs)
     for i, cname in enumerate(a.conds):
-        ga, gb = flat[2 * i * n:(2 * i + 1) * n], flat[(2 * i + 1) * n:(2 * i + 2) * n]
-        s = paired(ga, gb)
-        wa, wb = sum(_points(g) for g in ga), sum(_points(g) for g in gb)
-        s.update(win_A=wa / n, win_A_ci=wilson(wa, n), win_B=wb / n, win_B_ci=wilson(wb, n),
-                 dq_A=int(sum(g["limits_blue"]["disqualified"] for g in ga)),
-                 kills_A=int(sum(g["winner"] == "blue" and g["condition"] == "health_zero" for g in ga)),
-                 kills_B=int(sum(g["winner"] == "blue" and g["condition"] == "health_zero" for g in gb)))
-        out[cname] = dict(summary=s, games_A=ga, games_B=gb)
-        print(f"{cname:8} n={n:3d} | 승률 A {s['win_A']:.2f} [{s['win_A_ci'][0]:.2f},{s['win_A_ci'][1]:.2f}]"
-              f" B {s['win_B']:.2f} [{s['win_B_ci'][0]:.2f},{s['win_B_ci'][1]:.2f}]"
-              f" | Δpts {s['d_points']:+.3f} [{s['d_points_ci'][0]:+.2f},{s['d_points_ci'][1]:+.2f}]"
-              f" ΔHP {s['d_hp']:+6.1f} [{s['d_hp_ci'][0]:+.1f},{s['d_hp_ci'][1]:+.1f}]"
-              f" | 격추 A {s['kills_A']} B {s['kills_B']} | 한계DQ A {s['dq_A']} B {s['dq']}", flush=True)
+        block = [flat[(i * k + j) * n:(i * k + j + 1) * n] for j in range(k)]
+        out[cname] = {"games_A": block[0]}
+        for (bname, _), gb in zip(cfgs[1:], block[1:]):
+            s = summarize(block[0], gb)
+            out[cname][bname] = dict(summary=s, games=gb)
+            print(f"{cname:8} {bname:6} n={n:3d} | 승률 A {s['win_A']:.2f} [{s['win_A_ci'][0]:.2f},{s['win_A_ci'][1]:.2f}]"
+                  f" B {s['win_B']:.2f} [{s['win_B_ci'][0]:.2f},{s['win_B_ci'][1]:.2f}]"
+                  f" | Δpts {s['d_points']:+.3f} [{s['d_points_ci'][0]:+.2f},{s['d_points_ci'][1]:+.2f}]"
+                  f" ΔHP {s['d_hp']:+6.1f} [{s['d_hp_ci'][0]:+.1f},{s['d_hp_ci'][1]:+.1f}]"
+                  f" | 격추 A {s['kills_A']} B {s['kills_B']} | 한계DQ A {s['dq_A']} B {s['dq']}", flush=True)
     if a.out:
         os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
         with open(a.out, "w", encoding="utf-8") as f:
-            json.dump(dict(A=A, B=B, battery=bat, conds=out), f, indent=1)
+            json.dump(dict(A=A, B=Bs, battery=bat, conds=out), f, indent=1)
     return 0
+
+
+def summarize(ga: list, gb: list) -> dict:
+    """같은 배터리의 A·B 경기 → 대응 차이 + 승률 Wilson CI + 격추·한계 실격 수."""
+    n = len(ga)
+    s = paired(ga, gb)
+    wa, wb = sum(_points(g) for g in ga), sum(_points(g) for g in gb)
+    s.update(win_A=wa / n, win_A_ci=wilson(wa, n), win_B=wb / n, win_B_ci=wilson(wb, n),
+             dq_A=int(sum(g["limits_blue"]["disqualified"] for g in ga)),
+             kills_A=int(sum(g["winner"] == "blue" and g["condition"] == "health_zero" for g in ga)),
+             kills_B=int(sum(g["winner"] == "blue" and g["condition"] == "health_zero" for g in gb)))
+    return s
 
 
 if __name__ == "__main__":
