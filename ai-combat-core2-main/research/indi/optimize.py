@@ -100,13 +100,15 @@ def main() -> int:
     ref = _eval(dataclasses.asdict(INDIConfig()))
     print(f"기준 J₀={ref['J']:.4f} A₀={ref['A']:.5f}", flush=True)
     log: list = []
-    best = [pso(g, ref, a.particles, a.iters, a.seed + k, a.workers, log) for k, g in enumerate(a.gammas)]
-    front = pareto(log + [ref], ref)
+    best: list = []
+    for k, g in enumerate(a.gammas):
+        best.append(pso(g, ref, a.particles, a.iters, a.seed + k, a.workers, log))
+        front = pareto(log + [ref], ref)
+        if a.out:   # γ 마다 체크포인트 — 장시간 실행이 중단돼도 끝난 γ 는 남는다
+            os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
+            with open(a.out, "w", encoding="utf-8") as f:
+                json.dump(dict(ref=ref, best=best, pareto=front, log=log), f, indent=1)
     print("파레토 (J/J₀, A/A₀):", [(round(p["J_ratio"], 3), round(p["A_ratio"], 3)) for p in front])
-    if a.out:
-        os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
-        with open(a.out, "w", encoding="utf-8") as f:
-            json.dump(dict(ref=ref, best=best, pareto=front, log=log), f, indent=1)
     return 0
 
 
