@@ -67,13 +67,29 @@ def pmap(fn, jobs, workers: int = 7):
         return list(ex.map(fn, jobs))
 
 
+CACHE_DIR = os.path.join(ROOT, "results", "indi", "cache")
+
+
 def game(job) -> dict:
     """pmap 용 1경기: job = (blue_cfg_dict, red, scenario, seed, cond_dict, sigma_dps, delay_ticks).
-    잡음 시드 = 경기 시드 → 같은 (red, scen, seed) 는 config 가 달라도 같은 잡음열(대응 비교)."""
+    잡음 시드 = 경기 시드 → 같은 (red, scen, seed) 는 config 가 달라도 같은 잡음열(대응 비교).
+    결과는 job 해시로 캐시 — 장시간 실행이 끊겨도 재실행하면 끝난 경기는 건너뛴다(결정론이라 안전).
+    캐시 키에 MODEL·ENVELOPE 를 넣어 조건이 바뀌면 자동 무효화."""
+    import hashlib
+    import json
+    key = hashlib.sha1(json.dumps([job, MODEL, ENVELOPE, NZ_PROTECT], sort_keys=True).encode()).hexdigest()
+    path = os.path.join(CACHE_DIR, f"{key}.json")
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
     cfg, red, sc, sd, cond, sigma, delay = job
     r = play(BLUE_TREE, os.path.join(ROOT, "redteams", f"{red}.yaml"), sc, sd,
              blue_cfg=INDIConfig(**cfg), sensor=SensorConfig("gyro", sigma, delay, sd), cond=cond)
     r["red"] = red
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    with open(path + ".tmp", "w", encoding="utf-8") as f:
+        json.dump(r, f)
+    os.replace(path + ".tmp", path)          # 원자적 기록 — 중단돼도 반쪽 파일 없음
     return r
 
 
