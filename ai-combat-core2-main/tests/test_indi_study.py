@@ -246,3 +246,10 @@ class TestCombatLag(unittest.TestCase):
         x = np.convolve(rng.standard_normal(3000), np.ones(20) / 20, mode="same")
         y = np.r_[np.zeros(10), x[:-10]]                     # 10틱(83.3 ms) 지연된 응답
         self.assertAlmostEqual(CombatMonitor._lag_ms(x, y, 1 / 120), 10 / 120 * 1000, places=6)
+
+
+class TestHolm(unittest.TestCase):
+    def test_holm_matches_textbook(self):
+        from analyze import holm
+        # p = [0.01, 0.04, 0.03, 0.005] → 정렬 0.005·0.01·0.03·0.04 → ×4,×3,×2,×1 → 0.02,0.03,0.06,0.06(단조)
+        np.testing.assert_allclose(holm([0.01, 0.04, 0.03, 0.005]), [0.03, 0.06, 0.06, 0.02])

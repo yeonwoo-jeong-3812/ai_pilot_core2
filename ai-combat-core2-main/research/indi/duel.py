@@ -41,6 +41,15 @@ CONDS = {   # (조건 dict, 자이로 σ, 지연 틱)
 }
 
 
+def cond_spec(name: str):
+    """CONDS 이름 또는 dt<틱> (측정 지연 임의 틱, 명목 잡음) — 지연 반응 곡선용."""
+    if name in CONDS:
+        return CONDS[name]
+    if name.startswith("dt") and name[2:].isdigit():
+        return ({}, NOMINAL_SIGMA_DPS, int(name[2:]))
+    raise ValueError(f"알 수 없는 조건 {name!r}")
+
+
 def _mc_cond(red: str, sc: str, sd: int) -> dict:
     rng = random.Random(f"mc|{red}|{sc}|{sd}")
     return {"g0_scale": rng.uniform(0.7, 1.3), "turb_severity": rng.randint(0, 4)}
@@ -66,6 +75,8 @@ def main() -> int:
     ap.add_argument("--gamma", type=float, nargs="+", default=[0.3],
                     help="B 로 쓸 γ — 여러 개면 B 여러 개(기준 A 경기는 한 번만)")
     ap.add_argument("--b", nargs="*", default=[], help="B 설정 직접 지정 key=value (기준 대비 변경분)")
+    ap.add_argument("--b-name", default="B", help="--b 설정의 표시 이름 (--best 와 함께 쓰면 추가 B)")
+    ap.add_argument("--blue", default=None, help="blue 전술 트리 (저장소 기준 상대경로, 기본 energy_fighter)")
     ap.add_argument("--red-gamma", type=float, default=None,
                     help="대항군도 --best 의 해당 γ 튜닝 INDI 로 (양측 튜닝 실험). 생략 = 기준 INDI")
     ap.add_argument("--conds", nargs="+", default=list(CONDS))
@@ -77,11 +88,12 @@ def main() -> int:
     ap.add_argument("--out")
     a = ap.parse_args()
     A = dataclasses.asdict(INDIConfig())
+    Bs = {}
     if a.best:
         best = json.load(open(a.best, encoding="utf-8"))["best"]
         Bs = {f"g{g:g}": next(b["cfg"] for b in best if abs(b["gamma"] - g) < 1e-9) for g in a.gamma}
-    else:
-        Bs = {"B": dataclasses.asdict(dataclasses.replace(INDIConfig(), **_parse_kv(a.b)))}
+    if a.b or not a.best:
+        Bs[a.b_name] = dataclasses.asdict(dataclasses.replace(INDIConfig(), **_parse_kv(a.b)))
     if a.smoke:
         a.conds, a.seeds, a.reds, a.scens = ["nominal", "mc"], [1], ["red_prime"], ["headon", "neutral"]
         if not a.best and not a.b:
@@ -99,11 +111,15 @@ def main() -> int:
 
     jobs = []
     for cname in a.conds:
-        cond, sigma, delay = CONDS[cname]
+        cond, sigma, delay = cond_spec(cname)
         for _, cfg in cfgs:
             for r, sc, sd in bat:
                 job = (cfg, r, sc, sd, cond if cond is not None else _mc_cond(r, sc, sd), sigma, delay)
-                jobs.append(job + (red_cfg,) if red_cfg else job)
+                if a.blue:
+                    job = job + (red_cfg, a.blue.replace("\\", "/"))
+                elif red_cfg:
+                    job = job + (red_cfg,)
+                jobs.append(job)
     flat = pmap(game, jobs, a.workers)
 
     out = {}
@@ -122,7 +138,7 @@ def main() -> int:
     if a.out:
         os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
         with open(a.out, "w", encoding="utf-8") as f:
-            json.dump(dict(A=A, B=Bs, red_cfg=red_cfg, battery=bat, conds=out), f, indent=1)
+            json.dump(dict(A=A, B=Bs, red_cfg=red_cfg, blue=a.blue, battery=bat, conds=out), f, indent=1)
     return 0
 
 

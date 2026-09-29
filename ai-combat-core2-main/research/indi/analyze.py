@@ -130,6 +130,17 @@ PROC = [("lag_p_ms", "롤 응답 지연 [ms]"), ("lag_q_ms", "피치 응답 지�
 FIRST = [("t_first_wez", "최초 WEZ 진입"), ("t_first_gun", "최초 조준해")]
 
 
+def holm(ps: list[float]) -> list[float]:
+    """Holm–Bonferroni 보정 p (단조 증가 보장). 과정 지표 표 하나(조건·B별 12 지표)를 한 가족으로 본다."""
+    m = len(ps)
+    order = np.argsort(ps)
+    adj, run = [0.0] * m, 0.0
+    for rank, i in enumerate(order):
+        run = max(run, min(1.0, (m - rank) * ps[i]))
+        adj[i] = run
+    return adj
+
+
 def process_table(d: dict, title: str) -> list[str]:
     """교전 과정 지표의 대응 비교 (combat_blue 가 기록된 duel 결과만). 평균 A, 평균 B, 평균 Δ, Wilcoxon p."""
     out = [f"## {title} — 교전 과정 지표 (blue, 대응 비교)", ""]
@@ -142,7 +153,8 @@ def process_table(d: dict, title: str) -> list[str]:
                 continue
             gb = v["games"]
             out += [f"### {cname} · {bname} (n={len(ga)})", "",
-                    "| 지표 | A 평균 | B 평균 | Δ(B−A) 평균 | p(Wilcoxon) |", "|---|---|---|---|---|"]
+                    "| 지표 | A 평균 | B 평균 | Δ(B−A) 평균 | p(Wilcoxon) | p(Holm) |", "|---|---|---|---|---|---|"]
+            rows = []
             for key, lab in PROC:
                 pa = [(a["combat_blue"].get(key), b["combat_blue"].get(key)) for a, b in zip(ga, gb)]
                 pa = [(x, y) for x, y in pa if x is not None and y is not None and x == x and y == y]
@@ -150,8 +162,10 @@ def process_table(d: dict, title: str) -> list[str]:
                     continue
                 xa, xb = np.array(pa).T
                 dd = xb - xa
-                p = float(wilcoxon(dd).pvalue) if np.any(dd != 0) else 1.0
-                out.append(f"| {lab} | {xa.mean():.4g} | {xb.mean():.4g} | {dd.mean():+.4g} | {_fmt_p(p)} |")
+                rows.append((lab, xa.mean(), xb.mean(), dd.mean(),
+                             float(wilcoxon(dd).pvalue) if np.any(dd != 0) else 1.0))
+            for (lab, ma, mb, md, p), ph in zip(rows, holm([r[4] for r in rows])):
+                out.append(f"| {lab} | {ma:.4g} | {mb:.4g} | {md:+.4g} | {p:.3f} | {_fmt_p(ph)} |")
             for key, lab in FIRST:
                 ta = [a["combat_blue"].get(key) for a in ga]
                 tb = [b["combat_blue"].get(key) for b in gb]

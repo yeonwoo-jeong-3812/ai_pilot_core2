@@ -75,8 +75,8 @@ METRICS = "combat_v2"
 
 
 def game(job) -> dict:
-    """pmap 용 1경기: job = (blue_cfg_dict, red, scenario, seed, cond_dict, sigma_dps, delay_ticks[, red_cfg_dict]).
-    red_cfg 생략 = 기준 INDI (7-튜플이면 기존 캐시 키 그대로).
+    """pmap 용 1경기: job = (blue_cfg_dict, red, scenario, seed, cond_dict, sigma_dps, delay_ticks
+    [, red_cfg_dict[, blue_tree_relpath]]). 생략 = 기준 INDI red·기본 blue 트리 (기존 캐시 키 그대로).
     잡음 시드 = 경기 시드 → 같은 (red, scen, seed) 는 config 가 달라도 같은 잡음열(대응 비교).
     결과는 job 해시로 캐시 — 장시간 실행이 끊겨도 재실행하면 끝난 경기는 건너뛴다(결정론이라 안전).
     캐시 키에 MODEL·ENVELOPE 를 넣어 조건이 바뀌면 자동 무효화."""
@@ -89,7 +89,8 @@ def game(job) -> dict:
             return json.load(f)
     cfg, red, sc, sd, cond, sigma, delay = job[:7]
     red_cfg = INDIConfig(**job[7]) if len(job) > 7 and job[7] else None
-    r = play(BLUE_TREE, os.path.join(ROOT, "redteams", f"{red}.yaml"), sc, sd,
+    blue_tree = os.path.join(ROOT, job[8]) if len(job) > 8 and job[8] else BLUE_TREE
+    r = play(blue_tree, os.path.join(ROOT, "redteams", f"{red}.yaml"), sc, sd,
              blue_cfg=INDIConfig(**cfg), red_cfg=red_cfg,
              sensor=SensorConfig("gyro", sigma, delay, sd), cond=cond)
     r["red"] = red
