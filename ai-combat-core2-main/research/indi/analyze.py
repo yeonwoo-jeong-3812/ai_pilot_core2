@@ -123,6 +123,52 @@ def e2_table(d: dict) -> list[str]:
     return out + [""]
 
 
+PROC = [("lag_p_ms", "롤 응답 지연 [ms]"), ("lag_q_ms", "피치 응답 지연 [ms]"), ("rms_p", "롤레이트 추종 RMSE [°/s]"),
+        ("rms_q", "피치레이트 추종 RMSE [°/s]"), ("g_ratio", "G 실현률"), ("act_ail", "에일러론 활동"),
+        ("act_elev", "승강타 활동"), ("wez_s", "WEZ 체류 [s]"), ("gun_s", "조준해(ATA<2°) 체류 [s]"),
+        ("off_frac", "공세 위치 비율"), ("def_frac", "수세 위치 비율"), ("e_adv_ft", "에너지 우위 [ft]")]
+FIRST = [("t_first_wez", "최초 WEZ 진입"), ("t_first_gun", "최초 조준해")]
+
+
+def process_table(d: dict, title: str) -> list[str]:
+    """교전 과정 지표의 대응 비교 (combat_blue 가 기록된 duel 결과만). 평균 A, 평균 B, 평균 Δ, Wilcoxon p."""
+    out = [f"## {title} — 교전 과정 지표 (blue, 대응 비교)", ""]
+    for cname, block in d["conds"].items():
+        ga = block["games_A"]
+        if not ga or "combat_blue" not in ga[0]:
+            continue
+        for bname, v in block.items():
+            if bname == "games_A":
+                continue
+            gb = v["games"]
+            out += [f"### {cname} · {bname} (n={len(ga)})", "",
+                    "| 지표 | A 평균 | B 평균 | Δ(B−A) 평균 | p(Wilcoxon) |", "|---|---|---|---|---|"]
+            for key, lab in PROC:
+                pa = [(a["combat_blue"].get(key), b["combat_blue"].get(key)) for a, b in zip(ga, gb)]
+                pa = [(x, y) for x, y in pa if x is not None and y is not None and x == x and y == y]
+                if not pa:
+                    continue
+                xa, xb = np.array(pa).T
+                dd = xb - xa
+                p = float(wilcoxon(dd).pvalue) if np.any(dd != 0) else 1.0
+                out.append(f"| {lab} | {xa.mean():.4g} | {xb.mean():.4g} | {dd.mean():+.4g} | {_fmt_p(p)} |")
+            for key, lab in FIRST:
+                ta = [a["combat_blue"].get(key) for a in ga]
+                tb = [b["combat_blue"].get(key) for b in gb]
+                ra, rb = np.mean([x is not None for x in ta]), np.mean([x is not None for x in tb])
+                both = [(x, y) for x, y in zip(ta, tb) if x is not None and y is not None]
+                if both:
+                    xa, xb = np.array(both).T
+                    dd = xb - xa
+                    p = float(wilcoxon(dd).pvalue) if np.any(dd != 0) else 1.0
+                    med = f"{np.median(xa):.1f} → {np.median(xb):.1f} s (둘 다 달성 n={len(both)}, p={_fmt_p(p)})"
+                else:
+                    med = "—"
+                out.append(f"| {lab} 달성률 / 중앙 시각 | {ra:.2f} | {rb:.2f} | {rb - ra:+.2f} | {med} |")
+            out.append("")
+    return out
+
+
 def main() -> int:
     lines = ["# INDI 최적화 연구 — 결과 요약 (자동 생성: research/indi/analyze.py)", "",
              "\\* = p < 0.05. Δ 는 같은 (대항군, 시나리오, 시드) 대응 쌍의 B − A 평균.", ""]
@@ -144,6 +190,9 @@ def main() -> int:
             lines += duel_table(d, title)
         elif d:
             lines += ["## 배치 2: E4 범위 확장 (k_p 4–40, k_att 2–16)", ""] + e4_table(d)[2:]
+    d = _load("e3_process.json")
+    if d:
+        lines += duel_table(d, "배치 3: 교전 과정 지표 실험 (승패)") + process_table(d, "배치 3")
     txt = "\n".join(lines)
     with open(os.path.join(RES, "summary.md"), "w", encoding="utf-8") as f:
         f.write(txt)

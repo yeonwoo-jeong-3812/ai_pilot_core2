@@ -237,3 +237,12 @@ class TestStudyDrivers(unittest.TestCase):
         s = paired([g("red", 10, 60), g("draw", 50, 50)], [g("blue", 70, 0), g("draw", 50, 50)])
         self.assertAlmostEqual(s["d_points"], 0.5)              # (1−0 + 0.5−0.5)/2
         self.assertAlmostEqual(s["d_hp"], 60.0)                 # ((70−0)−(10−60) + 0)/2
+
+
+class TestCombatLag(unittest.TestCase):
+    def test_lag_recovers_known_delay(self):
+        from combat import CombatMonitor
+        rng = np.random.default_rng(0)
+        x = np.convolve(rng.standard_normal(3000), np.ones(20) / 20, mode="same")
+        y = np.r_[np.zeros(10), x[:-10]]                     # 10틱(83.3 ms) 지연된 응답
+        self.assertAlmostEqual(CombatMonitor._lag_ms(x, y, 1 / 120), 10 / 120 * 1000, places=6)

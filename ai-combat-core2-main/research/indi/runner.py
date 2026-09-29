@@ -20,6 +20,7 @@ from aircombat.engine.factory import load_policy, make_pilot
 from aircombat.engine.match import Match
 from aircombat.engine.scenarios import initial_conditions
 from limits import attach
+import combat
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 ENVELOPE = "manual"   # 연구 확정 기준 (paper.md §0)
@@ -68,6 +69,9 @@ def pmap(fn, jobs, workers: int = 7):
 
 
 CACHE_DIR = os.path.join(ROOT, "results", "indi", "cache")
+# 결과 스키마 버전 — 기록 지표가 바뀌면 올려서 캐시를 새로 쌓는다(이전 캐시 파일은 그대로 남음).
+# v2: combat.py 교전 과정 지표 추가 (2026-09-29).
+METRICS = "combat_v2"
 
 
 def game(job) -> dict:
@@ -78,7 +82,7 @@ def game(job) -> dict:
     캐시 키에 MODEL·ENVELOPE 를 넣어 조건이 바뀌면 자동 무효화."""
     import hashlib
     import json
-    key = hashlib.sha1(json.dumps([job, MODEL, ENVELOPE, NZ_PROTECT], sort_keys=True).encode()).hexdigest()
+    key = hashlib.sha1(json.dumps([job, MODEL, ENVELOPE, NZ_PROTECT, METRICS], sort_keys=True).encode()).hexdigest()
     path = os.path.join(CACHE_DIR, f"{key}.json")
     if os.path.isfile(path):
         with open(path, encoding="utf-8") as f:
@@ -114,6 +118,7 @@ def play(blue_yaml: str, red_yaml: str, scenario: str = "headon", seed: int | No
             pl.limiter.cfg = dataclasses.replace(pl.limiter.cfg, nz_protect=True, **nz_protect)
     for pl in (blue, red):
         _apply_cond(pl, cond or {}, seed or 0)
+    cmb = {"blue": combat.attach(blue, red), "red": combat.attach(red, blue)}
     mon = {"blue": attach(blue), "red": attach(red)}
     r = Match(blue, red, duration_s=duration_s, log_hz=0.0).run()
     wez = r.wez_time or {"blue": 0.0, "red": 0.0}
@@ -126,7 +131,8 @@ def play(blue_yaml: str, red_yaml: str, scenario: str = "headon", seed: int | No
                 hp_blue=r.hp_blue, hp_red=r.hp_red,
                 wez_blue=wez["blue"], wez_red=wez["red"],
                 ata_blue=ata["blue"], ata_red=ata["red"],
-                limits_blue=mon["blue"].summary(), limits_red=mon["red"].summary())
+                limits_blue=mon["blue"].summary(), limits_red=mon["red"].summary(),
+                combat_blue=cmb["blue"].summary(), combat_red=cmb["red"].summary())
 
 
 def main() -> int:
