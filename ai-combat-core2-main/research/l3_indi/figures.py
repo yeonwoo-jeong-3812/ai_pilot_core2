@@ -438,9 +438,86 @@ def fig_waveform(plt):
     save(plt, fig, "fig_lag_vs_oscillation")
 
 
+# ======================================================================================
+# 8. 사슬 — 명령 실현(1 순위) → 조준(2 순위) → 교전 결과(3 순위)  [개정 A35 §7]
+# ======================================================================================
+def fig_chain(plt):
+    """확증 실행의 설정별 짝 차이를 3 단으로 나란히. 1 순위 크기로 정렬한다.
+
+    왼쪽 칸만 판정 대상이고(δ 띠를 그린다), 가운데·오른쪽은 관찰이다.
+    """
+    path = newest("results/paper/dogfight_confirm/*/runs.csv")
+    if not path:
+        raise FileNotFoundError("확증 실행 결과가 없다 (results/paper/dogfight_confirm/*/runs.csv)")
+    STR = ("match_id", "setting_name", "family", "variable", "level", "red", "red_path",
+           "blue_policy", "scenario", "salt", "winner", "condition", "turb", "turb_side",
+           "indi_side")
+    rows = load_csv(path, STR)
+    key = lambda r: (r["scenario"], r["red"], r["salt"])
+    base = {key(r): r for r in rows if r["setting_name"] == "BASE"}
+    names = [s for s in dict.fromkeys(r["setting_name"] for r in rows) if s != "BASE"]
+
+    def diff(name, col, scale=1.0):
+        d = [scale * (r[col] - base[key(r)][col]) for r in rows
+             if r["setting_name"] == name and key(r) in base
+             and np.isfinite(r[col]) and np.isfinite(base[key(r)][col])]
+        d = np.asarray(d, float)
+        if len(d) < 3:
+            return (np.nan, np.nan, np.nan)
+        rng = np.random.default_rng(20260929)
+        m = np.mean(d[rng.integers(0, len(d), size=(4000, len(d)))], axis=1)
+        return float(np.mean(d)), float(np.percentile(m, 2.5)), float(np.percentile(m, 97.5))
+
+    # A33 봉투 게이트: 기준 대비 초과 비율의 CI 하한 > 0
+    exc = lambda r: float(r["nz_max"] > 9.0 or r["nz_min"] < -3.0 or r["alpha_max_deg"] > 30.0)
+    def flagged(name):
+        d = np.asarray([exc(r) - exc(base[key(r)]) for r in rows
+                        if r["setting_name"] == name and key(r) in base], float)
+        rng = np.random.default_rng(20260925)
+        m = np.mean(d[rng.integers(0, len(d), size=(4000, len(d)))], axis=1)
+        return float(np.percentile(m, 2.5)) > 0
+
+    P = [("명령 실현 (1 순위, 판정 대상)", "reach63_q", 1.0, "도달 비율 차 [지령 계단 중]", 0.03125),
+         ("조준 (2 순위, 관찰)", "frac_ata30_blue", 1.0, "ATA ≤ 30° 시간 비율 차", None),
+         ("교전 결과 (3 순위, 관찰)", "blue_pts", 100.0 / 3.0, "승률 차 [%p]", None)]
+    V = {(n, c): diff(n, c, s) for n in names for _, c, s, _, _ in P}
+    order = sorted(names, key=lambda n: V[(n, "reach63_q")][0])
+    flag = {n: flagged(n) for n in order}
+    y = np.arange(len(order))
+
+    fig, axes = plt.subplots(1, 3, figsize=(11.2, 7.4), sharey=True)
+    for ax, (title, col, sc, xlab, delta) in zip(axes, P):
+        if delta is not None:
+            ax.axvspan(-delta, delta, color=C[2], alpha=0.13, lw=0)
+        ax.axvline(0, color=MUTED, lw=0.9, zorder=1)
+        for i, n in enumerate(order):
+            m, lo, hi = V[(n, col)]
+            ax.plot([lo, hi], [i, i], color=INK2, lw=1.4, solid_capstyle="round", zorder=2)
+            ax.plot([m], [i], marker=MK[1] if flag[n] else MK[0], ms=5.5, zorder=3,
+                    color=C[1] if flag[n] else C[0], mec="white", mew=0.7)
+        ax.set_title(title, pad=8)
+        ax.set_xlabel(xlab)
+        ax.grid(axis="x")
+        ax.set_axisbelow(True)
+    axes[0].set_yticks(y)
+    axes[0].set_yticklabels(order, fontsize=8)
+    axes[0].set_ylim(-0.8, len(order) - 0.2)
+    from matplotlib.patches import Patch
+    h = [Patch(facecolor=C[2], alpha=0.13, label="등가 한계 δ = ±0.03125 (왼쪽 칸만 판정한다)"),
+         plt.Line2D([], [], ls="", marker=MK[0], color=C[0], ms=5.5, label="봉투 게이트 통과"),
+         plt.Line2D([], [], ls="", marker=MK[1], color=C[1], ms=5.5, label="F-16 성능 초과 (기준 대비)"),
+         plt.Line2D([], [], color=INK2, lw=1.4, label="짝 차이 평균의 95% CI")]
+    fig.legend(handles=h, loc="lower center", ncol=4, fontsize=8.5,
+               bbox_to_anchor=(0.5, -0.005))
+    fig.suptitle("INDI 파라미터의 짝 차이: 명령 실현도 순으로 정렬 (확증 실행 4,480 경기)",
+                 y=0.985, fontsize=12)
+    fig.tight_layout(rect=(0, 0.035, 1, 0.96))
+    save(plt, fig, "chain")
+
+
 FIGS = {"lambda": fig_lambda, "tradeoff": fig_tradeoff, "share": fig_share,
         "guidance": fig_guidance, "stability": fig_stability, "transfer": fig_transfer,
-        "waveform": fig_waveform}
+        "waveform": fig_waveform, "chain": fig_chain}
 
 
 def main():

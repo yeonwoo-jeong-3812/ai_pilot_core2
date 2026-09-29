@@ -40,6 +40,10 @@ AUX = ("corr_q", "J_q", "J_p", "q_gain", "sat_ele", "n_event_q", "n_event_p",
 ALL_METRICS = SPEED + AIM + OUTCOME + AUX
 WEZ_MARKS = (60.0, 120.0, 180.0)
 TIME_COLS = ("t63_q", "t90_q", "tau_eq_q", "tau_eq_p")   # δ 바닥 = 1 틱
+TICK = 1.0 / 120.0
+# 개정 A35 §5 에 등록된 δ = max(SHAM p95 × 2, 실용 바닥). 확증 실행에서만 쓴다 (--judge).
+DELTA = {"reach63_q": 0.03125, "ss_ratio_q": 0.01, "t63_q": TICK, "t90_q": 0.02, "tau_eq_q": TICK}
+POSITIVE = "V3_lam_25"                 # A35 §5: 1 순위의 양성 대조는 이것 하나
 
 
 def load(run_dir: str):
@@ -226,6 +230,8 @@ def main(run_dir: str, do_judge: bool = False):
               f"{g('frac_ata30_blue')['mean']:+.4f} | {g('net_wez')['mean']:+.3f} | {wr:+.1f} | {chain} |")
     print("\n- 사슬 판정은 CI 가 0 을 제외하는지로만 표시한 **기술 통계**다. 등가성 판정이 아니다.")
     print("- 승률 [%p] = 승점 평균차 ÷ 3 × 100. `blue_points` 는 no_contact 무승부를 0 점으로 준다.")
+    if do_judge:
+        verdict_table(res, others)
     return 0
 
 
