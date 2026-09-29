@@ -190,8 +190,40 @@ def fig4_sensitivity():
     _save(fig, "fig4_sensitivity")
 
 
+def fig5_process():
+    """교전 과정 지표 — 명목/지연 조건별 평균 ± 부트스트랩 95% CI (배치 3, 조건별 n=100)."""
+    d = _load("e3_process.json")
+    panels = [("g_ratio", "G 실현률 (달성/요구)"), ("rms_q", "피치레이트 추종 RMSE [°/s]"),
+              ("off_frac", "공세 위치 시간 비율"), ("e_adv_ft", "평균 에너지 우위 [ft]")]
+    conds = [("nominal", "명목"), ("delay30", "지연 33 ms"), ("delay90", "지연 92 ms")]
+    fig, axes = plt.subplots(1, 4, figsize=(11, 3.2))
+    rng = np.random.default_rng(0)
+    off = {"A": -0.22, "g0": 0.0, "g0.3": 0.22}
+    for ax, (key, lab) in zip(axes, panels):
+        for i, (c, clab) in enumerate(conds):
+            blk = d["conds"][c]
+            for k in ("A", "g0", "g0.3"):
+                games = blk["games_A"] if k == "A" else blk[k]["games"]
+                x = np.array([g["combat_blue"][key] for g in games if g["combat_blue"].get(key) is not None])
+                m = rng.choice(x, (2000, len(x))).mean(axis=1)
+                lo, hi = np.percentile(m, [2.5, 97.5])
+                y = len(conds) - 1 - i + off[k]
+                ax.plot([lo, hi], [y, y], color=COLOR[k], lw=2, solid_capstyle="round")
+                ax.scatter([x.mean()], [y], s=30, color=COLOR[k], edgecolor=SURF, linewidth=1.2, zorder=5,
+                           label=LABEL[k] if (i == 0 and key == "g_ratio") else None)
+        ax.set_yticks(range(len(conds)))
+        ax.set_yticklabels([c[1] for c in conds][::-1] if ax is axes[0] else [])
+        ax.grid(axis="y", visible=False)
+        ax.set_title(lab, color=INK, fontsize=9)
+    fig.legend(loc="lower center", ncol=3, bbox_to_anchor=(0.5, -0.08))
+    fig.suptitle("그림 5. 교전 과정 지표 (blue, 평균 ± 부트스트랩 95% CI, 조건별 n=100)", x=0.01, ha="left", color=INK)
+    fig.tight_layout()
+    _save(fig, "fig5_process")
+
+
 if __name__ == "__main__":
     fig1_pareto()
     fig2_winrate()
     fig3_delay()
     fig4_sensitivity()
+    fig5_process()
