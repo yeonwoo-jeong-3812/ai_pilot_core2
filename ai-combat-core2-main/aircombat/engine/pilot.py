@@ -13,7 +13,8 @@ from __future__ import annotations
 import numpy as np
 
 from ..fdm.plant import F16Plant
-from ..control.indi import INDIRateController, identify_G0
+from ..control.indi import (INDIRateController, INDIConfig, SensorConfig, RateSensor,
+                             identify_G0)
 from ..control.attitude import QuaternionAttitudeShim, euler_to_quat, quat_mul
 from ..guidance.bfm_guidance import BFMGuidance, AircraftKinematics
 from ..geometry.combat_geometry import CombatGeometry
@@ -26,7 +27,9 @@ class Pilot:
     def __init__(self, plant: F16Plant, color: str = "Blue",
                  init_pos_ned=(0.0, 0.0, -15000.0), dt_phys: float = 1.0 / 120.0,
                  policy: TacticPolicy | None = None,
-                 guidance: BFMGuidance | None = None, name: str = "F-16"):
+                 guidance: BFMGuidance | None = None, name: str = "F-16",
+                 indi_cfg: INDIConfig | None = None,
+                 sensor_cfg: SensorConfig | None = None):
         self.plant = plant
         self.color = color
         self.name = name              # ACMI Name (기체/팀) — F16Plant 모델
@@ -34,7 +37,10 @@ class Pilot:
         self.dt_phys = float(dt_phys)
         self.guid = guidance or BFMGuidance()
         self.limiter = self.guid.limiter   # 단일 진실: 가이던스(교리)가 만든 리미터 공유
-        self.shim = QuaternionAttitudeShim(k_att=4.0, k_yaw_damp=1.5,
+        self.indi_cfg = indi_cfg or INDIConfig()
+        # 측정 모델 — 측별 잡음열이 달라야 하므로 color 로 salt (결정론 유지).
+        self.sensor = RateSensor(sensor_cfg, salt=0 if color == "Blue" else 1)
+        self.shim = QuaternionAttitudeShim(k_att=self.indi_cfg.k_att, k_yaw_damp=1.5,
                                            rate_limit_dps=(180.0, 60.0, 30.0))
         self.policy = policy or TacticPolicy(dt=1.0 / 20.0)
         self.indi: INDIRateController | None = None
@@ -49,8 +55,10 @@ class Pilot:
     # ── setup: 트림 후 G0 식별 + INDI reset ──
     def setup(self) -> "Pilot":
         G0, qbar_ref = identify_G0(self.plant.fdm)
+        c = self.indi_cfg
         self.indi = INDIRateController(self.dt_phys, G0, qbar_ref,
-                                       k_rate=(9.0, 9.0, 6.0), filt_hz=25.0)
+                                       k_rate=(c.k_p, c.k_q, c.k_r), filt_hz=c.filt_hz,
+                                       k_ff=c.k_ff, lam=c.lam)
         self.indi.reset(u0=[self.plant["fcs/aileron-cmd-norm"],
                             self.plant["fcs/elevator-cmd-norm"],
                             self.plant["fcs/rudder-cmd-norm"]])
@@ -177,11 +185,13 @@ class Pilot:
         # 중력의 양력방향 성분 cosφ·cosθ — G↔pitch-rate 환산에 반드시 들어간다.
         omega_sp, self.last_flags = self.limiter.limit_omega_sp(
             omega_sp, p["velocities/vt-fps"], p["velocities/vc-kts"],
-            g_lift=float(np.cos(phi) * np.cos(theta)))
+            g_lift=float(np.cos(phi) * np.cos(theta)), nz=p["accelerations/Nz"],
+            q_meas=float(pqr[1]))
 
-        u = self.indi.update(pqr, omega_sp, p["aero/qbar-psf"], ang_accel=[
+        pqr_m, acc_m = self.sensor(pqr, [
             p["accelerations/pdot-rad_sec2"], p["accelerations/qdot-rad_sec2"],
             p["accelerations/rdot-rad_sec2"]])
+        u = self.indi.update(pqr_m, omega_sp, p["aero/qbar-psf"], ang_accel=acc_m)
         p.set_input([gc.thrust_cmd, u[1], u[0], u[2]])    # [thr, elev, ail, rud]
 
     def step_physics(self) -> None:

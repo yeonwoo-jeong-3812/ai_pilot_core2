@@ -27,6 +27,15 @@ def maneuver_by_name(name: str, cap: dict):
     raise KeyError(name)
 
 
+def _sensor_cfg(job):
+    """A36 병행 확인: 팀원 계보의 잡음 주입 경로(RateSensor)를 쓸 때만 만든다."""
+    if not job.get("sensor_sigma"):
+        return None
+    from aircombat.control.indi import SensorConfig
+    return SensorConfig(kind="gyro", gyro_sigma_dps=float(job["sensor_sigma"]),
+                        seed=int(job.get("seed", 0)))
+
+
 def evaluate(job: dict, ts_dir: str | None = None) -> dict:
     """job: fbw, alt_ft, kcas, man, kp, kq, kr, filt, (선택) lam_p/lam_q/lam_r, sigma, seed, delay_n, sync."""
     cond = Condition(float(job["alt_ft"]), float(job["kcas"]), fbw_override=int(job["fbw"]))
@@ -38,7 +47,10 @@ def evaluate(job: dict, ts_dir: str | None = None) -> dict:
                       gyro_sigma_dps=float(job.get("sigma", 0.0)), seed=int(job.get("seed", 0)),
                       meas_delay_steps=int(job.get("delay_n", 0)), sync_act_delay=bool(job.get("sync", False)))
     with contextlib.redirect_stdout(io.StringIO()):
-        rig = build(cond, params, unc)
+        rig = build(cond, params, unc,
+                    model=job.get("model", "f16"),
+                    envelope=job.get("envelope", "platform"),
+                    sensor_cfg=_sensor_cfg(job))   # A36
         ts = run(rig, man)
 
     w = man.window()

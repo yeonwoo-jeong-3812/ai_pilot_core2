@@ -387,8 +387,9 @@ def _wrap_limiter(pilot, rec: Recorder) -> None:
     lim = pilot.limiter
     orig = lim.limit_omega_sp
 
-    def limit(omega_sp, v_fps, kcas, g_lift=0.0, _o=orig, _r=rec):
-        out, flags = _o(omega_sp, v_fps, kcas, g_lift=g_lift)
+    # nz/q_meas 는 배치 리미터의 Nz 보호용(기본 꺼짐) — 그대로 넘긴다.
+    def limit(omega_sp, v_fps, kcas, g_lift=0.0, _o=orig, _r=rec, **kw):
+        out, flags = _o(omega_sp, v_fps, kcas, g_lift=g_lift, **kw)
         _r.sp = (float(out[0]), float(out[1]))
         return out, flags
     lim.limit_omega_sp = limit

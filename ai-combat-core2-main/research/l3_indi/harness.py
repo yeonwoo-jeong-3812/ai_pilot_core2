@@ -211,7 +211,9 @@ def transform_g0(G0: np.ndarray, unc: Uncertainty) -> np.ndarray:
 
 def build(cond: Condition, params: Params = Params(), unc: Uncertainty = Uncertainty(),
           policy_yaml: str | None = None, rebuild_indi: bool = True,
-          wrap_limiter: bool = True, use_proxy: bool = True) -> Rig:
+          wrap_limiter: bool = True, use_proxy: bool = True,
+          model: str = "f16", envelope: str = "platform",
+          sensor_cfg=None) -> Rig:
     """배치 경로로 Pilot 을 조립하고 연구 인자·교란을 입힌다.
 
     rebuild_indi / wrap_limiter / use_proxy 는 게이트 G2 에서 "하네스 가공이 기준값에서
@@ -221,7 +223,9 @@ def build(cond: Condition, params: Params = Params(), unc: Uncertainty = Uncerta
         policy, doctrine = load_policy(policy_yaml)
     else:
         policy, doctrine = None, Doctrine()
-    pilot = make_pilot("Blue", cond.ic(), policy, doctrine)
+    pilot = make_pilot("Blue", cond.ic(), policy, doctrine,
+                       model=model, envelope=envelope,
+                       sensor_cfg=sensor_cfg)   # A36: 기본값 = 기존 동작
     true_plant = pilot.plant
     if cond.fbw_override:
         # make_pilot 은 FLCS on 상태로 트림한다. 우회 조건은 스위치를 켠 뒤 다시 트림해야
@@ -253,8 +257,8 @@ def build(cond: Condition, params: Params = Params(), unc: Uncertainty = Uncerta
         lim = pilot.limiter
         orig = lim.limit_omega_sp
 
-        def recorded(omega_sp, v_fps, kcas, g_lift=0.0, _orig=orig, _log=rig.sp_log):
-            out, flags = _orig(omega_sp, v_fps, kcas, g_lift=g_lift)
+        def recorded(omega_sp, v_fps, kcas, g_lift=0.0, _orig=orig, _log=rig.sp_log, **kw):
+            out, flags = _orig(omega_sp, v_fps, kcas, g_lift=g_lift, **kw)
             _log.append((np.array(out, float), bool(flags["p_limited"]),
                          bool(flags["q_limited"]), bool(flags["r_limited"])))
             return out, flags

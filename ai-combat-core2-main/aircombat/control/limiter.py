@@ -38,6 +38,14 @@ SUSTAINED_KCAS = (250.0, 300.0, 350.0, 400.0, 450.0)
 SUSTAINED_G_15K = (3.59, 4.64, 4.79, 4.81, 3.68)
 SUSTAINED_G_25K = (3.27, 3.88, 3.86, 3.27, 1.97)
 
+# 교범 해석 봉투(envelope="manual") — MCH 11-F16 Vol.5 §4.6.5.2: 최대 AoA/G 선회반경은
+# 170–330 KCAS 에서 일정(G ∝ V²), 330–440 은 선회율 플래토(G ∝ V), 최대 G 는 440 KCAS
+# 에서 도달. 교범 고정값이라 교리(corner_kcas_*) 오버라이드와 무관하다 — 참가자가
+# 코너를 낮춰 봉투를 넓히는 경로를 막는다. 교차검증: 350 KCAS → 7.16G (EEGS 9G
+# 피퍼 가정 "350 KCAS 에서 7.3G"). 근거·결정: paper.md §6.
+MANUAL_KCAS_TURN_RATE = 330.0   # 선회율 최고점
+MANUAL_KCAS_MAX_G = 440.0       # 구조한계 G 도달
+
 
 @dataclass
 class LimiterConfig:
@@ -50,6 +58,20 @@ class LimiterConfig:
     kcas_corner_hi: float = 440.0   # 코너 플래토 상한 [KCAS] (참고; 상한은 구조로 이미 포화)
     p_max_dps: float = 220.0        # 롤율 상한 [deg/s]
     r_max_dps: float = 30.0         # 요율 상한 [deg/s]
+    # 공력 G 봉투: "platform" = 코너 하한에서 구조한계 도달(기존), "manual" = 교범 해석.
+    envelope: str = "platform"
+    # Nz 보호(옵션, 기본 끔): 실기 FLCS 처럼 측정 Nz 를 되먹임 — 예측 Nz = Nz + lead·dNz/dt 가
+    # (봉투 − margin) 을 넘으면 초과분 × gain 만큼 q 상한을 내린다(음의 한계 대칭).
+    # 도입 계기였던 원본 모델의 10.7G 초과는 flaperon 부호 결함(롤→대칭 양력) 탓으로 판명,
+    # f16fix 에선 보호 없이 초과 0 — 튜닝 제어기가 봉투를 넘을 때의 안전망으로만 남긴다.
+    nz_protect: bool = False
+    nz_lead_s: float = 0.25
+    nz_gain: float = 5.0
+    nz_margin_g: float = 0.8
+    # dNz/dt 1차 LPF 시상수 — 틱 차분 그대로면 자이로 잡음으로 떨리는 Nz 를 급상승으로 오인해
+    # q 상한이 튀고 승강타가 ±1 뱅뱅 진동했다(bench q_dbl 350KCAS/15kft, ISE 0.09→1.0).
+    nz_dot_tau_s: float = 0.05
+    nz_dt: float = 1.0 / 120.0
 
 
 class CombinedLimiter:
@@ -57,11 +79,23 @@ class CombinedLimiter:
 
     def __init__(self, config: LimiterConfig | None = None):
         self.cfg = config or LimiterConfig()
+        if self.cfg.envelope not in ("platform", "manual"):
+            raise ValueError(f"envelope 는 platform|manual: {self.cfg.envelope!r}")
+        self._nz_prev = None     # Nz 보호 상태 (limit_omega_sp 만 사용 — 틱당 1회 호출 전제)
+        self._nz_dot = 0.0
 
     def _g_aero(self, kcas: float) -> float:
         """동압이 낼 수 있는 G 크기 (부호 없음)."""
         c = self.cfg
-        return c.g_struct_max * (max(kcas, 0.0) / c.kcas_corner_lo) ** 2
+        v = max(kcas, 0.0)
+        if c.envelope == "manual":
+            if v >= MANUAL_KCAS_MAX_G:
+                return c.g_struct_max
+            if v >= MANUAL_KCAS_TURN_RATE:
+                return c.g_struct_max * v / MANUAL_KCAS_MAX_G
+            g_knee = c.g_struct_max * MANUAL_KCAS_TURN_RATE / MANUAL_KCAS_MAX_G
+            return g_knee * (v / MANUAL_KCAS_TURN_RATE) ** 2
+        return c.g_struct_max * (v / c.kcas_corner_lo) ** 2
 
     def max_load_factor(self, kcas: float) -> float:
         """허용 최대 하중배수 = min(구조 9G, 공력 G(동압)). **순간** 봉투다."""
@@ -101,7 +135,8 @@ class CombinedLimiter:
         return min(0.0, (self.min_load_factor(kcas) - g_lift) * G_FT_S2 / v)
 
     def limit_omega_sp(self, omega_sp, v_fps: float, kcas: float,
-                       g_lift: float = 0.0):
+                       g_lift: float = 0.0, nz: float | None = None,
+                       q_meas: float | None = None):
         """omega_sp=[p,q,r] (rad/s) 를 기체 한계로 클램프.
 
         returns (clamped omega_sp, flags). flags 는 어떤 축이 포화됐는지 +
@@ -111,6 +146,25 @@ class CombinedLimiter:
         omega_sp = np.asarray(omega_sp, float)
         q_max = self.max_pitch_rate(v_fps, kcas, g_lift)
         q_min = self.min_pitch_rate(v_fps, kcas, g_lift)   # 음수 — 밀기 한계(비대칭)
+        nz_limited = False
+        if c.nz_protect and nz is not None:
+            raw = 0.0 if self._nz_prev is None else (nz - self._nz_prev) / c.nz_dt
+            self._nz_prev = nz
+            self._nz_dot += (raw - self._nz_dot) * c.nz_dt / (c.nz_dot_tau_s + c.nz_dt)
+            nz_pred = nz + c.nz_lead_s * self._nz_dot
+            k = c.nz_gain * G_FT_S2 / max(float(v_fps), 1.0)
+            over = nz_pred - (self.max_load_factor(kcas) - c.nz_margin_g)
+            under = (self.min_load_factor(kcas) + c.nz_margin_g) - nz_pred
+            # 기준 = 측정 q (있으면). 초과 국면(배면 당김·AoA 감소)에선 유도 명령 q 가 이미
+            # 정상상태 q_max 보다 한참 아래라, q_max 를 깎아서는 구속이 안 걸린다.
+            if over > 0.0:
+                ref = q_max if q_meas is None else min(q_max, q_meas)
+                q_max = max(ref - k * over, q_min)
+                nz_limited = True
+            elif under > 0.0:
+                ref = q_min if q_meas is None else max(q_min, q_meas)
+                q_min = min(ref + k * under, q_max)
+                nz_limited = True
         p_max = np.deg2rad(c.p_max_dps)
         r_max = np.deg2rad(c.r_max_dps)
         lo = np.array([-p_max, q_min, -r_max])
@@ -125,5 +179,6 @@ class CombinedLimiter:
             "g_min": self.min_load_factor(kcas),
             "q_max": float(q_max),
             "q_min": float(q_min),
+            "nz_limited": nz_limited,
         }
         return clamped, flags
