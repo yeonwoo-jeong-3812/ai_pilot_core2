@@ -1,0 +1,9 @@
+﻿2026-09-29 22:42:53  시작: P1 dose-response: A, g0, g0.3, filt5 x 8 delays x 100
+2026-09-30 03:50:42  종료: P1 dose-response: A, g0, g0.3, filt5 x 8 delays x 100 (exit 0)
+2026-09-30 03:50:42  시작: P2 blue textbook_headon: nominal, delay30 x 50
+2026-09-30 04:44:31  종료: P2 blue textbook_headon: nominal, delay30 x 50 (exit 0)
+2026-09-30 04:44:31  시작: P2 blue starter: nominal, delay30 x 50
+2026-09-30 05:22:09  종료: P2 blue starter: nominal, delay30 x 50 (exit 0)
+2026-09-30 05:22:09  시작: P1 reverse ablation: g0 with filt 25 x 8 delays x 100
+2026-09-30 06:34:31  종료: P1 reverse ablation: g0 with filt 25 x 8 delays x 100 (exit 0)
+2026-09-30 06:34:31  전체 완료
