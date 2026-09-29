@@ -183,6 +183,35 @@ def process_table(d: dict, title: str) -> list[str]:
     return out
 
 
+def cond_ms(name: str) -> float:
+    """조건 이름 → 측정 지연 [ms] (dt<틱>, nominal=0, delay30=4틱, delay90=11틱)."""
+    ticks = {"nominal": 0, "delay30": 4, "delay90": 11}.get(name)
+    if ticks is None:
+        ticks = int(name[2:])
+    return ticks / 120 * 1000
+
+
+def dose_table(ds: list[dict], title: str) -> list[str]:
+    """지연 반응 곡선: 설정별 지연에 따른 승률·G 실현률·공세 비율 (여러 duel 결과를 합쳐 A 공유)."""
+    series = {}                                         # 설정 → {ms: games}
+    for d in ds:
+        for cname, block in d["conds"].items():
+            ms = cond_ms(cname)
+            series.setdefault("A", {})[ms] = block["games_A"]
+            for k, v in block.items():
+                if k != "games_A":
+                    series.setdefault(k, {})[ms] = v["games"]
+    msl = sorted({m for s in series.values() for m in s})
+    out = [f"## {title}", "", "| 설정 | 지표 | " + " | ".join(f"{m:.0f} ms" for m in msl) + " |",
+           "|---|---|" + "---|" * len(msl)]
+    for k, s in series.items():
+        for lab, f in (("승률", lambda g: np.mean([_points(x) for x in g])),
+                       ("G 실현률", lambda g: np.nanmedian([x["combat_blue"].get("g_ratio") or np.nan for x in g])),
+                       ("공세 비율", lambda g: np.mean([x["combat_blue"]["off_frac"] for x in g]))):
+            out.append(f"| {k} | {lab} | " + " | ".join(f"{f(s[m]):.3f}" if m in s else "—" for m in msl) + " |")
+    return out + [""]
+
+
 def main() -> int:
     lines = ["# INDI 최적화 연구 — 결과 요약 (자동 생성: research/indi/analyze.py)", "",
              "\\* = p < 0.05. Δ 는 같은 (대항군, 시나리오, 시드) 대응 쌍의 B − A 평균.", ""]
@@ -207,6 +236,14 @@ def main() -> int:
     d = _load("e3_process.json")
     if d:
         lines += duel_table(d, "배치 3: 교전 과정 지표 실험 (승패)") + process_table(d, "배치 3")
+    dose = [d for d in (_load("e5_dose.json"), _load("e5_dose_rev.json")) if d]
+    if dose:
+        lines += dose_table(dose, "배치 4: 측정 지연 반응 곡선 (P1)")
+    for name, title in (("e3_tree_textbook.json", "배치 4: blue 트리 textbook_headon (P2)"),
+                        ("e3_tree_starter.json", "배치 4: blue 트리 starter (P2)")):
+        d = _load(name)
+        if d:
+            lines += duel_table(d, title) + process_table(d, title)
     txt = "\n".join(lines)
     with open(os.path.join(RES, "summary.md"), "w", encoding="utf-8") as f:
         f.write(txt)

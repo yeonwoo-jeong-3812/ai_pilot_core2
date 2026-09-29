@@ -221,9 +221,45 @@ def fig5_process():
     _save(fig, "fig5_process")
 
 
+def fig6_dose(files=("e5_dose.json", "e5_dose_rev.json")):
+    """지연 반응 곡선 — 승률(Wilson CI)·G 실현률 vs 측정 지연, 설정 5종(필터 정/역 분리 포함)."""
+    from analyze import cond_ms
+    ds = [_load(f) for f in files if os.path.isfile(os.path.join(RES, f))]
+    series = {}
+    for d in ds:
+        for cname, block in d["conds"].items():
+            ms = cond_ms(cname)
+            series.setdefault("A", {})[ms] = block["games_A"]
+            for k, v in block.items():
+                if k != "games_A":
+                    series.setdefault(k, {})[ms] = v["games"]
+    style = {"A": (C_BASE, "-", LABEL["A"]), "g0": (C_G0, "-", LABEL["g0"]), "g0.3": (C_G03, "-", LABEL["g0.3"]),
+             "filt5": (C_BASE, (0, (4, 2)), "기준 + 필터만 5 Hz"), "g0_f25": (C_G0, (0, (4, 2)), "γ=0 에서 필터만 25 Hz")}
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(10, 3.6))
+    for k, s in series.items():
+        c, ls, lab = style.get(k, (INK2, ":", k))
+        ms = sorted(s)
+        wins = [np.mean([_points(g) for g in s[m]]) for m in ms]
+        ci = [wilson(sum(_points(g) for g in s[m]), len(s[m])) for m in ms]
+        a1.plot(ms, wins, color=c, ls=ls, lw=2, marker="o", ms=5, mec=SURF, mew=1, label=lab)
+        a1.fill_between(ms, [x[0] for x in ci], [x[1] for x in ci], color=c, alpha=0.08, lw=0)
+        gr = [np.nanmedian([g["combat_blue"].get("g_ratio") or np.nan for g in s[m]]) for m in ms]
+        a2.plot(ms, gr, color=c, ls=ls, lw=2, marker="o", ms=5, mec=SURF, mew=1)
+    a1.axhline(0.5, color=INK2, lw=1, ls=(0, (3, 3)))
+    a1.set_xlabel("각속도 측정 지연 [ms]"); a1.set_ylabel("승률 (음영: Wilson 95% CI)")
+    a2.set_xlabel("각속도 측정 지연 [ms]"); a2.set_ylabel("G 실현률 (달성/요구, 중앙값)")
+    a1.set_title("교전 승률", color=INK, fontsize=9); a2.set_title("G 실현률", color=INK, fontsize=9)
+    fig.legend(loc="lower center", ncol=5, bbox_to_anchor=(0.5, -0.1))
+    fig.suptitle("그림 6. 측정 지연 반응 곡선과 동기화 필터 분리 (조건·설정별 n=100)", x=0.01, ha="left", color=INK)
+    fig.tight_layout()
+    _save(fig, "fig6_dose")
+
+
 if __name__ == "__main__":
     fig1_pareto()
     fig2_winrate()
     fig3_delay()
     fig4_sensitivity()
     fig5_process()
+    if os.path.isfile(os.path.join(RES, "e5_dose.json")):
+        fig6_dose()
