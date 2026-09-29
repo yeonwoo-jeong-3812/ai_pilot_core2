@@ -523,6 +523,85 @@ def _turn_rate_max_dps(rows: np.ndarray) -> float:
     return float(np.degrees(np.max(np.arccos(np.clip(cosang, -1.0, 1.0)))) / (w * DT))
 
 
+# ======================================================================================
+# 명령 실현 충실도 (개정 A35 §2) — 반응 속도와 정상상태 도달률
+# ======================================================================================
+STEP_MIN_DPS = 3.0        # 계단 이벤트로 인정하는 최소 명령 변화 (민감도 2 / 5)
+STEP_HOLD_S = 0.5         # 새 수준 유지 요건
+STEP_HOLD_TOL = 0.20      # 유지 판정: 새 수준에서 벗어나도 되는 폭 (계단 크기 대비)
+SS_WIN_S = 0.2            # 정상상태 창 = 유지 구간의 마지막 이 길이
+XCORR_MAX_LAG_S = 0.5     # tau_eq 탐색 상한
+
+
+def _step_response(sp: np.ndarray, w: np.ndarray) -> dict:
+    """이벤트 기반 상승시간과 정상상태 도달률 (A35 §2-1, §2-2).
+
+    sp, w 는 같은 길이의 deg/s 배열이다. 계단 이벤트는 |dsp| >= STEP_MIN_DPS 이고
+    이어지는 STEP_HOLD_S 동안 sp 가 새 수준의 +-STEP_HOLD_TOL*|dsp| 안에 머무는 곳이다.
+    t63/t90 은 응답이 명령 변화량의 63% / 90% 에 처음 닿는 시각이며,
+    유지 구간 안에 닿지 못하면 STEP_HOLD_S 로 검열하고 개수를 센다.
+    정상상태 도달률은 유지 구간 마지막 SS_WIN_S 의 mean(w)/유지 수준이다.
+    """
+    hold = int(round(STEP_HOLD_S / DT))
+    ssw = max(1, int(round(SS_WIN_S / DT)))
+    n = len(sp)
+    t63, t90, ss = [], [], []
+    ncens = 0
+    k = 1
+    while k < n - hold:
+        d = float(sp[k] - sp[k - 1])
+        if abs(d) < STEP_MIN_DPS:
+            k += 1
+            continue
+        lvl = float(sp[k])
+        seg = sp[k:k + hold]
+        if float(np.max(np.abs(seg - lvl))) > STEP_HOLD_TOL * abs(d):
+            k += 1
+            continue
+        start = float(w[k - 1])
+        target = lvl - start
+        if abs(target) < 1e-9:
+            k += 1
+            continue
+        resp = (w[k:k + hold] - start) / target
+        i63 = np.flatnonzero(resp >= 0.63)
+        i90 = np.flatnonzero(resp >= 0.90)
+        t63.append(float(i63[0] + 1) * DT if len(i63) else STEP_HOLD_S)
+        t90.append(float(i90[0] + 1) * DT if len(i90) else STEP_HOLD_S)
+        if not len(i63):
+            ncens += 1
+        if abs(lvl) >= STEP_MIN_DPS:        # 유지 수준이 0 근처면 비가 발산하므로 제외
+            ss.append(float(np.mean(w[k + hold - ssw:k + hold]) / lvl))
+        k += hold                            # 이벤트끼리 겹치지 않게 유지 구간만큼 건너뛴다
+    med = lambda v: float(np.median(v)) if v else float("nan")
+    # reach63 = 유지 구간 안에 63% 에 닿은 이벤트 비율. t63 이 상한에 붙는 설정(검열)에서도
+    # 변별력이 남는 연속값이라 1 순위 후보로 함께 기록한다 (A35 §2-1 보완).
+    reach = (1.0 - ncens / len(t63)) if t63 else float("nan")
+    return {"t63": med(t63), "t90": med(t90), "ss_ratio": med(ss), "reach63": reach,
+            "n_event": len(t63), "n_censor": ncens, "n_ss": len(ss)}
+
+
+def _xcorr_lag(sp: np.ndarray, w: np.ndarray) -> dict:
+    """창 전체 교차상관이 최대가 되는 지연 tau_eq [s] (A35 §2-3, 보조 지표).
+
+    폐루프에서는 유도가 기체 상태를 보고 명령을 만들므로 sp 자체가 w 에 의존한다.
+    따라서 이 값은 순수한 내부 루프 지연이 아니라 유도 되먹임이 섞인 값이며,
+    RQ1 의 개루프 등가 지연과 직접 비교할 수 없다.
+    """
+    m = int(round(XCORR_MAX_LAG_S / DT))
+    a = sp - float(np.mean(sp))
+    b = w - float(np.mean(w))
+    den = math.sqrt(float(np.sum(a * a)) * float(np.sum(b * b)))
+    if den < 1e-12 or len(a) <= m + 1:
+        return {"tau_eq": float("nan"), "xcorr_peak": float("nan")}
+    best, blag = -2.0, 0
+    for L in range(m + 1):
+        c = float(np.dot(a[:len(a) - L], b[L:])) / den
+        if c > best:
+            best, blag = c, L
+    return {"tau_eq": blag * DT, "xcorr_peak": best}
+
+
 def _envelope(rows: np.ndarray, prefix: str) -> dict:
     return {f"{prefix}nz_max": float(np.max(rows[:, C["nz"]])),
             f"{prefix}nz_min": float(np.min(rows[:, C["nz"]])),
@@ -583,6 +662,12 @@ def recorded_metrics(rb: Recorder, rr: Recorder, res) -> dict:
         m[f"J_{ax}"] = float(np.sqrt(np.mean((sp - w) ** 2)) / max(np.sqrt(np.mean(sp ** 2)), J_FLOOR_DPS))
     ok = np.std(sp_q) > 1e-9 and np.std(q) > 1e-9
     m["corr_q"] = float(np.corrcoef(sp_q, q)[0, 1]) if ok else float("nan")
+    # 명령 실현 충실도 (A35 §2) — 1 순위 지표
+    for ax, sp, w in (("q", sp_q, q), ("p", sp_p, p)):
+        for key, val in _step_response(sp, w).items():
+            m[f"{key}_{ax}"] = val
+        for key, val in _xcorr_lag(sp, w).items():
+            m[f"{key}_{ax}"] = val
     m["q_gain"] = float(np.mean(np.abs(q)) / max(np.mean(np.abs(sp_q)), 1e-9))
     m["sat_ele"] = float(np.mean(np.abs(Bp[:, C["u_ele"]]) >= SAT_THRESH))
     # --- F-16 성능 봉투 사용량 (판정은 분석 단계에서 임계를 적용) ---------------------------
