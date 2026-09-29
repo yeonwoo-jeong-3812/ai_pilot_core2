@@ -3,6 +3,7 @@
     "E층 도그파이트 실험 격자 (개정 A31). 이 파일이 설정·배터리의 단일 진실이다.",
     "값을 바꾸려면 docs/PREREGISTRATION_AMENDMENTS.md 에 먼저 기록하고 커밋한 뒤 실행한다.",
     "모든 설정은 baseline 위에 'set' 의 항목만 덮어쓴다. 연구 변수는 청군 INDI 에만 들어간다.",
+    "lam_q 는 논문에서 κ = G_model/G_true 로 쓴다(개정 A36 §2). 코드·CSV 열 이름은 lam_q 를 유지한다.",
     "delay_ticks: 1 틱 = 1/120 s = 8.33 ms. delay_sync=true 는 INDI 액추에이터 되먹임도 같은 틱만큼 늦춘다(A10-4 동기 변형).",
     "turb: none/light/moderate/severe = JSBSim MIL-Spec(Dryden) 난류, 초과확률 1e-2/1e-3/1e-5 (dogfight.TURB_LEVELS)."
   ],

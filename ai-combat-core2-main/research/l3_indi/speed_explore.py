@@ -43,7 +43,7 @@ TIME_COLS = ("t63_q", "t90_q", "tau_eq_q", "tau_eq_p")   # δ 바닥 = 1 틱
 TICK = 1.0 / 120.0
 # 개정 A35 §5 에 등록된 δ = max(SHAM p95 × 2, 실용 바닥). 확증 실행에서만 쓴다 (--judge).
 DELTA = {"reach63_q": 0.03125, "ss_ratio_q": 0.01, "t63_q": TICK, "t90_q": 0.02, "tau_eq_q": TICK}
-POSITIVE = "V3_lam_25"                 # A35 §5: 1 순위의 양성 대조는 이것 하나
+POSITIVE = "V3_lam_25"                 # A35 §5: 1 순위의 양성 대조는 이것 하나 (κ = 25, 논문 기호 κ = G_model/G_true)
 
 
 def load(run_dir: str):

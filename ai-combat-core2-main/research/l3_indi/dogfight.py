@@ -11,7 +11,9 @@
 
 주입 (배치 코드 aircombat/ 무수정)
   청군 Pilot.setup 을 인스턴스 수준에서 감싼다. 배치 setup(트림 상태에서 G0 식별) 뒤에 harness.build 와 같은 방식으로
-  ① INDI 재생성(게인 배율·필터·G0 피치 행 배율 λ_q, 동기 지연 변형) ② 플랜트 프록시(자이로 잡음·측정 지연)
+  ① INDI 재생성(게인 배율·필터·G0 피치 행 배율 lam_q, 동기 지연 변형) ② 플랜트 프록시(자이로 잡음·측정 지연)
+  기호: lam_q 는 논문에서 κ = G_model/G_true 로 쓴다 (개정 A36 §2 — 팀원 원고의 λ 는 조종 증분 정칙화 계수).
+  코드 식별자 lam_q 는 기존 runs.csv 열·격자 키·매니페스트와의 호환 때문에 바꾸지 않는다.
   ③ 난류(JSBSim MIL-Spec Dryden) 를 입힌다. 기준 설정의 재생성이 배치 경로와 비트 동일함은 --selfcheck 가 확인한다.
 
 기록 (읽기 전용)
@@ -80,7 +82,7 @@ class Setting:
     """연구 변수 한 벌. 기본값 = 배치된 INDI (pilot.py:53, k_rate (9,9,6), 25 Hz) + 교란 없음."""
     k_scale: tuple = (1.0, 1.0, 1.0)      # (p, q, r) 게인 배율
     filt_hz: float = 25.0                 # 동기화 필터 차단주파수
-    lam_q: float = 1.0                    # λ_q = G_model / G_true (피치 행만)
+    lam_q: float = 1.0                    # κ = G_model / G_true (피치 행만). 논문 기호 κ, 코드 이름 lam_q (A36 §2)
     delay_ticks: int = 0                  # 자이로·각가속도 읽기 지연 [틱]
     delay_sync: bool = True               # True: INDI 액추에이터 되먹임도 같은 틱 지연 (A10-4 동기 변형)
     gyro_sigma: float = 0.0               # 120 Hz 샘플당 자이로 백색잡음 σ [deg/s]
