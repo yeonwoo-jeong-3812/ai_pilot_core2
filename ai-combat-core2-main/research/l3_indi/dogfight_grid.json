@@ -10,7 +10,9 @@
     "blue_policy": "config/tactics.yaml",
     "reds": ["red_adaptive", "red_extender", "red_phangman", "red_prime", "red_reactive"],
     "scenarios": ["headon", "perch_offense", "perch_defense", "neutral"],
-    "salts": ["battery-v1", "battery-v1b", "l3dog-c", "l3dog-d", "l3dog-e", "l3dog-f", "l3dog-g", "l3dog-h"],
+    "salts": ["battery-v1", "battery-v1b", "l3dog-c", "l3dog-d", "l3dog-e", "l3dog-f", "l3dog-g", "l3dog-h",
+              "l3dog-i", "l3dog-j", "l3dog-k", "l3dog-l", "l3dog-m", "l3dog-n", "l3dog-o", "l3dog-p"],
+    "_salts_doc": "앞 8 개 = A31·A32 배터리와 A35 탐색(앞 4 개). 뒤 8 개(l3dog-i~p) = A35 확증 전용, --salt-offset 8.",
     "duration_s": 300.0
   },
   "baseline": {
@@ -21,7 +23,8 @@
     "delay_sync": true,
     "gyro_sigma": 0.0,
     "turb": "none",
-    "turb_side": "blue"
+    "turb_side": "blue",
+    "indi_side": "blue"
   },
   "settings": [
     {"name": "BASE", "family": "baseline", "variable": "-", "level": "base", "set": {}},
@@ -55,7 +58,10 @@
 
     {"name": "V6_turb_light", "family": "ofat", "variable": "V6_turb", "level": "light", "set": {"turb": "light"}},
     {"name": "V6_turb_moderate", "family": "ofat", "variable": "V6_turb", "level": "moderate", "set": {"turb": "moderate"}},
-    {"name": "V6_turb_severe", "family": "ofat", "variable": "V6_turb", "level": "severe", "set": {"turb": "severe"}}
+    {"name": "V6_turb_severe", "family": "ofat", "variable": "V6_turb", "level": "severe", "set": {"turb": "severe"}},
+
+    {"name": "SYM_lam_8", "family": "sym", "variable": "V3_lam_sym", "level": 8.0, "set": {"lam_q": 8.0, "indi_side": "both"}},
+    {"name": "SYM_lam_25", "family": "sym", "variable": "V3_lam_sym", "level": 25.0, "set": {"lam_q": 25.0, "indi_side": "both"}}
   ],
   "combined": {
     "_doc": [

@@ -86,6 +86,7 @@ class Setting:
     gyro_sigma: float = 0.0               # 120 Hz 샘플당 자이로 백색잡음 σ [deg/s]
     turb: str = "none"                    # TURB_LEVELS 키
     turb_side: str = "blue"               # "blue": 청군만, "both": 양측
+    indi_side: str = "blue"               # "blue": 청군만 주입, "both": 적군에도 같은 설정 (A35 §7 대칭 칸)
 
     @classmethod
     def from_dict(cls, d: dict) -> "Setting":
@@ -116,6 +117,8 @@ class Setting:
             raise ValueError(f"turb: {self.turb}")
         if self.turb_side not in ("blue", "both"):
             raise ValueError(f"turb_side: {self.turb_side}")
+        if self.indi_side not in ("blue", "both"):
+            raise ValueError(f"indi_side: {self.indi_side}")
 
     def params(self) -> Params:
         return Params(k_scale=tuple(self.k_scale), filt_hz=float(self.filt_hz))
@@ -216,10 +219,13 @@ def sub_seed(*parts) -> int:
     return derive_seed("l3dog", *parts) & 0x7FFFFFFF
 
 
-def build_jobs(grid: dict, names, n_salts: int | None = None) -> list[dict]:
+def build_jobs(grid: dict, names, n_salts: int | None = None, salt_offset: int = 0) -> list[dict]:
     from aircombat.bridge import derive_seed
     b = grid["battery"]
-    salts = b["salts"][:n_salts] if n_salts else b["salts"]
+    salts = b["salts"][salt_offset:]                       # A35 §7: 확증은 탐색에 안 쓴 솔트로
+    salts = salts[:n_salts] if n_salts else salts
+    if not salts:
+        raise ValueError(f"솔트가 비었다: offset={salt_offset}, 전체 {len(b['salts'])}")
     by_name = {s["name"]: s for s in grid["settings"]}
     jobs = []
     for name in names:
@@ -247,6 +253,9 @@ def select_settings(grid: dict, spec: str) -> list[str]:
     names = [s["name"] for s in grid["settings"]]
     if spec == "ofat":
         return [s["name"] for s in grid["settings"] if s["family"] in ("baseline", "sham", "ofat")]
+    if spec == "speed":                                  # A35 §7 확증 = OFAT + 대칭 칸
+        return [s["name"] for s in grid["settings"]
+                if s["family"] in ("baseline", "sham", "ofat", "sym")]
     if spec == "combined":
         return [s["name"] for s in grid["settings"] if s["family"] == "combined"]
     if spec == "all":
@@ -442,8 +451,9 @@ def play(job: dict, instrument: bool = True):
             rr = Recorder(red, red.plant, False, n_max)
             _wrap_limiter(blue, rb)
             _wrap_setup(blue, rb, st, job["noise_seed"], st.turb, job["turb_seed_blue"])
-            _wrap_setup(red, rr, None, 0, st.turb if st.turb_side == "both" else "none",
-                        job["turb_seed_red"])
+            red_st = st if st.indi_side == "both" else None
+            _wrap_setup(red, rr, red_st, job["noise_seed"] ^ 0x5F5E0FF,
+                        st.turb if st.turb_side == "both" else "none", job["turb_seed_red"])
             _wrap_step(blue, rb)
             _wrap_step(red, rr)
             recs = (rb, rr)
@@ -470,7 +480,8 @@ def result_row(job: dict, res) -> dict:
     row.update({"k_p": st["k_scale"][0], "k_q": st["k_scale"][1], "k_r": st["k_scale"][2],
                 "filt_hz": st["filt_hz"], "lam_q": st["lam_q"], "delay_ticks": st["delay_ticks"],
                 "delay_sync": int(bool(st["delay_sync"])), "gyro_sigma": st["gyro_sigma"],
-                "turb": st["turb"], "turb_side": st["turb_side"]})
+                "turb": st["turb"], "turb_side": st["turb_side"],
+                "indi_side": st.get("indi_side", "blue")})
     wez = res.wez_time or {"blue": 0.0, "red": 0.0}
     ata = res.ata_mean or {"blue": float("nan"), "red": float("nan")}
     # D8 득실 규약(bridge 와 같은 함수): 판정패(hard_deck/stall/disqualified)의 패자 HP → 0
@@ -895,8 +906,9 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--selfcheck", action="store_true")
     ap.add_argument("--time", type=int, default=0, help="기준 설정 N 경기 벽시계만 측정")
-    ap.add_argument("--run", default=None, help="설정 이름 목록(쉼표) 또는 ofat / all")
+    ap.add_argument("--run", default=None, help="설정 이름 목록(쉼표) 또는 ofat / combined / speed / all")
     ap.add_argument("--salts", type=int, default=None, help="앞에서부터 N 개 솔트만 (기본: 격자 전체)")
+    ap.add_argument("--salt-offset", type=int, default=0, help="앞의 N 개 솔트를 건너뛴다 (A35 확증)")
     ap.add_argument("--processes", type=int, default=8)
     ap.add_argument("--name", default="dogfight", help="결과 폴더 이름")
     args = ap.parse_args()
@@ -912,7 +924,7 @@ def main() -> int:
         return 0
     if args.run:
         names = select_settings(grid, args.run)
-        jobs = build_jobs(grid, names, n_salts=args.salts)
+        jobs = build_jobs(grid, names, n_salts=args.salts, salt_offset=args.salt_offset)
         print(f"[dogfight] 설정 {len(names)} × 경기 {len(jobs) // max(len(names), 1)} = {len(jobs)} 경기, "
               f"프로세스 {args.processes}", flush=True)
         out = run_checkpointed(args.name, jobs, args.processes)
