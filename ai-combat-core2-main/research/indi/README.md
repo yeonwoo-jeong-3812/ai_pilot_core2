@@ -14,7 +14,7 @@
 | `duel.py` | **E3** 기준 vs 튜닝 / **E5** 강건성 / 지연 곡선 / 전술 트리 | 아래 예시 |
 | `analyze.py` | 전 결과 → `results/indi/summary.md` (부호·Wilcoxon·McNemar·Holm) | `python research/indi/analyze.py` |
 | `figures.py` | 논문 그림 → `results/indi/fig/` | `python research/indi/figures.py` |
-| `run_batch*.ps1` | 세션과 무관한 독립 일괄 실행 (1: E3·E5·E2, 2: 범위 확장·양측 튜닝·E2 n=100, 4: 지연 곡선·분리·트리) | `Start-Process powershell -WindowStyle Hidden -ArgumentList '-File','research\indiun_batch4.ps1'` |
+| `run_batch*.ps1` | 세션과 무관한 독립 일괄 실행 (1: E3·E5·E2, 2: 범위 확장·양측 튜닝·E2 n=100, 4: 지연 곡선·분리·트리) | `Start-Process powershell -WindowStyle Hidden -ArgumentList '-File','research/indi/run_batch4.ps1'` |
 
 `duel.py` 주요 옵션:
 - `--best e4.json --gamma 0 0.3` : B = E4 최적해(여러 개 가능, 기준 A 경기 공유)
