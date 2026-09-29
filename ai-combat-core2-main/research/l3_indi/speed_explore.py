@@ -29,7 +29,8 @@ BOOT_SEED = 20260929
 PAIR_KEY = ("scenario", "red", "salt")
 BASE, SHAM = "BASE", "SHAM"
 STR_COLS = ("match_id", "setting_name", "family", "variable", "level", "red", "red_path",
-            "blue_policy", "scenario", "salt", "winner", "condition", "indi_side")
+            "blue_policy", "scenario", "salt", "winner", "condition", "indi_side",
+            "model", "envelope")
 
 # 1 순위 = 명령 실현 충실도, 2 순위 = 조준, 3 순위 = 교전 결과, 그 외 = 보조
 SPEED = ("reach63_q", "ss_ratio_q", "t63_q", "t90_q", "tau_eq_q", "tau_eq_p")

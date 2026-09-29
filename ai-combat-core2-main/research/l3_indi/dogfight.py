@@ -89,6 +89,8 @@ class Setting:
     turb: str = "none"                    # TURB_LEVELS 키
     turb_side: str = "blue"               # "blue": 청군만, "both": 양측
     indi_side: str = "blue"               # "blue": 청군만 주입, "both": 적군에도 같은 설정 (A35 §7 대칭 칸)
+    model: str = "f16"                    # 기체 모델. A36: "f16fix" = flaperon 부호 수정 모델
+    envelope: str = "platform"            # G 봉투. A36: "manual" = 교범 G_max(V)
 
     @classmethod
     def from_dict(cls, d: dict) -> "Setting":
@@ -121,6 +123,10 @@ class Setting:
             raise ValueError(f"turb_side: {self.turb_side}")
         if self.indi_side not in ("blue", "both"):
             raise ValueError(f"indi_side: {self.indi_side}")
+        if self.model not in ("f16", "f16fix"):
+            raise ValueError(f"model: {self.model}")
+        if self.envelope not in ("platform", "manual"):
+            raise ValueError(f"envelope: {self.envelope}")
 
     def params(self) -> Params:
         return Params(k_scale=tuple(self.k_scale), filt_hz=float(self.filt_hz))
@@ -447,8 +453,10 @@ def play(job: dict, instrument: bool = True):
             blue_side = load_policy(job["blue_policy"])          # A27 §7-3: 양측 따로
             red_side = load_policy(job["red_path"])
             ic = initial_conditions(job["scenario"], seed=job["seed"])
-            blue = make_pilot("Blue", ic["blue"], *blue_side, name="tactics")
-            red = make_pilot("Red", ic["red"], *red_side, name=job["red"])
+            blue = make_pilot("Blue", ic["blue"], *blue_side, name="tactics",
+                              model=st.model, envelope=st.envelope)          # A36
+            red = make_pilot("Red", ic["red"], *red_side, name=job["red"],
+                             model=st.model, envelope=st.envelope)           # A36: 양측 동일 기체·봉투
         if instrument:
             rb = Recorder(blue, blue.plant, True, n_max)
             rr = Recorder(red, red.plant, False, n_max)
@@ -484,7 +492,8 @@ def result_row(job: dict, res) -> dict:
                 "filt_hz": st["filt_hz"], "lam_q": st["lam_q"], "delay_ticks": st["delay_ticks"],
                 "delay_sync": int(bool(st["delay_sync"])), "gyro_sigma": st["gyro_sigma"],
                 "turb": st["turb"], "turb_side": st["turb_side"],
-                "indi_side": st.get("indi_side", "blue")})
+                "indi_side": st.get("indi_side", "blue"),
+                "model": st.get("model", "f16"), "envelope": st.get("envelope", "platform")})
     wez = res.wez_time or {"blue": 0.0, "red": 0.0}
     ata = res.ata_mean or {"blue": float("nan"), "red": float("nan")}
     # D8 득실 규약(bridge 와 같은 함수): 판정패(hard_deck/stall/disqualified)의 패자 HP → 0
@@ -912,12 +921,13 @@ def main() -> int:
     ap.add_argument("--run", default=None, help="설정 이름 목록(쉼표) 또는 ofat / combined / speed / all")
     ap.add_argument("--salts", type=int, default=None, help="앞에서부터 N 개 솔트만 (기본: 격자 전체)")
     ap.add_argument("--salt-offset", type=int, default=0, help="앞의 N 개 솔트를 건너뛴다 (A35 확증)")
+    ap.add_argument("--grid", default=None, help="격자 파일 (기본: dogfight_grid.json, A36: dogfight_grid_a36.json)")
     ap.add_argument("--processes", type=int, default=8)
     ap.add_argument("--name", default="dogfight", help="결과 폴더 이름")
     args = ap.parse_args()
     if args.selfcheck:
         return selfcheck(args.processes)
-    grid = load_grid()
+    grid = load_grid(os.path.join(HERE, args.grid) if args.grid else GRID_PATH)
     if args.time:
         jobs = build_jobs(grid, ["BASE"], n_salts=1)[:args.time]
         for j in jobs:
