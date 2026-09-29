@@ -7,3 +7,5 @@
 2026-09-29 09:15:16  시작: Mirror: red tuned gamma 0 (nominal, delay30)
 2026-09-29 10:45:50  종료: Mirror: red tuned gamma 0 (nominal, delay30) (exit 0)
 2026-09-29 10:45:50  시작: E2 n=100 (seeds 1-4)
+2026-09-29 17:31:26  종료: E2 n=100 (seeds 1-4) (exit 0)
+2026-09-29 17:31:26  전체 완료

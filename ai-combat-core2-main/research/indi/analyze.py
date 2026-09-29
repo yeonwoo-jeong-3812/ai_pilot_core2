@@ -126,7 +126,8 @@ def e2_table(d: dict) -> list[str]:
 def main() -> int:
     lines = ["# INDI 최적화 연구 — 결과 요약 (자동 생성: research/indi/analyze.py)", "",
              "\\* = p < 0.05. Δ 는 같은 (대항군, 시나리오, 시드) 대응 쌍의 B − A 평균.", ""]
-    e4, e3, e5, e2 = (_load(n) for n in ("e4.json", "e3_nominal.json", "e5.json", "e2.json"))
+    e4, e3, e5 = (_load(n) for n in ("e4.json", "e3_nominal.json", "e5.json"))
+    e2 = _load("e2_n100.json") or _load("e2.json")          # 표본 확대본 우선
     if e4:
         lines += e4_table(e4)
     if e3:
@@ -135,6 +136,14 @@ def main() -> int:
         lines += duel_table(e5, "E5 강건성")
     if e2:
         lines += e2_table(e2)
+    for name, title in (("e4_wide.json", None), ("e3_wide_nominal.json", "배치 2: 범위 확장 해 (명목)"),
+                        ("e3_wide_delay.json", "배치 2: 범위 확장 해 (지연)"),
+                        ("e3_mirror.json", "배치 2: 양측 튜닝 (red = γ=0 INDI)")):
+        d = _load(name)
+        if d and title:
+            lines += duel_table(d, title)
+        elif d:
+            lines += ["## 배치 2: E4 범위 확장 (k_p 4–40, k_att 2–16)", ""] + e4_table(d)[2:]
     txt = "\n".join(lines)
     with open(os.path.join(RES, "summary.md"), "w", encoding="utf-8") as f:
         f.write(txt)

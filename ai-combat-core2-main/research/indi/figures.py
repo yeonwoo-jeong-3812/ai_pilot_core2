@@ -154,7 +154,8 @@ def fig3_delay():
 
 
 def fig4_sensitivity():
-    d = _load("e2.json")
+    d = _load("e2_n100.json") if os.path.isfile(os.path.join(RES, "e2_n100.json")) else _load("e2.json")
+    n = next(r for r in d["rows"] if r["var"] != "baseline")["duel"]["n"]
     names = {"k_p": "k_p [1/s]", "k_q": "k_q [1/s]", "filt_hz": "f_c [Hz]", "k_att": "k_att [1/s]",
              "k_ff": "k_ff", "lam": "λ"}
     base = next(r for r in d["rows"] if r["var"] == "baseline")
@@ -184,7 +185,7 @@ def fig4_sensitivity():
                 a.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
     axes[0, 0].set_ylabel("추종 J / J$_0$")
     axes[1, 0].set_ylabel("Δ승점 (95% CI)")
-    fig.suptitle("그림 4. E2 단일 변수 민감도 — 윗줄 추종 오차(▲ 발산, 3.0 절단), 아랫줄 교전 Δ승점(수준별 n=50); 나머지 변수는 기준값 고정", x=0.01, ha="left", color=INK)
+    fig.suptitle(f"그림 4. E2 단일 변수 민감도 — 윗줄 추종 오차(▲ 발산, 3.0 절단), 아랫줄 교전 Δ승점(수준별 n={n}); 나머지 변수는 기준값 고정", x=0.01, ha="left", color=INK)
     fig.tight_layout()
     _save(fig, "fig4_sensitivity")
 
