@@ -84,6 +84,19 @@
 - `research/indi/README.md` : 실행 명령·출력 스키마 한 페이지
 - **코드 동결** → 본 실행 배치 시작
 
+
+### 추가 실험 (9/29, 기한 연장 후 — 약점 보완)
+- **배치 2** ✅ : E4 범위 확장(k_p 4–40, k_att 2–16 → J/J₀ 0.882, 개선 없음), 확장 해 교전(지연 효과 동일),
+  양측 튜닝(red 도 γ=0: 명목 대등, 지연 33 ms 에서 기준 blue 0.27 ↔ 튜닝 0.52–0.57), E2 n=100(유의 효과는 k_q=18 −0.175 뿐)
+- **배치 3** ✅ : 교전 과정 지표(`combat.py`) — 명목에서도 추종 층위 유의 변화, 지연에서 G 실현률 0.49 → 0.96 → 공세·에너지·승률
+- **진단 후 보완 (P1–P4)**
+  - P3 ✅ 과정 지표 Holm 보정 — 명목 응답 지연 ±3 ms 는 보정 후 비유의, 추종·G 실현률·활동은 유지
+  - P4 ✅ README·plan 갱신
+  - P1 ⏳ 배치 4: 지연 반응 곡선 0/8/17/25/33/50/67/92 ms × {A, γ=0, γ=0.3, filt5(기준+필터만 5 Hz)} × 100쌍
+       + 역방향 분리 g0_f25(γ=0 에서 필터만 25 Hz) — "지연 강건성의 원인 = 동기화 필터 대역" 검증
+  - P2 ⏳ 배치 4: blue 트리 textbook_headon·starter × {명목, 지연 33 ms} × 50쌍 — 일반화
+
+
 ## 산출물 트리
 
 ```
@@ -91,7 +104,7 @@ aircombat/control/indi.py      INDIConfig, λ, k_ff          (수정)
 aircombat/control/limiter.py   envelope="manual"            (수정)
 aircombat/engine/{pilot,factory}.py, guidance/bfm_guidance.py (인자 관통 ✅)
 aircombat/engine/scenarios.py                                (p1_neutral)
-research/indi/{runner,bench,limits,sweep,optimize,duel}.py  (신규 ✅)
+research/indi/{runner,bench,limits,combat,sweep,optimize,duel,analyze,figures}.py, run_batch*.ps1  (신규 ✅)
 tests/test_indi_study.py                                    (신규)
 ```
 
