@@ -208,3 +208,18 @@ G_max(V) = 6.75·(V/330)²    V < 330 KCAS      (6.75 = 9·330/440)
 3. **E5 지연 수준**: 실기 30–90 ms → `delay_ticks` 4, 11 (120 Hz) 를 강건성 조건으로.
 4. **게인-필터 결합**: LADAC 은 게인을 루프 총 지연에 묶음 → E2 단일 변수 스윕 외에 E4 PSO 가 (k, filt_hz) 결합을 탐색하는 근거.
 5. 미확보: 논문 3 저자 Liu 계열 `ardupi` 저장소는 404 (J. Aerosp. Eng. 35(6), 2022 논문만 존재).
+
+### D. 실기 디지털 비행제어의 시간지연 (2026-09-30 조사)
+- **Berry, NASA TM-86744 (1985), "In-Flight Evaluation of Pure Time Delays in Pitch and Roll"** (NTRS 19850023810, 스캔본 직접 판독):
+  - 서론: "In the late 1970's and early 1980's overcontrol and pilot-induced oscillation (PIO) tendencies were observed during
+    flight tests of ... the space shuttle and the F-16. Assessments indicated that time delays associated with higher-order
+    systems and digital flight control were a contributing factor." / "time problems with time delay persist ... in more recent
+    advanced aerospace vehicles such as the F-18, AFTI/F-16, and X-29."
+  - F-8 DFBW: "The digital computation and processing introduces pure time (transport) delays into the control system" —
+    조종간→피치 조종면 고유 순수 지연 **약 130 ms**. 추가 지연 20/60/100/140/200 ms 는 **조종사 명령 경로**에 삽입되었고
+    "the lags within the closed-loop portion of the system were unaffected".
+- Grantham et al., NASA TM-89147 (1987) — 허용 시간지연 시뮬레이터 연구(수송기, 음의 정적 안정성). 스캔본, 수치 미판독.
+- **본 연구 해석**: 조종성 연구의 지연은 명령 경로(개루프 측)이며 100 ms 대까지 조종성 등급으로 평가된다. 본 연구의 지연은
+  INDI **되먹임 경로**(각속도·각가속도 측정)로, 내부 루프 안정 여유를 직접 잠식해 8–17 ms 에서 붕괴 — 명령 경로 허용치보다
+  한 자릿수 작은 지연에 민감하다는 점이 실기 디지털 FCS(연산·센서 지연 수십 ms)와의 비교에서 핵심.
+- 미확보: F-16 DFLCS 프레임율(공개 자료 없음), MIL-F-8785C/MIL-STD-1797 등가 시간지연 한계치 원문(유료·접근 불가).
