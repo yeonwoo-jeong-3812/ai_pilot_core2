@@ -446,12 +446,15 @@ def fig_chain(plt):
 
     왼쪽 칸만 판정 대상이고(δ 띠를 그린다), 가운데·오른쪽은 관찰이다.
     """
-    path = newest("results/paper/dogfight_confirm/*/runs.csv")
+    # 개정 A36: 본문 그림은 수정 모델(f16fix) 실행을 쓴다. 없으면 원본 모델 실행으로 물러난다.
+    path = (newest("results/paper/dogfight_f16fix/*/runs.csv")
+            or newest("results/paper/dogfight_confirm/*/runs.csv"))
     if not path:
-        raise FileNotFoundError("확증 실행 결과가 없다 (results/paper/dogfight_confirm/*/runs.csv)")
+        raise FileNotFoundError("확증 실행 결과가 없다 (dogfight_f16fix 또는 dogfight_confirm)")
+    a36 = "dogfight_f16fix" in path.replace("\\", "/")
     STR = ("match_id", "setting_name", "family", "variable", "level", "red", "red_path",
            "blue_policy", "scenario", "salt", "winner", "condition", "turb", "turb_side",
-           "indi_side")
+           "indi_side", "model", "envelope")
     rows = load_csv(path, STR)
     key = lambda r: (r["scenario"], r["red"], r["salt"])
     base = {key(r): r for r in rows if r["setting_name"] == "BASE"}
@@ -503,13 +506,19 @@ def fig_chain(plt):
     axes[0].set_yticklabels(order, fontsize=8)
     axes[0].set_ylim(-0.8, len(order) - 0.2)
     from matplotlib.patches import Patch
+    n_flag = sum(flag.values())
     h = [Patch(facecolor=C[2], alpha=0.13, label="등가 한계 δ = ±0.03125 (왼쪽 칸만 판정한다)"),
-         plt.Line2D([], [], ls="", marker=MK[0], color=C[0], ms=5.5, label="봉투 게이트 통과"),
-         plt.Line2D([], [], ls="", marker=MK[1], color=C[1], ms=5.5, label="F-16 성능 초과 (기준 대비)"),
          plt.Line2D([], [], color=INK2, lw=1.4, label="짝 차이 평균의 95% CI")]
-    fig.legend(handles=h, loc="lower center", ncol=4, fontsize=8.5,
+    if n_flag:                      # A36(f16fix)에서는 걸리는 설정이 없어 범례에서 뺀다
+        h.append(plt.Line2D([], [], ls="", marker=MK[1], color=C[1], ms=5.5,
+                            label="F-16 성능 초과 (기준 대비)"))
+    else:
+        h.append(Patch(facecolor="none", edgecolor="none",
+                       label="F-16 성능 봉투: 전 설정 초과 없음"))
+    fig.legend(handles=h, loc="lower center", ncol=len(h), fontsize=8.5,
                bbox_to_anchor=(0.5, -0.005))
-    fig.suptitle("INDI 파라미터의 짝 차이: 명령 실현도 순으로 정렬 (확증 실행 4,480 경기)",
+    cond = "수정 모델 f16fix · 교범 봉투 · 자이로 잡음 0.1°/s" if a36 else "원본 모델 f16 · 플랫폼 봉투 · 무잡음"
+    fig.suptitle(f"INDI 파라미터의 짝 차이: 명령 실현도 순으로 정렬 ({cond}, 4,480 경기)",
                  y=0.985, fontsize=12)
     fig.tight_layout(rect=(0, 0.035, 1, 0.96))
     save(plt, fig, "chain")
