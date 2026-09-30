@@ -1,10 +1,77 @@
-# INDI 제어기 파라미터 튜닝이 F-16 근접 공중전에 미치는 영향 — 본론
+# INDI 제어기 파라미터 튜닝이 F-16 근접 공중전에 미치는 영향
 
-> 본 문서는 논문의 본론(연구 방법, 실험 설계, 실험 결과, 고찰)이다. 서론과 결론의 초안은 `draft.md`, 문헌 분석과
-> 설계 결정은 `paper.md`, 모든 수치의 원자료는 `results/indi/summary.md`와 `results/indi/*.json`에 있다.
-> 그림은 `research/indi/figures.py`로, 표의 통계량은 `research/indi/analyze.py`로 재생성할 수 있다.
+> 원자료: `results/indi/summary.md`, `results/indi/*.json`. 그림은 `research/indi/figures.py`, 통계량은
+> `research/indi/analyze.py`로 재생성할 수 있다. 문헌 분석과 설계 결정은 `paper.md`에 정리하였다.
+
+## 초록
+
+근접 공중전을 수행하는 AI 조종사 연구는 전술 판단에 집중되어 왔고, 저수준 비행제어기의 설계가 교전에 미치는 영향은
+정량적으로 다뤄지지 않았다. 본 연구는 JSBSim F-16 기반 5계층 교전 환경에서 증분 비선형 동적 역변환(INDI) 각속도
+제어기의 파라미터 6개(롤·피치 각속도 게인, 동기화 필터 차단주파수, 자세 게인, 명령 피드포워드, 조종 증분 정칙화)를
+튜닝하고, 그 영향을 명령 추종, 기동 결과, 교전 결과의 세 층위에서 약 12,000회의 대응 비교 교전으로 측정하였다.
+F-16 교범의 가용 G 한계를 속도의 함수로 정식화해 모든 교전에서 달성 하중을 감시하였고, 공개 JSBSim F-16 모델에서
+롤 명령이 대칭 양력을 만드는 flaperon 혼합 결함을 찾아 수정하였다. 입자군집최적화로 얻은 튜닝 설정은 기준 설정
+대비 추종 오차를 8–12 %, 조종면 활동량을 66–84 % 줄였다. 측정 지연이 없는 조건에서 튜닝은 명령 추종 층위를 유의하게
+개선하였으나 기동과 교전 결과로는 전이되지 않았다. 반면 기준 제어기는 8–17 ms의 각속도 측정 지연에서 요구 G의
+절반만 실현하며 붕괴하였고, 튜닝 제어기는 G 실현률을 유지해 공세 위치와 에너지 우위를 확보하였다(33 ms 지연에서
+승률 0.45 → 0.89–0.91, p < 0.001). 필터 분리 실험과 안정 경계 지도로부터 지연 강건성은 동기화 필터 대역이 결정하며
+허용 지연이 차단주파수에 반비례함(τ_max ≈ (0.15–0.3)/f_c)을 확인하였다. 이 결과는 전술 트리 3종에서 재현되었다.
+
+**주제어:** 증분 비선형 동적 역변환(INDI), 근접 공중전, F-16, 제어기 튜닝, 측정 지연, 비행 한계
+
+## Abstract
+
+Research on AI pilots for within-visual-range air combat has focused on tactical decision making, while the effect of
+low-level flight-control design on engagement outcomes has not been quantified. We tuned six parameters of an incremental
+nonlinear dynamic inversion (INDI) body-rate controller — roll and pitch rate gains, synchronization-filter cutoff,
+attitude gain, rate-command feedforward and increment regularization — in a five-layer engagement stack built on the
+JSBSim F-16, and measured their effect at three levels (command tracking, maneuvering outcome, engagement outcome) in
+about 12,000 paired engagements. The F-16 manual's usable load-factor envelope was formulated as a function of airspeed and
+the achieved load factor was monitored in every engagement; a flaperon-mixing sign defect in the public JSBSim F-16 model,
+which made roll commands generate symmetric lift, was identified and corrected. Particle-swarm-optimized settings reduced
+tracking error by 8–12 % and control activity by 66–84 %. Without measurement delay, tuning significantly improved command
+tracking but did not propagate to maneuvering or engagement outcomes. The baseline controller, however, collapsed at
+8–17 ms of rate-measurement delay, realizing only half of the commanded load factor, whereas the tuned controllers
+maintained it and gained offensive position and energy advantage (win rate 0.45 → 0.89–0.91 at 33 ms, p < 0.001).
+Filter ablation and a stability map showed that delay robustness is governed by the synchronization-filter bandwidth,
+with the tolerable delay inversely proportional to the cutoff frequency (τ_max ≈ (0.15–0.3)/f_c). The findings were
+reproduced across three tactical trees.
+
+**Keywords:** incremental nonlinear dynamic inversion, dogfight, F-16, controller tuning, measurement delay, flight envelope
 
 ---
+
+## 1. 서론
+
+근접 공중전(WVR Dogfight)을 수행하는 AI 조종사 연구는 주로 전술 판단층에 집중되어 왔다. 교범과 조종사 경험을
+행위트리로 구조화한 규칙기반 모델[1], 전투 전략과 비행제어를 모두 강화학습으로 학습한 계층형 모델[3]이 대표적이다.
+이들 연구에서 저수준 비행제어기는 전술층이 요구한 자세와 각속도를 실현하는 고정된 도구로 취급되었으며, 그 설계
+파라미터가 교전에 미치는 영향은 거의 다뤄지지 않았다.
+
+그러나 전술 판단이 요구한 기동을 기체가 얼마나 정확하고 빠르게 실현하는지는 교전 결과에 직접 영향을 줄 수 있다.
+F-16 교범은 기총 사격해가 표적의 기동면, 속도, G가 일정할 때에만 성립하며 조준 오차에 조종사의 조종 오차가
+포함된다고 기술한다[6]. 계층형 강화학습 연구[3]는 같은 전투 전략에서 비행제어기만 학습 제어기에서 PID로 바꾸자
+승률이 0.844에서 0.313으로 떨어짐을 보고하였다. 다만 이 비교는 제어 구조 자체를 교체한 것이며, 기체의 하중 한계
+준수는 검증되지 않았다.
+
+증분 비선형 동적 역변환(INDI)은 측정한 각가속도를 이용해 모델 의존성을 줄인 센서 기반 제어 기법으로, 모델 오차와
+외란에 강건하다[2][5]. 쿼드로터 고기동 추종에서는 INDI 내부 루프를 제거하면 위치 오차가 364–705 % 증가하였고[2],
+고정익 여객기에서도 비행시험으로 검증되었다[G]. INDI의 성능은 각속도 게인, 동기화 필터 대역, 제어 배분 가중치
+같은 설계 파라미터에 좌우되며, 이를 자동 튜닝하는 방법도 제시되었다[4]. 한편 디지털 비행제어의 시간지연은
+F-16 등의 비행시험에서 과조종과 조종사 유발 진동의 원인으로 지목되어 왔다[B]. 그러나 INDI 파라미터 튜닝이 교전에
+미치는 영향을, 실제 기체의 물리 한계를 지키는 조건에서 정량화한 연구는 찾기 어렵다.
+
+본 연구의 질문은 INDI 파라미터 튜닝이 도그파이트에 영향을 주는가, 준다면 어떤 경로로 주는가이다. 승패는 전술층의
+영향이 크고 표본 변동이 커서 제어기의 효과를 가리기 쉬우므로, 교전을 명령 추종, 기동 결과, 교전 결과의 세 층위로
+나누어 측정한다. 본 연구의 기여는 다음과 같다.
+
+1. 선행연구[2–5]에서 공통으로 조절된 변수와 공통 실험을 도출하여, 단일 변수 민감도, 복합 최적화와 파레토 분석,
+   교전 대응 비교, 강건성 평가로 체계화하였다.
+2. F-16 교범[6]의 가용 G 한계를 속도의 함수로 정식화하고, 모든 실험에서 달성 하중을 감시하여 물리 한계 준수를
+   검증하였다.
+3. 공개 JSBSim F-16 모델의 flaperon 혼합 부호 결함을 식별하고, 기준 공력 데이터와 정합하도록 수정하였다.
+4. 지연 강건성이 동기화 필터 대역으로 결정됨을 분리 실험으로 보이고, 필터 대역과 허용 지연의 관계를 설계 지침으로
+   제시하였다.
 
 ## 2. 연구 방법
 
@@ -489,6 +556,23 @@ PSO는 γ별로 600회, 총 2,400회 평가하였으며 한계 실격은 한 건
 
 ---
 
+## 6. 결론
+
+본 연구는 JSBSim F-16 교전 환경에서 INDI 각속도 제어기의 파라미터 6개를 문헌 기반 실험 설계로 분석하고, 튜닝이
+근접 공중전에 주는 영향을 명령 추종, 기동 결과, 교전 결과의 세 층위로 측정하였다. 주요 결론은 다음과 같다.
+
+첫째, 복합 최적화는 추종 오차와 조종면 활동량을 동시에 줄이는 설정을 찾았으며(추종 −8~12 %, 활동량 −66~84 %),
+모든 설정이 F-16 교범의 가용 G 한계를 준수하였다. 둘째, 측정 지연이 없는 조건에서 튜닝은 명령 추종 층위를 유의하게
+개선하였으나 기동과 교전 결과로는 전이되지 않았다. 셋째, 기준 제어기는 8–17 ms의 각속도 측정 지연에서 요구 G의
+절반만 실현하며 붕괴하였고, 튜닝 제어기는 G 실현률을 유지해 공세 위치와 에너지 우위를 확보하였다. 넷째, 지연
+강건성은 동기화 필터 대역이 결정하며, 허용 지연은 차단주파수에 반비례한다(τ_max ≈ (0.15–0.3)/f_c). 다섯째, 이 결과는
+세 가지 전술 트리에서 재현되었다.
+
+따라서 INDI 튜닝은 근접 공중전에 분명한 영향을 주며, 그 교전상의 가치는 명목 성능보다 측정 지연과 같은 운용 조건
+변화에 대한 강건성에서 나타난다. 실무적으로는 측정 잡음이 허용하는 범위에서 동기화 필터 대역을 예상 지연에 맞추어
+낮추고, 각속도 명령 제한과 함께 달성 하중 되먹임 보호를 두는 것이 바람직하다. 향후 연구로는 조종면을 직접 명령하는
+구조로의 확장, 실제 비행제어 컴퓨터의 연산·센서 지연 자료를 이용한 검증, 전술층과 제어층의 동시 최적화를 들 수 있다.
+
 ## 참고문헌
 
 [1] 이민석 외, "공대공 전투 모의를 위한 규칙기반 AI 교전 모델 개발," 한국군사과학기술학회지, 25(6), 2022.
@@ -500,3 +584,4 @@ PSO는 γ별로 600회, 총 2,400회 평가하였으며 한계 실격은 한 건
 [G] F. Grondman et al., "Design and Flight Testing of Incremental Nonlinear Dynamic Inversion-Based Control Laws for a Passenger Aircraft," AIAA 2018-0385.
 [S] R. Steffensen et al., "Filter and Sensor Delay Synchronization in Incremental Flight Control Laws," Aerospace Systems, 6:285–304, 2023.
 [N] L. T. Nguyen et al., NASA TP-1538, 1979; B. L. Stevens and F. L. Lewis, Aircraft Control and Simulation, 1992; F. R. Garza and E. A. Morelli, NASA TM-2003-212145, 2003.
+[B] D. T. Berry, "In-Flight Evaluation of Pure Time Delays in Pitch and Roll," NASA TM-86744, 1985.
