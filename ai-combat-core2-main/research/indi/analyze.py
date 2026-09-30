@@ -244,6 +244,10 @@ def main() -> int:
         d = _load(name)
         if d:
             lines += duel_table(d, title) + process_table(d, title)
+    d = _load("e5_asym.json")
+    if d:
+        lines += (duel_table(d, "배치 5: 비대칭 지연 (blue만 지연)") + process_table(d, "배치 5")
+                  + dose_table([d], "배치 5: blue 단독 지연 반응"))
     txt = "\n".join(lines)
     with open(os.path.join(RES, "summary.md"), "w", encoding="utf-8") as f:
         f.write(txt)
