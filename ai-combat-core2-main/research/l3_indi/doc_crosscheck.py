@@ -24,6 +24,7 @@ DOCS = {
 TEXT = {k: io.open(v, encoding="utf-8").read() for k, v in DOCS.items()}
 
 conf = se.load("results/paper/dogfight_confirm/a27c40f9e4")
+a36 = se.load("results/paper/dogfight_f16fix/b3c448ab85")
 expl = se.load("results/paper/dogfight_speed/c11b502d3c")
 K = lambda r: (r["scenario"], r["red"], r["salt"])
 
@@ -152,6 +153,68 @@ add("탐색 계단 0 경기 비율[%]", round(100 * n0 / len(expl), 1), "4.1")
 for c, want in [("reach63_q", ["0.00893"]), ("ss_ratio_q", ["0.000687"]), ("t90_q", ["0.01"])]:
     p95 = float(np.percentile(np.abs(se.paired(expl, "SHAM", c)), 95))
     add(f"탐색 SHAM p95 {c}", round(p95, 6), want, "M")
+
+
+# ---- A36 재실행 (수정 모델) — 논문 본문용 수치
+def eff36(s, c, scale=1.0):
+    return se.boot(se.paired(a36, s, c) * scale)["mean"]
+
+
+def contrast36(a, b, c, scale=1.0):
+    A = {K(r): r for r in a36 if r["setting_name"] == a}
+    B = {K(r): r for r in a36 if r["setting_name"] == b}
+    d = np.array([scale * (A[k][c] - B[k][c]) for k in A if k in B
+                  and np.isfinite(A[k][c]) and np.isfinite(B[k][c])], float)
+    rng = np.random.default_rng(20260929)
+    m = np.mean(d[rng.integers(0, len(d), size=(10000, len(d)))], axis=1)
+    return float(np.mean(d)), float(np.percentile(m, 2.5)), float(np.percentile(m, 97.5))
+
+
+add("A36 경기 수", len(a36), "4,480")
+for s_, c_, want in [
+    ("V3_lam_25", "reach63_q", ["-0.794", "−0.794"]),
+    ("V3_lam_16", "reach63_q", ["-0.757", "−0.757"]),
+    ("V3_lam_8", "reach63_q", ["-0.440", "−0.440"]),
+    ("V3_lam_4", "reach63_q", ["-0.132", "−0.132"]),
+    ("V3_lam_25", "ss_ratio_q", ["-0.158", "−0.158"]),
+    ("V6_turb_severe", "reach63_q", ["+0.065"]),
+    ("V6_turb_severe", "ss_ratio_q", ["-0.108", "−0.108"]),
+    ("SYM_lam_25", "reach63_q", ["-0.787", "−0.787"]),
+    ("SYM_lam_8", "reach63_q", ["-0.455", "−0.455"]),
+    ("V5_noise_1", "ss_ratio_q", ["-0.022", "−0.022"]),
+]:
+    add(f"A36 {s_} {c_}", round(eff36(s_, c_), 4), want, "MAH")
+for s_, want in [("V3_lam_25", ["+18.3"]), ("V3_lam_16", ["+15.6"]),
+                 ("V3_lam_8", ["+13.7"]), ("SYM_lam_25", ["+3.1"]),
+                 ("SYM_lam_8", ["+9.4"]), ("V6_turb_severe", ["-9.4", "−9.4"])]:
+    add(f"A36 {s_} 승률[%p]", round(eff36(s_, "blue_pts", 100 / 3), 1), want, "MAH")
+m_, lo_, hi_ = contrast36("SYM_lam_25", "V3_lam_25", "blue_pts", 100 / 3)
+add("A36 대칭-청군만 승률차", round(m_, 1), ["-15.2", "−15.2"], "MAH")
+add("A36 대칭 승률차 CI 하한", round(lo_, 1), ["-25.0", "−25.0"], "MAH")
+m_, lo_, hi_ = contrast36("SYM_lam_25", "V3_lam_25", "frac_ata30_blue")
+add("A36 대칭-청군만 조준차", round(m_, 3), ["-0.035", "−0.035"], "MAH")
+add("A36 대칭 조준차 CI 하한", round(lo_, 3), ["-0.062", "−0.062"], "MAH")
+for s_, c_, want in [("BASE", "corr_q", ["0.938"]), ("V4_async_2t", "corr_q", ["0.692"]),
+                     ("V6_turb_severe", "corr_q", ["0.471"]), ("BASE", "reach63_q", ["0.930"]),
+                     ("V6_turb_severe", "ss_ratio_q", ["0.870"]), ("BASE", "ss_ratio_q", ["0.979"])]:
+    add(f"A36 중앙값 {s_} {c_}",
+        round(float(np.nanmedian([r[c_] for r in a36 if r["setting_name"] == s_])), 3), want, "MAH")
+exc36 = lambda r: float(r["nz_max"] > 9.0 or r["nz_min"] < -3.0 or r["alpha_max_deg"] > 30.0)
+G36 = [r for r in a36 if r["setting_name"] == "BASE"]
+add("A36 BASE 봉투 초과[%]", round(100 * np.mean([exc36(r) for r in G36]), 1), ["0.0"], "MAH")
+add("A36 BASE 최대 Nz", round(max(r["nz_max"] for r in G36), 2), ["7.62"], "MAH")
+add("A36 전체 최대 alpha", round(max(r["alpha_max_deg"] for r in a36), 1), ["18.6"], "MAH")
+add("A36 피치 이벤트 중앙값", int(np.median([r["n_event_q"] for r in a36])),
+    ["중앙값 24개", "24개(이번 재실행", "중앙값 **24개**"], "MAH")
+add("A36 계단 0 경기[%]",
+    round(100 * sum(1 for r in a36 if r["n_event_q"] == 0) / len(a36), 1), ["4.2"], "MAH")
+
+# ---- 2 x 2 원인 분해 (칸 C, D)
+import json
+_e = json.load(open("results/paper/env_attrib/runs.json", encoding="utf-8"))
+for cell, want in (("C_f16fix_platform", ["0.0"]), ("D_f16_manual", ["5.6"])):
+    Gc = [r for r in _e if r["setting_name"] == cell]
+    add(f"2x2 {cell} 초과[%]", round(100 * np.mean([exc36(r) for r in Gc]), 1), want, "MAH")
 
 # ---- 실행
 print("| # | 항목 | 계산값 | 문서에서 찾은 곳 | 결과 |")
