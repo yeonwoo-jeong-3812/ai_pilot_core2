@@ -255,6 +255,36 @@ def fig6_dose(files=("e5_dose.json", "e5_dose_rev.json")):
     _save(fig, "fig6_dose")
 
 
+def fig7_stability():
+    """필터 차단주파수 × 측정 지연 안정 경계 지도 (E1 벤치, 기준 게인). 칸 = J/J₀ (로그 색), 윤곽 = J/J₀ = 2."""
+    d = _load("stab_map.json")
+    j0 = next(r["J"] for r in d["rows"] if r["filt_hz"] == 25.0 and r["delay_ticks"] == 0)
+    fcs = sorted({r["filt_hz"] for r in d["rows"]})
+    dts = sorted({r["delay_ticks"] for r in d["rows"]})
+    Z = np.array([[next(r["J"] for r in d["rows"] if r["filt_hz"] == f and r["delay_ticks"] == t) / j0
+                   for t in dts] for f in fcs])
+    fig, ax = plt.subplots(figsize=(6.4, 4.0))
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("seq", ["#eaf2fc", "#86b6ef", "#2a78d6", "#0d366b"])
+    im = ax.imshow(np.log10(Z), origin="lower", aspect="auto", cmap=cmap, vmin=np.log10(0.8), vmax=np.log10(20))
+    for i in range(len(fcs)):
+        for j in range(len(dts)):
+            ax.text(j, i, f"{Z[i, j]:.1f}", ha="center", va="center", fontsize=7,
+                    color=SURF if Z[i, j] > 3 else INK)
+    ax.contour(np.arange(len(dts)), np.arange(len(fcs)), Z, levels=[2.0], colors=[C_G03], linewidths=2)
+    ax.set_xticks(range(len(dts)))
+    ax.set_xticklabels([f"{t / 120 * 1000:.0f}" for t in dts])
+    ax.set_yticks(range(len(fcs)))
+    ax.set_yticklabels([f"{f:g}" for f in fcs])
+    ax.set_xlabel("각속도 측정 지연 [ms]")
+    ax.set_ylabel("동기화 필터 차단주파수 f_c [Hz]")
+    ax.grid(False)
+    cb = fig.colorbar(im, ax=ax, ticks=np.log10([1, 2, 5, 10, 20]))
+    cb.ax.set_yticklabels(["1", "2", "5", "10", "20"])
+    cb.set_label("추종 오차 J / J$_0$ (기준 = 25 Hz·지연 0)")
+    ax.set_title("그림 7. 동기화 필터 × 측정 지연 안정 경계 (주황 선: J/J$_0$ = 2)", loc="left", color=INK)
+    _save(fig, "fig7_stability")
+
+
 if __name__ == "__main__":
     fig1_pareto()
     fig2_winrate()
@@ -263,3 +293,5 @@ if __name__ == "__main__":
     fig5_process()
     if os.path.isfile(os.path.join(RES, "e5_dose.json")):
         fig6_dose()
+    if os.path.isfile(os.path.join(RES, "stab_map.json")):
+        fig7_stability()
