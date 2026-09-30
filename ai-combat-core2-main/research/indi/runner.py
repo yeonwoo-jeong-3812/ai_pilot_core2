@@ -112,8 +112,12 @@ def play(blue_yaml: str, red_yaml: str, scenario: str = "headon", seed: int | No
     ic = initial_conditions(scenario, seed=seed)
     blue = make_pilot("Blue", ic["blue"], *load_policy(blue_yaml),
                       indi_cfg=blue_cfg, envelope=envelope, sensor_cfg=sensor, model=model)
+    # cond["red_delay_ticks"]: red 만 다른 측정 지연 (비대칭 지연 — blue 만 지연을 받는 인과 검증용)
+    red_sensor = sensor
+    if cond and "red_delay_ticks" in cond and sensor is not None:
+        red_sensor = dataclasses.replace(sensor, delay_ticks=int(cond["red_delay_ticks"]))
     red = make_pilot("Red", ic["red"], *load_policy(red_yaml),
-                     indi_cfg=red_cfg, envelope=envelope, sensor_cfg=sensor, model=model)
+                     indi_cfg=red_cfg, envelope=envelope, sensor_cfg=red_sensor, model=model)
     if nz_protect is not None:
         for pl in (blue, red):
             pl.limiter.cfg = dataclasses.replace(pl.limiter.cfg, nz_protect=True, **nz_protect)

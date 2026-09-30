@@ -187,7 +187,7 @@ def cond_ms(name: str) -> float:
     """조건 이름 → 측정 지연 [ms] (dt<틱>, nominal=0, delay30=4틱, delay90=11틱)."""
     ticks = {"nominal": 0, "delay30": 4, "delay90": 11}.get(name)
     if ticks is None:
-        ticks = int(name[2:])
+        ticks = int(name.lstrip("bdt"))
     return ticks / 120 * 1000
 
 

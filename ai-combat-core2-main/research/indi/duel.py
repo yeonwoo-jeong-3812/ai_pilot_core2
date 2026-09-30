@@ -42,11 +42,13 @@ CONDS = {   # (조건 dict, 자이로 σ, 지연 틱)
 
 
 def cond_spec(name: str):
-    """CONDS 이름 또는 dt<틱> (측정 지연 임의 틱, 명목 잡음) — 지연 반응 곡선용."""
+    """CONDS 이름, dt<틱>(양측 동일 측정 지연), bdt<틱>(blue 만 지연 — 비대칭)."""
     if name in CONDS:
         return CONDS[name]
     if name.startswith("dt") and name[2:].isdigit():
         return ({}, NOMINAL_SIGMA_DPS, int(name[2:]))
+    if name.startswith("bdt") and name[3:].isdigit():      # blue 만 지연, red 는 지연 없음
+        return ({"red_delay_ticks": 0}, NOMINAL_SIGMA_DPS, int(name[3:]))
     raise ValueError(f"알 수 없는 조건 {name!r}")
 
 
