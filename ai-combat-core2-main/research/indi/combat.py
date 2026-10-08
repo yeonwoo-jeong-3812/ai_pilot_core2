@@ -64,6 +64,32 @@ class CombatMonitor:
         c = [np.dot(x[:n - k], y[k:]) for k in range(MAX_LAG + 1)]
         return float(np.argmax(c) * dt * 1000.0)
 
+    @staticmethod
+    def _step_q(sp: np.ndarray, w: np.ndarray, dt: float) -> dict:
+        """파트너 계보(research/l3-indi-paper-v2, dogfight._step_response, 개정 A35 §2)의 계단 응답 지표를
+        같은 상수·같은 규칙으로 옮긴 것 — 두 계보 교차 검증용. sp, w [deg/s]; w 는 sp 와 같은 틱의 스텝 직후 값."""
+        hold, ssw = int(round(0.5 / dt)), max(1, int(round(0.2 / dt)))
+        t63, ss, ncens, k, n = [], [], 0, 1, len(sp)
+        while k < n - hold:
+            d = float(sp[k] - sp[k - 1])
+            lvl = float(sp[k])
+            if abs(d) < 3.0 or float(np.max(np.abs(sp[k:k + hold] - lvl))) > 0.2 * abs(d):
+                k += 1
+                continue
+            target = lvl - float(w[k - 1])
+            if abs(target) < 1e-9:
+                k += 1
+                continue
+            i63 = np.flatnonzero((w[k:k + hold] - w[k - 1]) / target >= 0.63)
+            t63.append(float(i63[0] + 1) * dt if len(i63) else 0.5)
+            ncens += not len(i63)
+            if abs(lvl) >= 3.0:
+                ss.append(float(np.mean(w[k + hold - ssw:k + hold]) / lvl))
+            k += hold
+        med = lambda v: float(np.median(v)) if v else None
+        return dict(reach63_q=(1.0 - ncens / len(t63)) if t63 else None, t63_q=med(t63),
+                    ss_ratio_q=med(ss), n_event_q=len(t63))
+
     def summary(self) -> dict:
         if not self.sp or not self.geo:
             return {}
@@ -85,7 +111,10 @@ class CombatMonitor:
             wez_s=float(wez.sum() * dtg), gun_s=float(gun.sum() * dtg),
             off_frac=float(np.mean((ata < 60.0) & (ata_f > 120.0))),
             def_frac=float(np.mean((ata > 120.0) & (ata_f < 60.0))),
-            e_adv_ft=float(eadv.mean()))
+            e_adv_ft=float(eadv.mean()),
+            # 파트너 계보 지표 — w 는 INDI 갱신 시점(스텝 전) 값이라 한 틱 당겨 '스텝 직후'에 맞춘다
+            corr_q=float(np.corrcoef(sp[:-1, 1], w[1:, 1])[0, 1]) if np.std(sp[:, 1]) > 1e-9 else None,
+            **self._step_q(np.degrees(sp[:-1, 1]), np.degrees(w[1:, 1]), self.dt))
 
 
 def attach(me, foe, dt: float = 1.0 / 120.0) -> CombatMonitor:
