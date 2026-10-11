@@ -53,6 +53,42 @@ def _save(fig, name):
     print("saved", name)
 
 
+def fig0_arch():
+    """교전 스택과 INDI 루프 블록도. 주황 = 연구 변수가 들어가는 곳."""
+    from matplotlib.patches import FancyBboxPatch
+    fig, ax = plt.subplots(figsize=(7.2, 3.3))
+    ax.set_xlim(0, 100); ax.set_ylim(0, 46); ax.axis("off")
+
+    def box(x, y, w, h, txt, var=None, fc="#f4f3ef"):
+        ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.4,rounding_size=1.2",
+                                    fc=fc, ec=INK2, lw=0.8))
+        ax.text(x + w / 2, y + h / 2 + (1.6 if var else 0), txt, ha="center", va="center", fontsize=8, color=INK)
+        if var:
+            ax.text(x + w / 2, y + h / 2 - 2.6, var, ha="center", va="center", fontsize=7.5, color=C_G03)
+
+    def arrow(x0, y0, x1, y1, txt=None, dy=1.6):
+        ax.annotate("", (x1, y1), (x0, y0), arrowprops=dict(arrowstyle="-|>", color=INK2, lw=0.9))
+        if txt:
+            ax.text((x0 + x1) / 2, (y0 + y1) / 2 + dy, txt, ha="center", fontsize=7, color=INK2)
+    box(1, 33, 15, 10, "L1 전술\n행동트리 20 Hz")
+    box(21, 33, 15, 10, "L2 BFM 유도\n60 Hz")
+    box(41, 33, 17, 10, "자세→각속도\n+ 한계 리미터", "교범 G 한계")
+    box(63, 31, 20, 14, "INDI 120 Hz", "k_p k_q k_att k_ff μ\nf_c  κ(G 모델)", fc="#fdf0e9")
+    box(63, 5, 20, 12, "L4 JSBSim F-16\n+ FLCS (f16fix)", "난류")
+    box(36, 5, 20, 12, "각속도 센서", "잡음 σ · 지연 τ")
+    arrow(16.5, 38, 20.5, 38, "기동")
+    arrow(36.5, 38, 40.5, 38, "G")
+    arrow(58.5, 38, 62.5, 38, r"$\omega_{sp}$")
+    arrow(73, 30.5, 73, 17.5)
+    ax.text(74.5, 24, "u (FLCS 명령)", fontsize=7, color=INK2, va="center")
+    arrow(62.5, 11, 56.5, 11, r"$\omega$")
+    arrow(46, 17.5, 63, 31)
+    ax.text(50, 26, r"$\omega_m,\ \dot{\omega}_m$", fontsize=8, color=INK2, ha="right")
+    ax.text(85, 38, "L3 제어", fontsize=8, color=INK2)
+    ax.text(1, 1, "주황 글씨: 본 연구의 분석 변수", fontsize=7, color=C_G03)
+    _save(fig, "fig0_arch")
+
+
 def fig1_pareto():
     d = _load("e4.json")
     j0, a0 = d["ref"]["J"], d["ref"]["A"]
@@ -75,7 +111,7 @@ def fig1_pareto():
     ax.set_ylabel("추종 오차 J / J$_0$ (낮을수록 정확)")
     ax.set_ylim(0.85, 1.6)
     ax.set_xlim(0, 1.3)
-    ax.set_title("그림 1. E4 복합 최적화 — 추종 오차 대 조종 부드러움", loc="left", color=INK)
+    ax.set_title("E4 복합 최적화 — 추종 오차 대 조종 부드러움", loc="left", color=INK)
     ax.legend(loc="upper right")
     _save(fig, "fig1_pareto")
 
@@ -103,7 +139,7 @@ def fig2_winrate():
     ax.set_xlim(0.2, 1.0)
     ax.set_xlabel("승률 (승 1 · 무 0.5 · 패 0), Wilson 95% 신뢰구간")
     ax.grid(axis="y", visible=False)
-    ax.set_title("그림 2. 평가 조건별 교전 승률 (E3 명목 n=325, E5 조건별 n=100)", loc="left", color=INK)
+    ax.set_title("평가 조건별 교전 승률 (E3 명목 n=325, E5 조건별 n=100)", loc="left", color=INK)
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.14), ncol=3)
     _save(fig, "fig2_winrate")
 
@@ -148,7 +184,7 @@ def fig3_delay():
     ax.set_xticks([0, 33, 92])
     ax.set_xlabel("각속도 측정 지연 [ms] (실기 30–90 ms)")
     ax.set_ylabel("ΔG 더블릿 정규화 ISE (로그)")
-    ax.set_title("그림 3. 측정 지연 대 피치 추종 오차 (E1 벤치)", loc="left", color=INK)
+    ax.set_title("측정 지연 대 피치 추종 오차 (E1 벤치)", loc="left", color=INK)
     ax.legend(loc="lower right")
     _save(fig, "fig3_delay")
 
@@ -185,7 +221,7 @@ def fig4_sensitivity():
                 a.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
     axes[0, 0].set_ylabel("추종 J / J$_0$")
     axes[1, 0].set_ylabel("Δ승점 (95% CI)")
-    fig.suptitle(f"그림 4. E2 단일 변수 민감도 — 윗줄 추종 오차(▲ 발산, 3.0 절단), 아랫줄 교전 Δ승점(수준별 n={n}); 나머지 변수는 기준값 고정", x=0.01, ha="left", color=INK)
+    fig.suptitle(f"E2 단일 변수 민감도 — 윗줄 추종 오차(▲ 발산, 3.0 절단), 아랫줄 교전 Δ승점(수준별 n={n}); 나머지 변수는 기준값 고정", x=0.01, ha="left", color=INK)
     fig.tight_layout()
     _save(fig, "fig4_sensitivity")
 
@@ -216,7 +252,7 @@ def fig5_process():
         ax.grid(axis="y", visible=False)
         ax.set_title(lab, color=INK, fontsize=9)
     fig.legend(loc="lower center", ncol=3, bbox_to_anchor=(0.5, -0.08))
-    fig.suptitle("그림 5. 교전 과정 지표 (blue, 평균 ± 부트스트랩 95% CI, 조건별 n=100)", x=0.01, ha="left", color=INK)
+    fig.suptitle("교전 과정 지표 (blue, 평균 ± 부트스트랩 95% CI, 조건별 n=100)", x=0.01, ha="left", color=INK)
     fig.tight_layout()
     _save(fig, "fig5_process")
 
@@ -250,7 +286,7 @@ def fig6_dose(files=("e5_dose.json", "e5_dose_rev.json")):
     a2.set_xlabel("각속도 측정 지연 [ms]"); a2.set_ylabel("G 실현률 (달성/요구, 중앙값)")
     a1.set_title("교전 승률", color=INK, fontsize=9); a2.set_title("G 실현률", color=INK, fontsize=9)
     fig.legend(loc="lower center", ncol=5, bbox_to_anchor=(0.5, -0.1))
-    fig.suptitle("그림 6. 측정 지연 반응 곡선과 동기화 필터 분리 (조건·설정별 n=100)", x=0.01, ha="left", color=INK)
+    fig.suptitle("측정 지연 반응 곡선과 동기화 필터 분리 (조건·설정별 n=100)", x=0.01, ha="left", color=INK)
     fig.tight_layout()
     _save(fig, "fig6_dose")
 
@@ -281,11 +317,12 @@ def fig7_stability():
     cb = fig.colorbar(im, ax=ax, ticks=np.log10([1, 2, 5, 10, 20]))
     cb.ax.set_yticklabels(["1", "2", "5", "10", "20"])
     cb.set_label("추종 오차 J / J$_0$ (기준 = 25 Hz·지연 0)")
-    ax.set_title("그림 7. 동기화 필터 × 측정 지연 안정 경계 (주황 선: J/J$_0$ = 2)", loc="left", color=INK)
+    ax.set_title("동기화 필터 × 측정 지연 안정 경계 (주황 선: J/J$_0$ = 2)", loc="left", color=INK)
     _save(fig, "fig7_stability")
 
 
 if __name__ == "__main__":
+    fig0_arch()
     fig1_pareto()
     fig2_winrate()
     fig3_delay()

@@ -21,7 +21,7 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "..", "results", "indi")
-WORKERS = 3
+WORKERS = 2          # 8 GB 기계에서 3 이면 메모리 부족으로 종료된 적 있음
 
 
 # ---------------------------------------------------------------- 이 계보 배터리
@@ -82,7 +82,7 @@ def _partner_job(args):
     root, job = args
     dg = _partner_setup(root)
     r = dg.play(job, instrument=True)
-    return {k: r.get(k) for k in ("setting_name", "red", "scenario", "salt", "winner", "condition", "blue_pts",
+    return {k: r.get(k) for k in ("match_id", "setting_name", "red", "scenario", "salt", "winner", "condition", "blue_pts",
                                   "reach63_q", "ss_ratio_q", "t63_q", "n_event_q", "corr_q", "tau_eq_q",
                                   "g_ratio", "nz_max", "nz_min")}
 
@@ -104,10 +104,17 @@ def run_partner(root):
     out = os.path.join(OUT, "cross_partner.json")
     prev = json.load(open(out, encoding="utf-8")) if os.path.isfile(out) else []
     prev = [r for r in prev if r["setting_name"] not in names]
-    sys.path.insert(0, HERE)
-    import runner
-    rows = runner.pmap(_partner_job, [(root, j) for j in jobs], WORKERS)
+    # 경기마다 .jsonl 에 덧붙여 기록 — 중단돼도 재실행하면 끝난 경기는 건너뛴다
+    part = out + "l"
+    done = {json.loads(x)["match_id"] for x in open(part, encoding="utf-8")} if os.path.isfile(part) else set()
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    with ProcessPoolExecutor(WORKERS) as ex, open(part, "a", encoding="utf-8") as f:
+        for fu in as_completed([ex.submit(_partner_job, (root, j)) for j in jobs if j["match_id"] not in done]):
+            f.write(json.dumps(fu.result()) + chr(10))
+            f.flush()
+    rows = [r for r in map(json.loads, open(part, encoding="utf-8")) if r["setting_name"] in names]
     json.dump(prev + rows, open(out, "w", encoding="utf-8"), indent=0)
+    os.remove(part)
 
 
 # ---------------------------------------------------------------- 표
