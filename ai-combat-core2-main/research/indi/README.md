@@ -41,3 +41,20 @@
 
 난수원은 전부 시드 고정: 시나리오 IC(`seed`), 자이로 잡음(경기 시드 — 기준·변경 경기가 같은 잡음열 = 대응 비교),
 벤치 잡음(시험·운용점 해시), 난류(`atmosphere/randomseed` = 시드·측), MC 조건(red·시나리오·시드 해시).
+
+## 다른 컴퓨터에서 이어받기 (팀원용)
+
+1. 받기: `git clone -b YEOP https://github.com/yeonwoo-jeong-3812/ai_pilot_core2.git` → `cd ai_pilot_core2/ai-combat-core2-main`
+2. Python **3.14** 설치(기준 3.14.3) 후 `pip install -r requirements.txt` — jsbsim·numpy 버전이 고정돼 있고,
+   수정 F-16 모델(`jsbsim_data/aircraft/f16fix`)은 저장소에 들어 있다.
+3. 재현 확인: `python research/indi/verify_repro.py` (약 1–3분)
+   - **6/6 일치** → 이 컴퓨터 결과를 기존 `results/indi/*.json` 과 섞어 써도 된다.
+   - **불일치** → 실행은 정상이다. 다만 경기별 값이 다르므로 새 실험 하나(대응 쌍 전체)는 한 컴퓨터에서 끝까지 돌리고,
+     논문 재현 정보에 스크립트가 출력한 '환경' 줄을 적는다.
+4. 실험 실행: 위 표의 명령 그대로. 병렬 경기 수는 코어 수와 메모리에 맞춰 자동으로 정해진다(`workers.py`:
+   8 GB → 2, 16 GB → 8, 32 GB → 코어 수 − 1). 바꾸려면 환경변수 `INDI_WORKERS=12` 또는 `--workers 12`.
+   경기 1개당 메모리 약 0.85 GB.
+5. 경기 캐시(`results/indi/cache/`)는 저장소에 올리지 않는다. 새 컴퓨터에서 기존 실험을 다시 돌리면 처음부터 계산한다.
+   실험을 끊었다가 같은 명령으로 다시 실행하면 끝난 경기는 건너뛴다.
+
+다음 실험 계획은 저장소 루트 `EXPERIMENT_REDESIGN.md`(R1 명령 재생 벤치, R2 고정 궤적 표적, R3 거울 교전).

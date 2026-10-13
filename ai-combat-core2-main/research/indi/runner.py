@@ -61,9 +61,11 @@ def _apply_cond(pilot, cond: dict, seed: int) -> None:
     pilot.setup = wrapped
 
 
-def pmap(fn, jobs, workers: int = 7):
-    """순서 보존 병렬 map (Windows spawn — fn 은 모듈 최상위 함수여야 함)."""
+def pmap(fn, jobs, workers: int | None = None):
+    """순서 보존 병렬 map (Windows spawn — fn 은 모듈 최상위 함수여야 함). workers=None → 기계에 맞춰 자동."""
     from concurrent.futures import ProcessPoolExecutor
+    from workers import auto_workers
+    workers = workers or auto_workers()
     with ProcessPoolExecutor(workers) as ex:
         return list(ex.map(fn, jobs))
 

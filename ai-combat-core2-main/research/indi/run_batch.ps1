@@ -1,7 +1,7 @@
 ﻿# INDI 연구 본 실행 일괄 (E3 명목 → E5 강건성 → E2 민감도). 세션과 무관한 독립 프로세스로 실행:
 #   Start-Process powershell -WindowStyle Hidden -ArgumentList '-File','research\indi\run_batch.ps1','-WaitPid','<pid>'
 # 경기 결과는 runner.game 캐시에 쌓이므로 중단 후 재실행하면 이어서 진행한다(끝난 단계는 즉시 통과).
-param([int]$WaitPid = 0, [int]$Workers = 3)
+param([int]$WaitPid = 0, [int]$Workers = 0)   # 0 = 자동(workers.py)
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $root

@@ -1,5 +1,5 @@
 ﻿# 배치 5: ② 필터×지연 안정 경계 지도 → ① 비대칭 지연(blue 만 지연) 교전. 독립 프로세스, 캐시로 재개 가능.
-param([int]$Workers = 3)
+param([int]$Workers = 0)   # 0 = 자동(workers.py)
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $root

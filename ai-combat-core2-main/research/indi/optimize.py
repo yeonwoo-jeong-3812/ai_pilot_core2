@@ -106,7 +106,7 @@ def main() -> int:
     ap.add_argument("--particles", type=int, default=20)
     ap.add_argument("--iters", type=int, default=30)
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--workers", type=int, default=7)
+    ap.add_argument("--workers", type=int, default=None)  # 생략 = 자동(workers.py)
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--box", nargs="*", default=[], help="탐색 범위 변경, 예: k_p=4,40 k_att=2,16")
     ap.add_argument("--out")

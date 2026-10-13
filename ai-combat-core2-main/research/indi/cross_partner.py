@@ -21,7 +21,9 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "..", "results", "indi")
-WORKERS = 2          # 8 GB 기계에서 3 이면 메모리 부족으로 종료된 적 있음
+sys.path.insert(0, HERE)
+from workers import auto_workers
+WORKERS = auto_workers()   # 8 GB 기계 → 2 (3 이면 메모리 부족으로 종료된 적 있음)
 
 
 # ---------------------------------------------------------------- 이 계보 배터리

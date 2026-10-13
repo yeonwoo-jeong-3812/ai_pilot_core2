@@ -85,7 +85,7 @@ def main() -> int:
     ap.add_argument("--seeds", nargs="+", type=int, default=[1, 2, 3, 4])
     ap.add_argument("--reds", nargs="+", default=list(REDS))
     ap.add_argument("--scens", nargs="+", default=list(SCENS))
-    ap.add_argument("--workers", type=int, default=7)
+    ap.add_argument("--workers", type=int, default=None)  # 생략 = 자동(workers.py)
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--out")
     a = ap.parse_args()

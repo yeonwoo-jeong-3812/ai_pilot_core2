@@ -151,7 +151,7 @@ def _delay_bench():
         return json.load(open(path, encoding="utf-8"))
     from runner import pmap
     jobs = [(k, dly) for dly in (0, 4, 11) for k in ("A", "g0", "g0.3")]
-    rows = pmap(_delay_job, jobs, 3)
+    rows = pmap(_delay_job, jobs)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(rows, f, indent=1)
     return rows

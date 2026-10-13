@@ -72,7 +72,7 @@ def main() -> int:
     ap.add_argument("--scens", nargs="+", default=list(SCENS))
     ap.add_argument("--no-duel", action="store_true", help="추종 벤치만")
     ap.add_argument("--smoke", action="store_true", help="k_q ×0.5·×2, red 1종 × 시나리오 2 × 시드 1")
-    ap.add_argument("--workers", type=int, default=7)
+    ap.add_argument("--workers", type=int, default=None)  # 생략 = 자동(workers.py)
     ap.add_argument("--out")
     a = ap.parse_args()
     levels = {v: LEVELS[v] for v in a.vars}

@@ -1,6 +1,6 @@
 ﻿# 배치 4 (약점 보완): P1 지연 반응 곡선 + 필터 정/역 분리, P2 다른 blue 전술 트리 2종.
 # 세션과 무관한 독립 프로세스. 경기 캐시로 중단 후 재실행 시 이어서 진행.
-param([int]$Workers = 3)
+param([int]$Workers = 0)   # 0 = 자동(workers.py)
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $root

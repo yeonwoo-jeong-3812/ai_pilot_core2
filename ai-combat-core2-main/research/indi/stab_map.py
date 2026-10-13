@@ -26,7 +26,7 @@ def _job(j):
 
 
 if __name__ == "__main__":
-    rows = pmap(_job, [(fc, dt) for fc in FC for dt in DT], workers=int(sys.argv[1]) if len(sys.argv) > 1 else 3)
+    rows = pmap(_job, [(fc, dt) for fc in FC for dt in DT], workers=int(sys.argv[1]) if len(sys.argv) > 1 else None)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(dict(base=dataclasses.asdict(INDIConfig()), rows=rows), f, indent=1)
     print("saved", OUT)

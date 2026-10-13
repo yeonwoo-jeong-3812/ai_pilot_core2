@@ -1,7 +1,7 @@
 ﻿# 배치 2 (2026-09-29): E4 범위 확장 → 확장 해 교전 검증 → 양측 튜닝 → E2 표본 확대.
 # 세션과 무관한 독립 프로세스로 실행. 경기 캐시로 중단 후 재실행 시 이어서 진행.
 #   Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','research\indi\run_batch2.ps1'
-param([int]$Workers = 3)
+param([int]$Workers = 0)   # 0 = 자동(workers.py)
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $root
