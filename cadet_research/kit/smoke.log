@@ -1,0 +1,28 @@
+E1: 전체 72판, 기록됨 0, 남음 72
+기록: C:\Users\USER\Desktop\AI-pilot\core2\cadet_research\kit\out\smoke\games.csv
+E2: 전체 756판, 기록됨 36, 남음 720
+기록: C:\Users\USER\Desktop\AI-pilot\core2\cadet_research\kit\out\smoke\games.csv
+E3: 전체 828판, 기록됨 36, 남음 792
+            기록: C:\Users\USER\Desktop\AI-pilot\core2\cadet_research\kit\out\smoke\games.csv
+E4: 전체 252판, 기록됨 0, 남음 252
+기록: C:\Users\USER\Desktop\AI-pilot\core2\cadet_research\kit\out\smoke\games.csv
+== predict E1
+δ_D = max(2 × 0.000, 0.05) = 0.050
+δ_M = max(2 × 0.00, 3.0) = 3.00점
+보고서: C:\Users\USER\Desktop\AI-pilot\core2\cadet_research\kit\out\smoke\report_predict_E1.md
+== predict E2
+곡선 모양 LOO 오차 RMS (D): linear 0.0691, sqrt 0.0919, log 0.1358 → linear
+D = 0.053 + 0.0676·linear(mae) (잔차 RMS 0.063)
+M = 0.30 + 0.251·linear(mae) (잔차 RMS 0.51)
+보고서: C:\Users\USER\Desktop\AI-pilot\core2\cadet_research\kit\out\smoke\report_predict_E2.md
+== predict E3
+곡선 (모양 linear, 적합 조건 20개, 시드 2개): D = 0.053 + 0.0676·linear(mae), M = 0.30 + 0.251·linear(mae)
+| 원인:delay_sync | +0.008 [+0.001, +0.016] | 예측 성공 | +0.117 [+0.111, +0.124] | 예측 성공 |
+| 원인:kappa | +0.055 [+0.014, +0.097] | 판정 불가 | +0.440 [+0.320, +0.539] | 예측 성공 |
+| 원인:kq | -0.038 [-0.064, -0.012] | 판정 불가 | -0.093 [-0.259, -0.011] | 예측 성공 |
+| 원인:sigma_dps | +0.058 [+0.058, +0.060] | 예측 실패 | +0.635 [+0.441, +0.764] | 예측 성공 |
+| 원인:조합 | +0.033 [+0.019, +0.047] | 예측 성공 | +0.041 [-0.302, +0.167] | 예측 성공 |
+| 전체 | +0.026 [+0.006, +0.046] | 예측 성공 | +0.247 [+0.109, +0.334] | 예측 성공 |
+보고서: C:\Users\USER\Desktop\AI-pilot\core2\cadet_research\kit\out\smoke\report_predict_E3.md
+== predict E4
+보고서: C:\Users\USER\Desktop\AI-pilot\core2\cadet_research\kit\out\smoke\report_predict_E4.md

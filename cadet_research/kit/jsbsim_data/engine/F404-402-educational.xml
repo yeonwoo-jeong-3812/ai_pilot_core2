@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- Only AB rating 17700 lbf is sourced to GE's public F404-402 specification.
+     Dry thrust, TSFC, spool and density lapse below are teaching assumptions.
+     This is not a measured F404 engine deck. -->
+<turbine_engine name="F404-402 educational approximation">
+  <milthrust>11000</milthrust><maxthrust>17700</maxthrust>
+  <bypassratio>0.34</bypassratio><tsfc>0.85</tsfc><atsfc>1.85</atsfc>
+  <idlen1>30</idlen1><idlen2>60</idlen2><maxn1>100</maxn1><maxn2>100</maxn2>
+  <augmented>1</augmented><augmethod>2</augmethod><injected>0</injected>
+  <function name="IdleThrust"><value>0.04</value></function>
+  <function name="MilThrust"><pow><quotient><property>atmosphere/rho-slugs_ft3</property><value>0.0023769</value></quotient><value>0.7</value></pow></function>
+  <function name="AugThrust"><pow><quotient><property>atmosphere/rho-slugs_ft3</property><value>0.0023769</value></quotient><value>0.7</value></pow></function>
+</turbine_engine>

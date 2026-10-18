@@ -1,0 +1,81 @@
+# Red Team 대항군 — ENERGY (에너지 보존형). 비배포(참가자 미공개).
+#
+# 에너지 상태가 공수를 결정한다: 저속이면 이탈·강하로 회복, 에너지 우위 +
+# 후방이면 lead 공세, 우위 없는 후방 점유는 lag 트레일(2,500ft 조절)로 보존.
+# 중립·대치에서는 pure 로 기수를 유지한다 — lag 일변도는 종축 WEZ 에서
+# 전 경기 무사격·최하위(2026-07-17 실측 0승)라 폐기.
+# 2026-07-17 재튜닝: D7 종축 기하·DPS 50·perch 6kft 반영.
+#
+# 2026-08-02 재튜닝 — 무교전 과다(19.6%) + 결판력 최악(56경기 중 격추 10·timeout 34)
+# 해소. 두 가지를 함께 고쳤다: (1) foe_extending 추격 분기 신설(익스텐드 봉쇄),
+# (2) energy_recover 가 "이미 멀어지는 적"에게는 발화하지 않도록 가드.
+#   · 실측(참가자 7종 × 4시나리오 × salt 2 = 56경기, baseline 대비):
+#     무교전 19.6%→14.3%, 격추 10→16, 참가자 승점 1.23→1.39/경기, 자멸 1→1.
+#   · 같은 처방을 red_allround·red_pressure 에도 넣었다가 **되돌렸다** — allround 은
+#     무교전 25.0→21.4%(n=56 이항 SE ±3.2경기, 노이즈)에 승점만 1.23→0.91 로 떨어졌고,
+#     pressure 는 19.6→33.9%·격추 17→9 로 악화했다. 이 분기는 범용 처방이 아니다.
+#
+# 2026-08-02 배터리 재채택 (폐기 → 대항군 5종째). phangman 과 동일 기준 통과:
+#   · 참가자 승점 분산 19.84, 범위 3~15/24 — 참가자를 전 범위로 줄 세운다
+#     (현행 레드 일부는 σ²=0 으로 변별력이 없었다).
+#   · 홀드아웃 red_knife 와 순위상관 +0.18 (phangman 채택 시 +0.22) — 거의 독립,
+#     즉 다른 능력을 잰다.
+#   · 난이도 1.39 점/경기 — red_knife 0.75(가혹)와 phangman 1.61(무름) 사이.
+#
+# ※ red 세트는 "난이도 사다리"가 아니라 "스타일 세트"다 — 컷오프 게이트의 하한은
+#   대회 시나리오 구성으로 리그를 돌려 실측 지정한다.
+agent_name: RedEnergy
+selector:
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+  # 방어: 적이 내 후미 조준 + 근접 → 브레이크
+  - sequence:
+      - condition: {name: is_defensive, aspect_deg: 150}
+      - condition: {name: merged, range_ft: 6000}
+      - action: {pursuit: lag, g_burst: 0.8, name: break_defense}
+  # 건 범위 → lead 추적 사격
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 45}
+      - action: {pursuit: lead, g_burst: 0.8, lead_time_s: 0.5, name: gun_track}
+  # 익스텐드 추격 — 상대가 거리를 벌리면 놓지 않는다(무교전 만료 봉쇄).
+  # 속도 게이트 280 은 아래 energy_recover 의 below_fighting_speed(280) 와 정확한
+  # 여집합이다 — 둘은 동시에 참이 될 수 없으므로 서로를 가리지 않는다. 성격도 그대로다:
+  # **에너지가 있으면 쫓아가 잡고, 없으면 회복한다.**
+  - sequence:
+      - condition: {name: foe_extending, closure_fps: -20, range_ft: 5000}
+      - condition: {name: above_fighting_speed, kcas: 280}
+      # max_g 없음 — foe_extending 은 range > 5,000ft 전제라 장거리 추격 전용이고,
+      # 거기서 리미터를 당기면 내가 감속해 거리가 더 벌어진다(red_pressure 주석 참조).
+      # 에너지 보존형에겐 특히 자기모순이다.
+      - action: {pursuit: lead, lead_time_s: 1.2, name: run_down}
+  # 저속 → 에너지 회복: 적 뒤 4,000ft 를 아래로 조준(이탈+강하 가속).
+  # cooldown 래핑: 회복 종료 후 5s 재진입 차단 — 임계 근처 chattering 방지
+  #
+  # **이미 멀어지는 적에게서 또 이탈하지 않는다** (2026-08-02). 이 가드가 없으면
+  # 위 run_down 과 280kt 경계에서 리밋 사이클이 생긴다: max_g 추격이 에너지를 태워
+  # 280 아래로 떨어뜨리면 즉시 이 분기가 적 뒤 4,000ft·아래로 이탈하고, 속도가
+  # 붙으면 다시 추격 — 양측이 서로 멀어져 WEZ 에 한 번도 못 든다. 실측으로 무교전
+  # 25%→75% (24경기, 2026-08-02). 적이 벌리는 중이면 회복 대신 아래 분기로 떨어져
+  # 기수를 유지한다 — pure 추격은 그 자체로 에너지를 태우지 않는다.
+  - cooldown:
+      name: energy_recover
+      wait_s: 5.0
+      child:
+        sequence:
+          - condition: {name: below_fighting_speed, kcas: 280}
+          - inverter:
+              condition: {name: foe_extending, closure_fps: -20, range_ft: 5000}
+          - action: {pursuit: lag, name: energy_recover, lag_dist_ft: 4000, aim_above_ft: -300}
+  # 에너지 우위 + 후방 → lead 공세 전환
+  - sequence:
+      - condition: {name: energy_advantage, min_ft: 500}
+      - condition: behind_foe
+      - action: {pursuit: lead, name: press_offense, lead_time_s: 1.2}
+  # 우위 없는 후방 점유 → lag 트레일 보존(2,500ft 수렴 — perch 접근 겸용)
+  - sequence:
+      - condition: {name: is_offensive, aspect_deg: 60}
+      - action: {pursuit: lag, mode: control_zone, lag_dist_ft: 2500,
+                 name: trail_conserve}
+  # 기본: pure (중립 대치에서 기수 유지)
+  - action: {pursuit: pure, name: pure_default}

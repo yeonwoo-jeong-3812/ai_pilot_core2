@@ -1,0 +1,6 @@
+source_repo: core2
+source_branch: fidelity/pw220-evidence
+source_commit: 3f2569f576ea7be3e5b91ac91acd5f85ffed27c5
+snapshot_date: 2026-10-14
+working_tree_dirty: yes (snapshot copies the working tree, not the commit)
+engine_sha256: e4da961689713328

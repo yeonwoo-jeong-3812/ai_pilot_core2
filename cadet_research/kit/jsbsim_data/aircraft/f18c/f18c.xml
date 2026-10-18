@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<fdm_config name="F/A-18C educational approximation (NOT flight-test validated)" version="2.0" release="ALPHA">
+  <fileheader>
+    <author>AI-pilot educational model</author>
+    <filecreationdate>2026-09-27</filecreationdate>
+    <description>Independent low-angle subsonic teaching model; see MODEL_NOTES.md.
+    C/D F404-402 thrust rating, legacy Hornet reference geometry, A-model empty-mass proxy.
+    Aerodynamic derivatives, inertia, fuel distribution and engine lapse are assumptions.
+    No operational FLCS, weapons, thrust vectoring, stall or landing simulation.</description>
+  </fileheader>
+  <metrics>
+    <wingarea unit="FT2">400</wingarea>
+    <wingspan unit="FT">37.42</wingspan>
+    <chord unit="FT">11.52</chord>
+    <location name="AERORP" unit="IN"><x>200</x><y>0</y><z>0</z></location>
+    <location name="EYEPOINT" unit="IN"><x>60</x><y>0</y><z>30</z></location>
+    <location name="VRP" unit="IN"><x>200</x><y>0</y><z>0</z></location>
+  </metrics>
+  <mass_balance>
+    <!-- Inertias and datum are teaching assumptions, not measured C-model values. -->
+    <ixx unit="SLUG*FT2">22000</ixx><iyy unit="SLUG*FT2">150000</iyy>
+    <izz unit="SLUG*FT2">170000</izz><ixz unit="SLUG*FT2">0</ixz>
+    <emptywt unit="LBS">23050</emptywt>
+    <location name="CG" unit="IN"><x>200</x><y>0</y><z>0</z></location>
+    <pointmass name="Pilot assumption"><weight unit="LBS">200</weight>
+      <location unit="IN"><x>200</x><y>0</y><z>0</z></location></pointmass>
+  </mass_balance>
+  <ground_reactions/>
+  <propulsion>
+    <engine file="F404-402-educational">
+      <feed>0</feed><feed>1</feed>
+      <thruster file="direct"><location unit="IN"><x>200</x><y>-24</y><z>0</z></location>
+        <orient unit="DEG"><pitch>0</pitch><roll>0</roll><yaw>0</yaw></orient></thruster>
+    </engine>
+    <engine file="F404-402-educational">
+      <feed>0</feed><feed>1</feed>
+      <thruster file="direct"><location unit="IN"><x>200</x><y>24</y><z>0</z></location>
+        <orient unit="DEG"><pitch>0</pitch><roll>0</roll><yaw>0</yaw></orient></thruster>
+    </engine>
+    <!-- Capacity and initial loading are teaching assumptions. -->
+    <tank type="FUEL" number="0"><location unit="IN"><x>200</x><y>-12</y><z>0</z></location>
+      <capacity unit="LBS">5000</capacity><contents unit="LBS">2500</contents></tank>
+    <tank type="FUEL" number="1"><location unit="IN"><x>200</x><y>12</y><z>0</z></location>
+      <capacity unit="LBS">5000</capacity><contents unit="LBS">2500</contents></tank>
+  </propulsion>
+  <flight_control name="Direct teaching controls, not Hornet FLCS">
+    <channel name="Pitch">
+      <summer name="fcs/pitch-command"><input>fcs/elevator-cmd-norm</input><input>fcs/pitch-trim-cmd-norm</input><clipto><min>-1</min><max>1</max></clipto></summer>
+      <aerosurface_scale name="fcs/elevator-pos-rad"><input>fcs/pitch-command</input>
+        <domain><min>-1</min><max>1</max></domain><range><min>-0.35</min><max>0.35</max></range></aerosurface_scale>
+    </channel>
+    <channel name="Roll">
+      <aerosurface_scale name="fcs/aileron-pos-rad"><input>fcs/aileron-cmd-norm</input>
+        <domain><min>-1</min><max>1</max></domain><range><min>-0.30</min><max>0.30</max></range></aerosurface_scale>
+    </channel>
+    <channel name="Yaw">
+      <aerosurface_scale name="fcs/rudder-pos-rad"><input>fcs/rudder-cmd-norm</input>
+        <domain><min>-1</min><max>1</max></domain><range><min>-0.30</min><max>0.30</max></range></aerosurface_scale>
+    </channel>
+  </flight_control>
+  <aerodynamics>
+    <!-- All following coefficients are explicit low-angle teaching assumptions. -->
+    <function name="aero/educational-cl"><sum><value>0.18</value>
+      <product><value>4.5</value><property>aero/alpha-rad</property></product>
+      <product><value>0.30</value><property>fcs/elevator-pos-rad</property></product></sum></function>
+    <axis name="LIFT"><function name="aero/force/Lift"><product>
+      <property>aero/qbar-psf</property><property>metrics/Sw-sqft</property>
+      <property>aero/educational-cl</property></product></function></axis>
+    <axis name="DRAG"><function name="aero/force/Drag"><product>
+      <property>aero/qbar-psf</property><property>metrics/Sw-sqft</property>
+      <sum><value>0.025</value><product><value>0.10</value><pow><property>aero/educational-cl</property><value>2</value></pow></product></sum>
+    </product></function></axis>
+    <axis name="SIDE"><function name="aero/force/Side"><product>
+      <property>aero/qbar-psf</property><property>metrics/Sw-sqft</property>
+      <sum><product><value>-0.8</value><property>aero/beta-rad</property></product>
+        <product><value>-0.15</value><property>fcs/rudder-pos-rad</property></product></sum>
+    </product></function></axis>
+    <axis name="ROLL"><function name="aero/moment/Roll"><product>
+      <property>aero/qbar-psf</property><property>metrics/Sw-sqft</property><property>metrics/bw-ft</property>
+      <sum><product><value>-0.08</value><property>aero/beta-rad</property></product>
+        <product><value>-0.6</value><property>aero/bi2vel</property><property>velocities/p-aero-rad_sec</property></product>
+        <product><value>0.12</value><property>fcs/aileron-pos-rad</property></product></sum>
+    </product></function></axis>
+    <axis name="PITCH"><function name="aero/moment/Pitch"><product>
+      <property>aero/qbar-psf</property><property>metrics/Sw-sqft</property><property>metrics/cbarw-ft</property>
+      <sum><value>0.03</value><product><value>-0.50</value><property>aero/alpha-rad</property></product>
+        <product><value>-8</value><property>aero/ci2vel</property><property>velocities/q-aero-rad_sec</property></product>
+        <product><value>-1</value><property>fcs/elevator-pos-rad</property></product></sum>
+    </product></function></axis>
+    <axis name="YAW"><function name="aero/moment/Yaw"><product>
+      <property>aero/qbar-psf</property><property>metrics/Sw-sqft</property><property>metrics/bw-ft</property>
+      <sum><product><value>0.15</value><property>aero/beta-rad</property></product>
+        <product><value>-0.25</value><property>aero/bi2vel</property><property>velocities/r-aero-rad_sec</property></product>
+        <product><value>0.08</value><property>fcs/rudder-pos-rad</property></product></sum>
+    </product></function></axis>
+  </aerodynamics>
+</fdm_config>

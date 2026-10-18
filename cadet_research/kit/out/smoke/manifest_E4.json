@@ -1,0 +1,7 @@
+{
+ "exp": "E4",
+ "salts": 2,
+ "jobs": 252,
+ "started": "2026-10-14 20:24:22",
+ "engine": "source_repo: core2\nsource_branch: fidelity/pw220-evidence\nsource_commit: 3f2569f576ea7be3e5b91ac91acd5f85ffed27c5\nsnapshot_date: 2026-10-14\nworking_tree_dirty: yes (snapshot copies the working tree, not the commit)\nengine_sha256: e4da961689713328\n"
+}
