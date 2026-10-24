@@ -25,6 +25,7 @@
 | 그림 5 시계열 (서술) | `fig5_timeseries.py` | P3 재생 3경기(main-0, neutral, 원자료와 같은 경기 확인) | `fig5_timeseries.csv`, `fig5_output.md`, `paper_figs/fig5_timeseries.png` | 같은 mae(1.68 대 1.72)의 둔한 형·진동형 응답. `--plot`은 경기 없이 그림만 |
 | 부록 C 시드 t (사후, 0판) | `appc_tinterval.py` | 기존 `games.csv` (읽기만) | `appc_tinterval_output.md`, `appc_tinterval.json` | 퍼센타일만 있던 8개 검정의 t 구간. 핵심 판정 유지, E3X κ(원래 시드)·ASYM 개별 칸 8/30은 판정 불가 |
 | 논문 도식 (그림 1·2·8 초안) | `paper_diagrams.py` | 없음 (도형만, 숫자는 원고에서 옮김) | `paper_figs/fig1_architecture.png`, `fig2_design.png`, `fig8_usage.png` | 5계층 구조와 열화 주입 위치, 설계 흐름, 사용 지도 |
+| 입문 문서 예시 (서술, 0판) | `intro_example.py` | `../out/main/games.csv`, `fig5_timeseries.csv` (읽기만) | `intro_example_output.md` | `../../STUDY_GUIDE_INTRO.md` §3의 R_kappa_25 따라가기 숫자 |
 
 `p2b_precise_gun.py`는 엔진 파일을 고치지 않고 작업 프로세스 안에서 `aircombat.geometry.wez.WEZ_ATA_TIERS`만 바꾸며, 경기마다 바뀐 등급이 쓰이는지 확인한다.
 

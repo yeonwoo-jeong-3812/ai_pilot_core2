@@ -4,7 +4,7 @@
 > v1 대비: P7(실제형 센서·구동기), P8(κ가 아닌 둔한 원인), P9(U자의 원인)를 반영했고, 핵심 메시지를 "오차 유형"으로 옮겼다(안 A). 재검토의 문장 수정안(구성 범위 명시, 사후 표시, "재현"의 범위, E4 치우침 문구)을 반영했다.
 > 남은 것: ① **참고문헌**(원문을 확인한 것만 넣는다. `[문헌: …]` 자리는 §참고문헌의 후보를 확인한 뒤 채운다) ② 그림은 모두 `kit/supplementary/paper_figs/`에 있다(1·2·8은 초안이라 담당자 점검 필요, 3–7은 완성) ③ 학회 양식에 맞춘 분량 조정(지금은 IEEE 2단 약 8쪽 기준).
 > 표기: "사전 등록"은 실행 전에 판정 기준을 문서로 고정한 분석, "사후"는 결과를 본 뒤의 분석이다.
-> **2026-10-24 수정** (공부 문서 v3 검토에서 나온 불일치): 초록의 "약 40 % 작은 오차" → 44 %(사후 표시), Ⅲ-E 종료 규칙 세부, Ⅳ-F "기술 지표" → "서술 지표", Ⅴ-D 범위 안 오차(−0.108)와 승자 변화, 표 5 E4 시드 t 사후 표시, 표 6 흔들림 바닥 범위, Ⅵ-B 2.7만 경기 설명, 원고의 "고장" → "열화". 2차 검토 반영: E4 판정의 사후 표시(표 5), Ⅶ RQ1 사후 표시, U자 인과 서술을 "함께 나타남 + 해석"으로 완화(초록·Ⅴ-E·Ⅵ-A·Ⅶ), 영문 초록 용어(pitch-rate, limit-cycle), 표 6 바닥 0.10–0.17, P6 비교 기울기 각주, 참고문헌 후보 표 통일. 3차 작업(10/24): Ⅳ-E·Ⅴ-C·Ⅴ-E 시드 t 문장(부록 C 계산 `appc_tinterval_output.md`), Ⅴ-C 그림 5 문장, 그림 1·2·5·8 목록, 표 6 독립 단위 행. 코딩 검토 반영: Ⅲ-A·Ⅲ-C 선행 실험 문장, Ⅲ-E 종료 규칙(무접촉 정의, 동시 종료), Ⅳ-A mae 정의, Ⅳ-E δ_점수·98.33 % 구간, Ⅳ-F 절전으로 잘린 경기, Ⅴ-D "대체로", 그림 7의 "고장" 표기. 새 숫자의 출처는 `kit/supplementary/derived_numbers_output.md`.
+> **2026-10-24 수정** (공부 문서 v3 검토에서 나온 불일치): 초록의 "약 40 % 작은 오차" → 44 %(사후 표시), Ⅲ-E 종료 규칙 세부, Ⅳ-F "기술 지표" → "서술 지표", Ⅴ-D 범위 안 오차(−0.108)와 승자 변화, 표 5 E4 시드 t 사후 표시, 표 6 흔들림 바닥 범위, Ⅵ-B 2.7만 경기 설명, 원고의 "고장" → "열화". 2차 검토 반영: E4 판정의 사후 표시(표 5), Ⅶ RQ1 사후 표시, U자 인과 서술을 "함께 나타남 + 해석"으로 완화(초록·Ⅴ-E·Ⅵ-A·Ⅶ), 영문 초록 용어(pitch-rate, limit-cycle), 표 6 바닥 0.10–0.17, P6 비교 기울기 각주, 참고문헌 후보 표 통일. 입문서 2차 검수(10/24): Ⅲ-A "비트 단위 재현" → "같은 경기가 나온다"(확인 기준은 승자·종료 사유·체력·mae 일치), Ⅴ-C +0.172의 기준 직선 표기. 입문서 검수(10/24): U자 서술의 "자체 진동이 없는 실제형" 수식어 삭제(실제형도 6틱 이상에서 자체 진동), "조금씩" → "대체로 조금씩"(6→8틱은 조금 오름). 3차 작업(10/24): Ⅳ-E·Ⅴ-C·Ⅴ-E 시드 t 문장(부록 C 계산 `appc_tinterval_output.md`), Ⅴ-C 그림 5 문장, 그림 1·2·5·8 목록, 표 6 독립 단위 행. 코딩 검토 반영: Ⅲ-A·Ⅲ-C 선행 실험 문장, Ⅲ-E 종료 규칙(무접촉 정의, 동시 종료), Ⅳ-A mae 정의, Ⅳ-E δ_점수·98.33 % 구간, Ⅳ-F 절전으로 잘린 경기, Ⅴ-D "대체로", 그림 7의 "고장" 표기. 새 숫자의 출처는 `kit/supplementary/derived_numbers_output.md`.
 
 ---
 
@@ -14,13 +14,13 @@
 
 ## 초록
 
-비행제어기의 성능이 달라질 때 공중전 결과가 얼마나 바뀌는지 평가하려면 지금은 조건마다 천 회가 넘는 교전 시뮬레이션이 필요하다. 본 연구는 JSBSim F-16과 증분 비선형 동적 역변환(INDI) 각속도 제어기 위에서 행동트리 전술 8종의 리그를 구성하고, 제어기를 여러 원인으로 열화시켜 같은 시드의 기준 경기와 짝지어 비교하였으며, 모든 판정 기준은 실행 전에 고정하였다(약 14만 경기). 한 제어기 구성 안에서 교전 중 피치 추종 오차는 처음 보는 원인의 결과 변화를 추종 오차를 쓰지 않는 상수 예측보다 44 % 작은 오차로 예측했지만(결과를 본 뒤의 비교), 추종 오차와 결과 변화의 비례 상수는 실제형 센서·구동기에서 원래 값의 약 40 %로 달라졌다. 예측이 틀린 곳은 오차의 유형으로 설명되었다. 같은 크기의 오차라도 명령을 늦게 따라가는 둔한 오차가 빠르게 떨리는 오차보다 결과를 더 바꾸었고, 이 차이는 세 가지 원인과 처음 쓰는 시드, 실제형 구성에서 모두 사전 등록 기준으로 확인되었다. 한 기체만 열화했을 때 원래 구성에서 나타난 점수의 U자는 제어기의 자체 진동과 함께 교전의 위치 관계가 바뀌며 나타났고, 자체 진동이 없는 실제형 구성에서는 열화가 클수록 점수가 조금씩 줄었다. 따라서 추종 오차는 제어기 구성마다 보정한 뒤 결과 변화의 크기를 가늠하는 데 쓰되, 오차의 유형을 함께 보아야 한다.
+비행제어기의 성능이 달라질 때 공중전 결과가 얼마나 바뀌는지 평가하려면 지금은 조건마다 천 회가 넘는 교전 시뮬레이션이 필요하다. 본 연구는 JSBSim F-16과 증분 비선형 동적 역변환(INDI) 각속도 제어기 위에서 행동트리 전술 8종의 리그를 구성하고, 제어기를 여러 원인으로 열화시켜 같은 시드의 기준 경기와 짝지어 비교하였으며, 모든 판정 기준은 실행 전에 고정하였다(약 14만 경기). 한 제어기 구성 안에서 교전 중 피치 추종 오차는 처음 보는 원인의 결과 변화를 추종 오차를 쓰지 않는 상수 예측보다 44 % 작은 오차로 예측했지만(결과를 본 뒤의 비교), 추종 오차와 결과 변화의 비례 상수는 실제형 센서·구동기에서 원래 값의 약 40 %로 달라졌다. 예측이 틀린 곳은 오차의 유형으로 설명되었다. 같은 크기의 오차라도 명령을 늦게 따라가는 둔한 오차가 빠르게 떨리는 오차보다 결과를 더 바꾸었고, 이 차이는 세 가지 원인과 처음 쓰는 시드, 실제형 구성에서 모두 사전 등록 기준으로 확인되었다. 한 기체만 열화했을 때 원래 구성에서 나타난 점수의 U자는 제어기의 자체 진동과 함께 교전의 위치 관계가 바뀌며 나타났고, 실제형 구성에서는 비슷한 크기의 추종 오차에서도 반등 없이 점수가 대체로 조금씩 줄었다. 따라서 추종 오차는 제어기 구성마다 보정한 뒤 결과 변화의 크기를 가늠하는 데 쓰되, 오차의 유형을 함께 보아야 한다.
 
 핵심어: 비행제어 열화, INDI, 공중전 시뮬레이션, 추종 오차, 대리 지표, 사전 등록
 
 ## Abstract
 
-Estimating how much a change in a fighter's flight-control system alters air-combat outcomes currently requires more than a thousand engagement simulations per condition. On a JSBSim F-16 with an incremental nonlinear dynamic inversion (INDI) rate controller, we played a league of eight behavior-tree tactics under several controller degradations, paired every game with a same-seed baseline, and fixed all decision rules before running (about 140,000 games). Within one controller configuration, in-combat pitch-rate tracking error predicted outcome change for unseen degradation causes with 44 % less error than a constant predictor that ignores it (a post hoc comparison), but the error-to-outcome slope fell to about 40 % of its original value with realistic sensor and actuator dynamics. The prediction failures were explained by error type: at equal magnitude, sluggish lag errors changed outcomes more than fast oscillatory errors, a difference confirmed under pre-registered criteria for three causes, on fresh seeds, and in the realistic configuration. The U-shaped score of a single degraded aircraft in the original configuration appeared together with the controller's limit-cycle oscillation and a shift in engagement geometry; with realistic dynamics, which removed the limit cycle, the score declined slightly with degradation. Tracking error can therefore gauge the size of outcome change once calibrated for a controller configuration, but its type must be considered as well.
+Estimating how much a change in a fighter's flight-control system alters air-combat outcomes currently requires more than a thousand engagement simulations per condition. On a JSBSim F-16 with an incremental nonlinear dynamic inversion (INDI) rate controller, we played a league of eight behavior-tree tactics under several controller degradations, paired every game with a same-seed baseline, and fixed all decision rules before running (about 140,000 games). Within one controller configuration, in-combat pitch-rate tracking error predicted outcome change for unseen degradation causes with 44 % less error than a constant predictor that ignores it (a post hoc comparison), but the error-to-outcome slope fell to about 40 % of its original value with realistic sensor and actuator dynamics. The prediction failures were explained by error type: at equal magnitude, sluggish lag errors changed outcomes more than fast oscillatory errors, a difference confirmed under pre-registered criteria for three causes, on fresh seeds, and in the realistic configuration. The U-shaped score of a single degraded aircraft in the original configuration appeared together with the controller's limit-cycle oscillation and a shift in engagement geometry; with realistic sensor and actuator dynamics there was no rebound at comparable tracking error, and the score generally declined slightly with degradation. Tracking error can therefore gauge the size of outcome change once calibrated for a controller configuration, but its type must be considered as well.
 
 ---
 
@@ -66,7 +66,7 @@ Estimating how much a change in a fighter's flight-control system alters air-com
 - JSBSim 1.3.1의 F-16 모델 두 대가 교전한다. 공개 모델의 flaperon 부호 결함은 본 연구진의 선행 실험(미발표)에서 확인한 수정을 적용하였다.
 - 위에서 아래로 행동트리 전술(20 Hz), 기본 전투 기동 유도(60 Hz), G·받음각 리미터, 2축 INDI 각속도 제어기(120 Hz)가 이어진다(그림 1).
 - 열화는 INDI에만 주입한다.
-- 경기는 (시나리오, 시드)로 초기 조건이 정해지고, 같은 PC 안에서 비트 단위로 재현된다.
+- 경기는 (시나리오, 시드)로 초기 조건이 정해지고, 같은 PC 안에서 다시 돌리면 같은 경기가 나온다(Ⅳ-F).
 
 **B. INDI 제어기.** 롤·피치 축에서 다음을 계산한다.
 
@@ -228,7 +228,7 @@ Estimating how much a change in a fighter's flight-control system alters air-com
 
 *유형 효과의 확인.* 같은 mae 범위에서 둔한 형 조건의 직선 잔차(D − 직선 예측)가 진동형보다 컸다. 세 자료 모두 실행 전에 조건 선택 규칙을 고정하였다(그림 4).
 - 원래 구성, 새 시드, κ 50·100: +0.060 [+0.048, +0.074]
-- 실제형 구성, κ 25·50: +0.172 [+0.144, +0.201] (Ⅴ-D)
+- 실제형 구성, κ 25·50: +0.172 [+0.144, +0.201] (실제형 비동기 지연 직선 대비, Ⅴ-D)
 - 실제형 구성, 새 시드, κ가 아닌 원인: **+0.330 [+0.299, +0.358]**
   - 명령 전달 지연 0.4 s: +0.540. 효과의 대부분은 지면 충돌 증가(382 → 942경기)였다.
   - 낮은 k_q(0.25): +0.119. 종료 사유 분포는 기준과 거의 같았다.
@@ -257,11 +257,11 @@ Estimating how much a change in a fighter's flight-control system alters air-com
 - 기총을 2°·5° 정밀 조준형으로 바꾸어도 반등의 64 %가 남았다(사전 등록 "반등 유지").
 - 열화 없이 2.2 Hz 기수 흔들림만 넣으면 두 대상 모두 사전 기준으로 판정 불가였다(+3.8, +25.1점).
 
-*실제형 구성: 반등 없음.* 같은 실험을 실제형 구성에서 하면 두 대상 모두 반등이 없었다(사전 등록 "반등 없음"). 점수는 열화가 클수록 조금씩 줄었다(비동기 지연 6·8·10·12틱).
+*실제형 구성: 반등 없음.* 같은 실험을 실제형 구성에서 하면 두 대상 모두 반등이 없었다(사전 등록 "반등 없음"). 점수는 열화가 클수록 대체로 조금씩 줄었다(비동기 지연 6·8·10·12틱).
 - GunTracker: −1.4 → −0.4 → −4.5 → −7.4점
 - Extender: +0.1 → −3.0 → −5.0 → −9.8점
 
-**따라서 원래 구성의 U자는 제어기의 자체 진동과 함께 나타난 현상이다.** 진동하는 기체의 공세 비율이 크게 늘었으므로 진동이 교전의 위치 관계를 바꿨다고 해석한다. 다만 흔들림만 넣은 직접 시험은 판정 불가였고 실제형 구성은 세 요소를 한꺼번에 바꿨으므로, 인과는 해석으로 남긴다. 자체 진동이 있는 제어기에서는 추종 오차가 성과의 방향을 거꾸로 가리킬 수 있다.
+**따라서 원래 구성의 U자는 제어기의 자체 진동과 함께 나타난 현상이다.** 진동하는 기체의 공세 비율이 크게 늘었으므로 진동이 교전의 위치 관계를 바꿨다고 해석한다. 다만 흔들림만 넣은 직접 시험은 판정 불가였고 실제형 구성은 세 요소를 한꺼번에 바꿨으므로, 인과는 해석으로 남긴다. 실제형 구성도 6틱 이상에서는 교전 없는 시험에서 스스로 떨었지만(P7 시험 비행) 비슷한 mae에서 반등이 없었으므로, "자체 진동이 있으면 반등한다"고 일반화하지 않는다. 자체 진동이 있는 제어기에서는 추종 오차가 성과의 방향을 거꾸로 가리킬 수 있다.
 
 **F. 견고성.** 다른 참가자와 다른 기총 모델로 바꾸었을 때의 결과를 표 5에 모았다.
 
@@ -286,6 +286,7 @@ Estimating how much a change in a fighter's flight-control system alters air-com
 - **한계로 남는 것.** 이 해석을 담은 예측 지표는 아직 만들지 못했다. 1 Hz 대역 분해는 사전 등록 기준에서 실패했다. 자세 기준 오차 같은 지표를 등록하고 검증하는 것이 다음 단계이다.
 - **U자.** 원래 구성의 U자는 제어기의 자체 진동과 함께 나타났고, 교전 위치 관계의 변화가 동반되었다(해석).
   - 왜 떨리는 기체가 공세 위치에 서게 되는지는 이 자료로 가를 수 없었다.
+  - 실제형 구성도 6틱 이상에서는 스스로 떨었지만 반등이 없었다. 따라서 자체 진동만으로는 U자를 설명할 수 없다.
   - 후보는 진동이 만드는 속도·에너지 변화다(가설). 속도는 기록하지 않았다.
 
 **B. 사용 설명서.** 추종 오차 지표를 쓸 수 있는 곳과 쓰면 안 되는 곳을 정리했다(그림 8).
@@ -328,7 +329,7 @@ Estimating how much a change in a fighter's flight-control system alters air-com
 - **RQ1:** 한 제어기 구성 안에서 교전 중 피치 추종 오차는 공중전 결과 변화의 크기를 추종 오차를 쓰지 않을 때보다 덜 틀리게 예측하였다(결과를 본 뒤의 비교).
 - **RQ2:** 예측은 오차의 유형이 다를 때 틀렸다. 같은 크기에서 둔한 오차가 진동 오차보다 결과를 더 바꾸었다.
 - **RQ3:** 실제형 센서·구동기에서 비례 관계는 달라졌지만 유형의 효과는 남았다.
-- **RQ4:** 원래 구성에서 한 기체 열화의 U자는 제어기 자체 진동과 함께 나타났고, 자체 진동이 없는 실제형 구성에서는 나타나지 않았다.
+- **RQ4:** 원래 구성에서 한 기체 열화의 U자는 제어기 자체 진동과 함께 나타났고, 실제형 구성에서는 비슷한 크기의 추종 오차에서도 나타나지 않았다.
 
 비행제어 열화의 교전 영향을 가늠하려면 오차의 크기만이 아니라 그 유형을 함께 보아야 하며, 이를 담은 지표를 실제형 제어기에서 검증하는 것이 남은 과제이다.
 
