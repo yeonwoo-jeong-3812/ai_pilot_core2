@@ -6,4 +6,4 @@ SHAM 시드별 M: 0.00, 0.00, 3.00, 1.12, 1.50, 1.88, 0.75, 0.75
 δ_D = max(2 × 0.039, 0.05) = 0.079
 δ_M = max(2 × 2.61, 3.0) = 5.21점
 
-등록: C:\Users\User\OneDrive\Desktop\cadet_research\cadet_research\kit\out\cal\tolerance.json
+등록: kit/out/cal/tolerance.json

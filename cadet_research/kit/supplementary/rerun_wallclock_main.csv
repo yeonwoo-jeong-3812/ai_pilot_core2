@@ -1,0 +1,15 @@
+cond,target,blue,red,scenario,salt,winner,condition,hp_blue,hp_red,blue_corr_q,blue_mae_q_dps,red_corr_q,red_mae_q_dps,wall_s
+R_sigma_dps_3,,TwoCircle,EnergyFighter,neutral,main-4,TwoCircle,hard_deck,100.0,0.0,0.9625,0.6507,0.9522,0.6771,27.3
+R_sigma_dps_3,,Reactive,LagAngler,perch_offense,main-4,Reactive,health_zero,14.79,0.0,0.9227,0.7697,0.8814,0.7675,46.1
+R_sigma_dps_3,,EnergyFighter,TwoCircle,neutral,main-4,draw,no_contact,100.0,100.0,0.9499,0.6803,0.9521,0.6837,50.2
+R_sigma_dps_3,,EnergyFighter,Reactive,headon,main-4,Reactive,timeout,2.4,27.4,0.9656,0.7767,0.9621,0.7643,50.3
+R_sigma_dps_3,,LagAngler,Reactive,perch_offense,main-4,Reactive,timeout,28.96,82.71,0.926,0.6567,0.9115,0.8365,50.0
+R_sigma_dps_3,,RedPrime,EnergyFighter,neutral,main-4,draw,no_contact,100.0,100.0,0.9129,0.8844,0.9479,0.7175,49.7
+R_sigma_dps_3,,RedPrime,EnergyFighter,perch_offense,main-4,RedPrime,timeout,100.0,12.29,0.9544,0.7836,0.9572,0.7215,50.1
+R_sigma_dps_3,,EnergyFighter,Extender,neutral,main-4,EnergyFighter,timeout,42.71,36.77,0.9063,0.8718,0.9378,0.7841,49.9
+R_sigma_dps_3,,EnergyFighter,RedPrime,perch_offense,main-4,EnergyFighter,timeout,91.35,27.19,0.948,0.7769,0.953,0.7822,50.2
+R_sigma_dps_3,,Extender,EnergyFighter,headon,main-4,EnergyFighter,timeout,5.63,9.58,0.9655,0.7594,0.9535,0.8806,50.2
+R_sigma_dps_3,,EnergyFighter,RedPrime,neutral,main-4,draw,no_contact,100.0,100.0,0.9228,0.8212,0.928,0.8315,50.1
+R_sigma_dps_3,,Extender,EnergyFighter,neutral,main-4,EnergyFighter,health_zero,0.0,2.29,0.9314,0.8037,0.8783,0.9738,36.6
+R_sigma_dps_3,,TwoCircle,EnergyFighter,perch_offense,main-4,TwoCircle,timeout,100.0,91.67,0.9426,0.7492,0.928,0.7747,50.4
+R_sigma_dps_3,,EnergyFighter,Extender,headon,main-4,Extender,health_zero,0.0,30.83,0.9531,0.921,0.9623,0.7816,29.8

@@ -172,8 +172,12 @@ def section_agreement(by, pairs, salts, rng):
         dist[(g["blue"], g["red"], g["scenario"])][outcome(g)] += 1
     ref = np.mean([sum((c / len(salts)) ** 2 for c in dist[(g["blue"], g["red"], g["scenario"])].values())
                    for g in by["BASE"]])
-    say(f"무상관 기준 {ref:.3f} (BASE 기준): 변형 경기의 결과가 같은 대진·시나리오 BASE 결과 분포에서 독립으로 뽑혔다면 기대되는 일치율. "
-        "이 값에 가까우면 개별 경기는 사실상 새로 뽑은 것과 같다.\n")
+    n = len(salts)
+    unb = np.mean([sum(c * (c - 1) for c in cnt.values()) / (n * (n - 1)) for cnt in dist.values()])
+    say(f"무상관 기준 {ref:.3f} (BASE 기준, plug-in): 변형 경기의 결과가 같은 대진·시나리오 BASE 결과 분포에서 독립으로 뽑혔다면 기대되는 일치율. "
+        "이 값에 가까우면 개별 경기는 사실상 새로 뽑은 것과 같다. "
+        f"plug-in 값은 한 경기가 자기 자신과 일치하는 경우를 포함해 위로 치우치므로, 같은 경기끼리의 비교를 뺀 보정값 {unb:.3f}을 함께 적는다"
+        "(2026-10-20 추가).\n")
     say("| 변형 vs 기준 | 경기 일치율 | 95 % CI (시드 단위) |")
     say("|---|---|---|")
     for c, ref in pairs:
@@ -202,7 +206,7 @@ def register_delta(by, agents, salts):
     with open(path, "w", encoding="utf-8") as f:
         json.dump({"delta_pts": delta, "sham_p95": p95, "practical_floor": PRACTICAL_FLOOR,
                    "n": int(d.size), "salts": salts}, f, ensure_ascii=False, indent=1)
-    say(f"등록: {path}\n")
+    say(f"등록: {os.path.relpath(path, os.path.dirname(KIT)).replace(os.sep, '/')}\n")
 
 
 def read_delta():

@@ -1,0 +1,14 @@
+cond,target,blue,red,scenario,salt,winner,condition,hp_blue,hp_red,blue_corr_q,blue_mae_q_dps,red_corr_q,red_mae_q_dps,wall_s
+F25_D2,Extender,Extender,RedPrime,neutral,main-7,draw,wall_clock,61.98,100.0,0.4437,4.5084,0.8615,0.3249,12499.3
+F25_D2,Extender,Extender,RedPrime,perch_offense,main-7,draw,wall_clock,82.19,92.71,0.5183,5.5314,0.9031,0.4048,12502.4
+F25_D2,Extender,EnergyFighter,Extender,perch_offense,main-7,draw,wall_clock,66.15,58.96,0.9992,0.0871,0.9042,1.9922,12509.4
+F25_D2,Extender,Extender,LagAngler,neutral,main-7,draw,wall_clock,93.44,83.54,0.4761,6.0173,0.9478,0.1481,12515.4
+F25_D2,Extender,Extender,EnergyFighter,perch_offense,main-7,draw,wall_clock,52.6,66.56,0.5471,4.9707,0.9181,0.3754,12508.6
+F25_D2,Extender,Extender,EnergyFighter,headon,main-7,draw,wall_clock,17.71,63.85,0.6617,4.1751,0.9707,0.3373,12514.3
+F25_D2,Extender,EnergyFighter,Extender,neutral,main-7,draw,wall_clock,100.0,100.0,0.928,0.2357,0.4857,4.1724,12506.6
+F25_D2,Extender,Extender,LagAngler,headon,main-7,draw,wall_clock,13.54,41.25,0.5785,5.3139,0.9611,0.2673,12520.0
+F25_D2,Extender,Extender,RedPrime,headon,main-7,draw,wall_clock,33.33,65.63,0.6574,4.9499,0.9905,0.2466,12503.5
+F25_D2,Extender,RedPrime,Extender,neutral,main-7,draw,wall_clock,66.15,76.25,0.929,0.4187,0.5023,5.3444,12499.1
+F25_D2,Extender,RedPrime,Extender,headon,main-7,draw,wall_clock,41.46,45.42,0.9838,0.3444,0.6221,5.2175,12502.6
+F25_D2,Extender,LagAngler,Extender,headon,main-7,draw,wall_clock,52.29,40.94,0.98,0.1746,0.5413,6.1906,12520.7
+F25_D2,Extender,Extender,EnergyFighter,neutral,main-7,draw,wall_clock,100.0,100.0,0.5066,3.9961,0.9324,0.3248,12505.4

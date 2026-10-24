@@ -1,15 +1,15 @@
 """지연 여유 사전 예측 — 교전 결과를 보기 전에 제어기만으로 임계 지연을 정한다.
 
   python margin.py linear          # (a) 선형 이론: 이상 플랜트 + 동기화 필터 + 비동기 지연
-  python margin.py bench --procs 20 # (b) 비선형 벤치: F-16 한 대, 실제 FLCS, 피치 명령 추종
+  python margin.py bench --procs 20 # (b) 비선형 벤치: F-16 한 대(피치·롤 내장 FLCS 우회, 교전과 같은 구성), 피치 명령 추종
 
 (a) 피치 한 축 120 Hz 이산 모델. INDI가 플랜트 역모델을 정확히 안다고 두면 남는 것은 필터와 지연뿐이다.
     가속도 a = z⁻¹·v (v = G·u, 이번 틱 입력이 다음 틱 가속도), 각속도 ω = dt·a / (1 − z⁻¹).
     측정은 n틱 늦고 조종 입력 되먹임은 늦지 않는다(비동기). 법칙 u = H·u + G⁻¹(K(ω_sp − H z⁻ⁿ ω) − H z⁻ⁿ a).
     정리하면 특성식 1 + z⁻ⁿ L(z) = 0,  L(z) = H z⁻¹ (1 + K dt/(1 − z⁻¹)) / (1 − H).
     지연 여유 n_max = min(위상여유 / 교차 주파수) [틱]. 정수 n 에서 특성근으로 교차 확인한다.
-(b) 같은 지연을 실제 JSBSim F-16(내장 FLCS 포함)에 걸고 피치각속도 이중펄스 추종 오차 J 를 잰다.
-    임계 지연 = J/J₀ 가 2를 처음 넘는 지연. 선형 예측과 다르면 그 차이가 FLCS·작동기 동특성의 몫이다.
+(b) 같은 지연을 실제 JSBSim F-16(교전과 같은 구성: 피치·롤 내장 FLCS 법칙 우회, 구동기 속도 제한·명령 클립 포함)에 걸고 피치각속도 이중펄스 추종 오차 J 를 잰다.
+    임계 지연 = J/J₀ 가 2를 처음 넘는 지연. 선형 예측과 다르면 그 차이가 작동기 동특성·명령 클립·비선형 공력의 몫이다.
 """
 from __future__ import annotations
 
@@ -75,10 +75,16 @@ def linear():
     rows = []
     print("필터 [Hz] | 선형 지연 여유 [틱] | [ms] | τ·f_c | 정수 지연 안정 여부 (0..8틱)")
     for fc in FILTERS:
-        n = delay_margin(fc)
+        # 위상여유/교차주파수 공식은 지연 0에서 폐루프가 안정할 때만 의미가 있다. 아니면 여유를 정의하지 않는다
+        # (2026-10-19 검토 의견 v1 §7: 50 Hz 의 4.149틱은 이 전제가 깨진 값이었다. 이상 플랜트 모형에서 50 Hz 는
+        #  나이퀴스트 60 Hz 에 가까워 지연 0 에서도 불안정하다. 비선형 벤치에서는 지연 0 추종이 정상이다).
+        stable0 = char_stable(fc, 0)
+        n = delay_margin(fc) if stable0 else float("nan")
         st = "".join("O" if char_stable(fc, k) else "x" for k in range(9))
-        print(f"{fc:9.0f} | {n:18.2f} | {n * DT * 1e3:5.1f} | {n * DT * fc:5.3f} | {st}")
-        rows.append({"fc": fc, "n_max_ticks": n, "tau_ms": n * DT * 1e3, "tau_fc": n * DT * fc,
+        note = "" if stable0 else "  ← 지연 0 에서 이미 불안정: 여유 정의 불가 (이상 플랜트 모형의 한계)"
+        print(f"{fc:9.0f} | {n:18.2f} | {n * DT * 1e3:5.1f} | {n * DT * fc:5.3f} | {st}{note}")
+        rows.append({"fc": fc, "stable_at_0": stable0, "n_max_ticks": None if not stable0 else n,
+                     "tau_ms": None if not stable0 else n * DT * 1e3, "tau_fc": None if not stable0 else n * DT * fc,
                      "stable_int_0_8": st})
     out = os.path.join(KIT, "out", "margin")
     os.makedirs(out, exist_ok=True)

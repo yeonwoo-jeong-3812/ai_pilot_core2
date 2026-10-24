@@ -136,3 +136,18 @@ V_TEST = ["R_kappa_25", "R_kappa_100", "R_kappa_400", "R_sigma_dps_3", "R_sigma_
           "R_delay_sync_16", "R_delay_sync_24", "R_kq_0.25", "R_kq_3"] + list(COMBOS)
 EXPERIMENTS["SIG"] = dict(agents=AGENTS_FEAS, scenarios=LEAGUE, salt="feas3", salts=6,
                           conds=["BASE", "SHAM"] + V_FIT + V_TEST, ref="BASE")
+
+# ---------------------------------------------------------------- 본실험 뒤 추가 실험 (검토 의견 v1, 2026-10-19)
+# 결과를 본 뒤 추가한 실험이다. 사전 등록은 ../PREREG_EXTRA.md. 등록된 E1–E4 판정을 바꾸지 않는다.
+# run.py 가 아니라 run_extra.py 로 돌린다 (대상 3종만 고르고, 원자료 out/main 과 섞지 않고 out/asym, out/e3x 에 쓴다).
+# 짝이 되는 BASE 는 out/main 의 같은 시드(main-*) 경기다.
+#   ASYM (v1 의 E-1): 참가자 하나만 열화. 대상 = main BASE 점수 1위·4위·8위
+#   E3X  (v1 의 E-2): E3 검증 수준을 SIG 수준으로 넓힘 (대칭)
+ASYM_TARGETS = ["RedPrime", "GunTracker", "Extender"]
+ASYM_CONDS = ["SHAM", "F25_D0.5", "F25_D1", "F25_D2", "F25_D4", "F25_D6",
+              "R_kappa_50", "R_kq_0.25", "R_sigma_dps_6", "R_delay_sync_16"]
+E3X_CONDS = ["R_kappa_100", "R_kappa_400", "R_sigma_dps_10", "R_sigma_dps_20", "R_kq_3", "R_delay_sync_24"]
+EXPERIMENTS["ASYM"] = dict(agents=AGENTS_MAIN, scenarios=LEAGUE, salt="main", salts=8, out="asym",
+                           conds=["BASE"] + ASYM_CONDS, ref="BASE", target="each", targets=ASYM_TARGETS)
+EXPERIMENTS["E3X"] = dict(agents=AGENTS_MAIN, scenarios=LEAGUE, salt="main", salts=8, out="e3x",
+                          conds=["BASE"] + E3X_CONDS, ref="BASE")

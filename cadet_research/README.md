@@ -82,7 +82,23 @@ python predict.py SIG
 | E3 결과 | 2026-10-18 09:46 (`kit/out/main/report_predict_E3.md`). 22개 조건 29,568판. 원인 묶음 5개(κ, k_q, 잡음, 동기 지연, 조합)와 전체 모두 D·M "예측 성공". D 전체 평균 예측 오차 +0.005 [−0.005, +0.014], 원인별 −0.003–+0.021. 조건 하나씩 보면 k_q 0.25 (+0.108 [+0.080, +0.141])는 CI 전체가 +δ_D 밖이고, κ 50 (+0.074)은 +δ_D에 걸친다. 묶음 판정은 계획서 기준대로다. E3 조건의 추종 오차는 0.20–3.55 °/s로, E2 적합 범위(0.19–10.57)의 아래쪽에 몰려 있다 |
 | E4 결과 | 2026-10-18 15:34 (`kit/out/gen/report_predict_E4.md`, 11,088판, 참가자 12종, 시드 4개). 분석기는 조건별 점추정만 낸다. 열화 5조건의 D 예측 오차는 +0.022–+0.072로 모두 양수이고, SHAM은 −0.142(실제 0.013, 예측 0.155)다. 보조 계산(§5.3과 같은 시드 부트스트랩 규칙, E2·E4 시드를 따로 재표본): 열화 5조건 평균 +0.045 [+0.020, +0.074] → ±δ_D 안, 6조건 전체 +0.014 [−0.011, +0.040]. 시드 4개라 부트스트랩이 거칠다 |
 | 절전으로 잘린 경기 (2026-10-18 발견) | 엔진은 한 경기가 실제 시간 120초를 넘으면 `wall_clock` 무승부로 끝낸다(`aircombat/engine/match.py:166`, JSBSim 멈춤 대비). 절전 두 번(10/17 22:17 약 8분, 10/18 13:42 약 11분) 동안 돌던 경기가 이 장치에 걸렸다: E3 `R_sigma_dps_3`·`main-4` 14판, E4 `R_kq_2`·`gen-2` 14판. `analyze.py` 표는 다섯 종료 사유만 세서 이 판이 빠져 있다. 원자료는 그대로 두고 28판만 다시 돌려(결과는 스크래치 폴더) 바꿔 끼운 민감도 분석: R_sigma_dps_3 D 0.217 → 0.209, 잡음 묶음 +0.006 → +0.004, E3 전체 +0.005 그대로, E4 R_kq_2 D 0.350 → 0.342, E4 열화 5조건 평균 +0.045 → +0.044 [+0.018, +0.074]. 판정은 모두 그대로. 공식 원자료를 바꿀지는 미정 |
-| 본실험 종료 | 2026-10-18 15:34 E1–E4 전부 완료(합계 72,912판). 정리 대기가 자동으로 시작프로그램 등록을 지우고 덮개 닫기 동작(전원 연결 시)을 "절전"(1)으로 되돌렸다. 확인함 |
+| 본실험 종료 | 2026-10-18 15:34 E1–E4 전부 완료(실행 단위 합계 72,912판. E2와 E3가 같은 BASE 1,344판을 공유해 기록된 경기는 71,568판: cal 2,688 + main 57,792 + gen 11,088. 2026-10-21 정정). 정리 대기가 자동으로 시작프로그램 등록을 지우고 덮개 닫기 동작(전원 연결 시)을 "절전"(1)으로 되돌렸다. 확인함 |
+| 검토 의견 처리 | 2026-10-19 `FEEDBACK_FOR_CADET_v1.md`(커밋 `8991432` 검토)를 받아 필수 재분석 D-1–D-5(`FEEDBACK_FOR_CADET_v2.md`, `kit/reanalysis_v2.py`)와 권장 재분석 D-6–D-10(`kit/reanalysis_v3.py`)을 했다. 경기를 새로 돌리지 않았다. 문서 수정: FLCS 문장(`RESEARCH_PLAN.md` §5.1·§8, `PAPER_SKELETON.md` Ⅲ-B·Ⅵ-C, `kit/margin.py`), 논문 뼈대의 분기·수치·한계, 보고서의 개인 폴더 경로(`kit/out/cal/report_*E1.md`, `kit/out/smoke/report_predict_E1.md`, 출력 코드 `predict.py`·`analyze.py`) |
+| `margin.py` 50 Hz | 검토 의견 v1 §7의 비단조(50 Hz 여유 4.149틱)는 이상 플랜트 선형 모형에서 50 Hz가 지연 0에서도 이미 불안정해 공식의 전제가 깨진 값이었다. "여유 정의 불가"로 표시하도록 고쳐 `kit/out/margin/linear.json`을 다시 만들었다(3–25 Hz 값은 그대로). 비선형 벤치에서는 50 Hz도 지연 0 추종이 정상이다(J ≈ 0.41) |
+| 보조 분석 이동 | 절전 28경기 민감도, E4 부트스트랩, 롤 추종 탐색을 임시 폴더에서 `kit/supplementary/`로 옮기고 경로를 상대 경로로 바꿨다. 새 위치에서 다시 돌려 같은 결과를 확인했다 |
+| 추가 실험 | 2026-10-19 23:44 시작 → 2026-10-20 11:15 완료. 03:38–07:06 절전 동안 ASYM 13경기가 `wall_clock`으로 잘려, 사전 등록 규칙대로 지우고 다시 돌렸다(`kit/out/asym/wallclock_removed.csv`). 최종 자료의 `wall_clock` 0경기. ASYM(한 기체만 열화, 10,080판) → E3X(E3 수준 확장, 8,064판). 사전 등록 `PREREG_EXTRA.md`, 실행기 `kit/run_extra.py`, 로그 `kit/out_extra.log`, 결과 `kit/out/asym/`, `kit/out/e3x/`(본실험 원자료와 섞지 않음), 분석 `kit/out/extra_report/`. 결과: ASYM 사전 등록 주 판정 "반대 방향"(점수가 추종 오차에 U자), E3X에서 κ·동기 지연 "예측 실패". 요약은 `FEEDBACK_FOR_CADET_v3.md` §6. 시작프로그램 등록은 끝나면서 스스로 지웠다 |
+| 3인 패널 검토와 P0·P2-a | 2026-10-20 제3자 패널 3명(비행제어, 방법론·통계, 수상·발표)의 검토 → `PLAN_AFTER_PANEL_v1.md`. P0(분석, `kit/reanalysis_p0.py`): 상수 대비 기술 점수 0.44, 무상관 상한을 0.403 → 0.460으로 정정(plug-in 편향), D 분해 등. P2-a(ASYM 기록 재생 252경기, 일치 252/252, `kit/supplementary/asym_replay.py`). P2-b(정밀 조준 기총 반사실, 사전 등록 `PREREG_P2.md` §P2-b, 2026-10-20 19:56–20:40, 1,008경기, `wall_clock` 0, `kit/supplementary/p2b_precise_gun.py`): 판정 "반등 유지"(+29.6 [+20.2, +38.6], 원래 기총의 64 %). 처리 기록 `FEEDBACK_FOR_CADET_v4.md`, 분석 원장 `ANALYSIS_LEDGER.md`. GitHub에는 아직 올리지 않았다 |
+| P1 교전 없는 벤치 | 2026-10-20 22:07 (사전 등록 `PREREG_P1.md`, `kit/supplementary/p1_bench.py`, 벤치 942회 18초, 교전 0판). 기존 `out/margin/bench.json` 재현 최대 차이 2.2 × 10⁻¹⁰. 판정 "교전 없이 예측 불충분"(E3 RMS 0.068, 상수 0.074, 교전 mae 0.041). E2의 10/20이 한계 순환, E3는 1/22. 처리 기록 `FEEDBACK_FOR_CADET_v5.md`. GitHub에는 올리지 않았다 |
+| P3 시계열 재생 | 2026-10-20 22:19–23:51 (사전 등록 `PREREG_P3.md`, `kit/supplementary/p3_timeseries.py`, 2,744경기, 재생 일치 2,744/2,744, `wall_clock` 0). 주 판단 "나아지지 않음"(대역 분해 E3 RMS 0.063 대 0.049), 보조 판단 "지지"(교전 명령이 시험 입력보다 느림, 0.39배). 처리 기록 `FEEDBACK_FOR_CADET_v6.md`. GitHub에는 올리지 않았다 |
+| P4 새 시드 재현 | 2026-10-21 00:04–07:48 (사전 등록 `PREREG_P4.md`, `kit/supplementary/p4_replicate.py`, 시드 rep-0–7, 16,128경기, `wall_clock` 0, 원자료 `kit/out/rep/games.csv`). E3X 실패·U자·동기 24 절반 효과 모두 "재현", 오차 유형(둔한 지연형이 더 큰 영향) "확인". 처리 기록 `FEEDBACK_FOR_CADET_v7.md`. GitHub에는 올리지 않았다 |
+| P6·P5 | 2026-10-21 09:46–16:16 (사전 등록 `PREREG_P6.md`, `PREREG_P5.md`, 한 번에 이어서 실행). P6 정밀 조준 기총 대칭 열화 5,376경기(`kit/out/p6/`): 기울기 0.045 대 0.054, 동등성 "판정 불가", 절편 +0.08. P5 E2 참가자 × gen 시드 4,704경기(`kit/out/p5/`): 같은 시드에서 E2 참가자 치우침 −0.000 대 E4 참가자 +0.045, "판정 불가"(시드 4개, 두 구간 방식 불일치). 둘 다 `wall_clock` 0. 처리 기록 `FEEDBACK_FOR_CADET_v8.md`. GitHub에는 올리지 않았다 |
+| E4 t 구간, P7 보류 | 2026-10-21 E4 시드 단위 t 구간(사후 민감도, `kit/supplementary/e4_tinterval.py`): ΔD 예측 성공 유지, 절대 D는 판정 불가. P7(실제형 센서·구동기)은 연구 책임자 결정으로 나중에 한다(예상 약 2일) |
+| 논문 초안 v1 | 2026-10-21 `PAPER_DRAFT_v1.md`(2026-10-24 `archive/superseded/`로 옮김) (뼈대·주장 원장·P0–P6 반영, 연구 책임자 확인 전). 제목은 패널 추천안, 참고문헌은 원문 확인 전이라 비워 둠. GitHub 업로드는 연구 책임자 결정으로 보류 |
+| P7 실제형 센서·구동기 | 2026-10-21 19:02 – 10-22 01:09 (사전 등록 `PREREG_P7.md`, `kit/supplementary/p7_run.py`, 12,096경기, `wall_clock` 0, 원자료 `kit/out/p7/`). 탐침 672경기(`p7probe-0`). 기울기 "다르다"(0.022 대 0.053), 원래 곡선 "예측 실패", 오차 유형 "확인". 처리 기록 `FEEDBACK_FOR_CADET_v9.md` |
+| 3인 패널 재검토 | 2026-10-22 비행제어·방법론·수상 심사 3명이 P0–P7과 초안 v1을 독립 검토 → `PLAN_AFTER_PANEL_v2.md`. 실행 뒤 스크립트 수정 2건과 사전 등록 머리말 시각 오류를 확인해 공개(판정 영향 없음) |
+| P8·P9 | 2026-10-22 23:41 – 10-23 04:54 한 번에 이어서(사전 등록 `PREREG_P8.md`, `PREREG_P9.md`). P8 κ가 아닌 둔한 원인 7,056경기(`kit/out/p8/`): "확인" +0.330. P9-c 실제형 한 기체 열화 2,688경기(`kit/out/p9c/`): "반등 없음". P9-b 흔들림 주입 1,344경기(`kit/out/p9b/`): "판정 불가". P9-a 재생 252경기(일치 252/252): 공세 비율 15배. 모두 `wall_clock` 0. 처리 기록 `FEEDBACK_FOR_CADET_v10.md` |
+| 논문 초안 v2 | 2026-10-23 `PAPER_DRAFT_v2.md`(안 A, P0–P9 반영, 재검토 문장 수정안 반영). 그림 3·4·6·7은 `kit/supplementary/paper_figs.py` → `kit/supplementary/paper_figs/`. 참고문헌은 원문 확인 전이라 후보만 표시 |
+| 팀 공부 문서 v3·정리 | 2026-10-24 `STUDY_GUIDE_v3.md`(처음 보는 팀원용 공부 문서: 용어·변수, 실험 대응표, 예전 실험의 쓰임, 논문 계획과 5명 역할). 처음 보는 사람 역할의 검토자 둘(작성·코딩)에게 두 번 읽혀 지적을 모두 반영. 보고서에 직접 없던 숫자는 `kit/supplementary/derived_numbers.py` → `derived_numbers_output.md`(사후, 0판). 초안 v2·최종 목차의 불일치 수정(각 문서 머리에 수정 목록), 그림 7 표기 수정. 대체된 문서(`STUDY_GUIDE_v1·v2`, `PAPER_DRAFT_v1`)는 `archive/superseded/`로 옮김(지우지 않음) |
 | 무인 실행 대비 (2026-10-16 08:10) | 실험 프로세스는 네트워크를 쓰지 않는다(TCP·UDP 연결 0). 절전·최대 절전은 원래 "사용 안 함". 덮개 닫기 동작(전원 연결 시)을 "절전"(1)에서 "아무 것도 안 함"(0)으로 바꿨다. 배터리일 때는 "절전" 그대로. 되돌리기: `powercfg /setacvalueindex SCHEME_CURRENT SUB_BUTTONS LIDACTION 1` 후 `powercfg /setactive SCHEME_CURRENT`. 재부팅에 대비해 시작프로그램에 `cadet_research_resume.cmd`를 등록했다. 로그인하면 `kit/resume.py`가 돌고 있는 실험이 없을 때만 남은 단계를 띄우고, E4 분석까지 끝나 있으면 스스로 등록을 지운다. 수동 제거: `python kit/resume.py --remove` |
 
 ## 6. 폴더 구조
@@ -90,11 +106,18 @@ python predict.py SIG
 ```
 cadet_research/
   README.md            이 문서
+  STUDY_GUIDE_v3.md    팀 공부 문서 (논문 작성 전에 먼저 읽기)
+  PAPER_DRAFT_v2.md    논문 원고 (작성 기준)
+  PAPER_OUTLINE_FINAL.md  최종 목차·한계 22항목
+  ANALYSIS_LEDGER.md   분석 원장 (사전 등록/사후 구분)
+  PREREG_*.md          추가 실험의 사전 등록
+  FEEDBACK_FOR_CADET_v1–v10.md  실험별 결과 기록
+  PLAN_AFTER_PANEL_v1·v2.md     3인 패널 검토
   RESEARCH_PLAN.md     연구계획서
   FEASIBILITY.md       주제 선정 경과와 사전 실험
-  PAPER_SKELETON.md    논문 뼈대
+  PAPER_SKELETON.md    논문 뼈대·주장 원장
   REVIEW_LOG.md        작성 가이드 점검 기록
-  archive/             버린 주제
+  archive/             버린 주제(league_topic/), 대체된 문서(superseded/)
   kit/                 실험 키트 (엔진 포함)
     run.py             경기 실행
     predict.py         본실험 분석

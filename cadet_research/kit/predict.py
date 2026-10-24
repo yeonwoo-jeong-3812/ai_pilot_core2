@@ -319,7 +319,7 @@ def main():
         say(f"δ_M = max(2 × {tol['sham_M_p95']:.2f}, {FLOOR['M']}) = {tol['M']:.2f}점\n")
         with open(tolerance_path(), "w", encoding="utf-8") as f:
             json.dump(tol, f, ensure_ascii=False, indent=1)
-        say(f"등록: {tolerance_path()}")
+        say(f"등록: {os.path.relpath(tolerance_path(), os.path.dirname(KIT)).replace(os.sep, '/')}")
         return write("cal", name)
     tol = read_tol()
     e2 = EXPERIMENTS["E2"]

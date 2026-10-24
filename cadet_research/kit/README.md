@@ -60,6 +60,12 @@ for e in E1 E2 E3 E4; do python predict.py $e --prefix smoke; done
 | `run.py` | 열화 주입과 리그 실행, 자가점검 | 버그를 찾았을 때만. 고치면 `--selfcheck` 재통과 |
 | `predict.py` | 본실험 분석: 허용폭, 곡선 적합, 예측 검증 | 그림·표 추가는 자유 |
 | `analyze.py` | 승·무·패, 종료 사유, 참가자별 점수, 순위 | 자유 |
+| `reanalysis_v2.py` | 검토 의견 v1의 재분석 D-1~D-5. 원자료만 읽고 `out/reanalysis_v2/`에 보고서·그림을 쓴다 (`../FEEDBACK_FOR_CADET_v2.md`) | 자유 |
+| `reanalysis_v3.py` | 검토 의견 v1의 권장 재분석 D-6~D-10. `out/reanalysis_v3/` | 자유 |
+| `run_extra.py` | 본실험 뒤 추가 실험(ASYM, E3X) 실행기. run.py를 고치지 않고 `run.play`를 쓰며, 결과는 `out/asym/`, `out/e3x/`에 따로 쓴다. 사전 등록 `../PREREG_EXTRA.md` | 버그를 찾았을 때만 |
+| `analysis_extra.py` | 추가 실험 분석 (실행 전에 작성). `out/extra_report/` | 표·그림만 |
+| `supplementary/` | 보조 분석: 절전으로 잘린 28경기의 민감도, E4 부트스트랩, 롤 추종 탐색. 설명은 `supplementary/README.md` | 자유 |
+| `pipeline.py`, `resume.py` | 본실험을 단계별로 잇는 실행기와 로그인 때 자동 재개 | 자유 |
 | `margin.py`, `dose.py`, `route.py` | 사전 실험 분석 | 자유 |
 | `agents/main/`, `agents/e4/` | 참가자 8종, 12종 | 아니오 |
 | `out/<접두어>/games.csv` | 경기별 원자료. 한 줄이 한 경기 | 아니오 |
