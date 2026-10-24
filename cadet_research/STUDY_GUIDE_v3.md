@@ -1,7 +1,7 @@
 # 팀 공부 문서 v3 — 실험과 논문을 처음 보는 사람을 위한 안내
 
 작성 2026-10-24. 대상: 논문을 함께 쓰는 팀원 5명(작성팀 2명, 코딩팀 3명). 마감 **2026-10-26(월)**.
-v2(`archive/superseded/STUDY_GUIDE_v2.md`)를 대신한다. v2를 처음 보는 사람 역할의 검토자 둘(작성팀 역할, 코딩팀 역할)에게 읽혀 "조건부" 판정을 받았고, 지적된 빠진 용어·모호한 말·틀린 사실·출처 없는 숫자를 모두 고쳤다(고친 목록은 맨 끝 부록 Z).
+v2(`archive/superseded/STUDY_GUIDE_v2.md`)를 대신한다. v2를 처음 보는 사람 역할의 검토자 둘(작성팀 역할, 코딩팀 역할)에게 읽혀 "조건부" 판정을 받았고, 지적된 빠진 용어·모호한 말·틀린 사실·출처 없는 숫자를 모두 고쳤다(고친 목록은 맨 끝 부록 Z). 같은 날 v3를 두 번 더 검토했고, 3차 검토에서 두 역할 모두 "통과"였다.
 
 ---
 
@@ -51,7 +51,7 @@ v2(`archive/superseded/STUDY_GUIDE_v2.md`)를 대신한다. v2를 처음 보는 
 
 **한 문장 결론**: 같은 크기의 추종 오차라도, 명령을 늦게 따라가는 제어기(둔한 형)가 빠르게 떠는 제어기(진동형)보다 공중전 결과를 더 크게 바꾼다.
 
-**실험 상태**: **모두 끝났다**(마지막 실행 2026-10-23 04:54 종료). 더 돌릴 실험은 없다. 기록된 경기 합계 약 14만(본실험 71,568 + 추가 실험). 남은 계산은 그림 5(재생 약 10분)와 부록 C의 시드 t 재계산뿐이다(§10.2).
+**실험 상태**: **모두 끝났다**(마지막 실행 2026-10-23 04:54 종료). 더 돌릴 실험은 없다. 기록된 경기 합계 약 14만(본실험 71,568 + 추가 실험). 남은 계산은 없다(그림 5와 부록 C의 시드 t 재계산은 10/24 완료). 부록 C는 표 작성만 남았다(§9.5, §10.2).
 
 | 연구 질문 (RQ) | 답 | 근거 실험 |
 |---|---|---|
@@ -203,9 +203,9 @@ v2(`archive/superseded/STUDY_GUIDE_v2.md`)를 대신한다. v2를 처음 보는 
 | stall | 100 KCAS 미만에 누적 10 s 머묾(실속). 진 쪽 체력을 0으로 기록(`kit/aircombat/bridge.py` 60행) | 상대 |
 | timeout | 300 s 경과, 그동안 한 번이라도 피해를 주고받음. **체력이 많은 쪽이 승**, 같으면 무승부 | 체력 비교 |
 | no_contact | 300 s 동안 **두 기체 모두 피해 0**(`match.py` `_engaged` 450행, `_expiry_result` 487–492행). CSV에는 `draw`로 기록, **양쪽 모두 0점(패)** | 없음 |
+| wall_clock | 실제 시간 제한에 걸려 잘림(노트북 절전 때문의 실행 인공물). `draw` | §5.5 |
 
 같은 틱에 두 기체가 함께 끝나면(예: 동시 격추) 무승부다. 본실험 main에 health_zero 무승부 62판, hard_deck 무승부 5판, timeout 무승부(체력 같음) 4판이 있다.
-| wall_clock | 실제 시간 제한에 걸려 잘림(노트북 절전 때문의 실행 인공물). `draw` | §5.5 |
 
 - **점수**: 승 3, 무 1, 무접촉 0, 패 0 (`kit/analyze.py` `points`).
 - **기총**: 거리 500–3,000 ft에서 조준각 2°·10°·20°·30° 안이면 100·75·50·25 %의 피해율. P2-b·P6의 "정밀 조준 기총"은 2°·5°만 쓴 반사실 모델.
@@ -302,7 +302,7 @@ v2(`archive/superseded/STUDY_GUIDE_v2.md`)를 대신한다. v2를 처음 보는 
 | OSC{A} | 열화 없이 2.2 Hz 피치 명령 흔들림 A °/s 주입(P9-b) | OSC20 |
 | FILT10, NOISE0.3, ASYNC2, KAPPA8, KAPPA25 | 사전 실험(주제 1, `feas`)의 옛 이름. 판정에 쓰지 않음 | — |
 
-조건 정의는 `kit/experiments.py`, `kit/run.py`에 있고, 추가 실험이 더한 조건은 `kit/supplementary/p7_run.py` 36–37행(F25_D8·10·12), `p8_run.py` 34–35행(CMD), `p9ab_orig.py` 40–41행(OSC)에 있다.
+조건 정의는 `kit/experiments.py`, `kit/run.py`에 있고, 추가 실험이 더한 조건은 `kit/supplementary/p7_run.py` 37–38행(F25_D8·10·12), `p8_run.py` 34–35행(CMD), `p9ab_orig.py` 40–41행(OSC)에 있다.
 
 ### 5.3 시드 이름 (`salt` 열) — 용도별로 절대 섞지 않는다
 
@@ -417,7 +417,7 @@ P5 이후의 판정은 **퍼센타일 구간과 시드 t 구간이 같은 판정
 | RQ1 | 원래 구성 D = 0.144 + 0.0531·mae (기울기 95 % CI 0.050–0.056). E2 적합 범위 mae 0.19–10.57 °/s. 서로 다른 경기로 재도 상관 0.969 | 본실험 | `kit/out/main/report_predict_E2.md`, `curve.json`, `FEEDBACK_FOR_CADET_v2.md` D-5, `derived_numbers_output.md` §2 |
 | RQ1 | 처음 보는 원인 22조건 예측 RMS 0.041 대 상수 0.074 → 기술 점수 0.44. 다른 상수(약한 열화 평균) 기준 0.40, 검증 조건 자체 평균(결과를 본 뒤에만 아는 값) 기준 0.30 | 사후 | `kit/out/reanalysis_p0/report_p0.md` A, 0.30은 `derived_numbers_output.md` §1 |
 | RQ1 | E3 5묶음 평균 오차 −0.003–+0.021, 모두 "예측 성공". 단 상수 예측도 5묶음 중 4묶음 통과 | 본실험(사전 등록) | `kit/out/main/report_predict_E3.md`, `report_p0.md` A |
-| RQ2 | 동기 24틱 −0.343, κ 100·400 +0.114 (E3X 실패. +0.114는 등록 보고서의 묶음 값이고, 두 조건 오차 +0.097·+0.129의 단순 평균은 +0.113. 원고는 +0.114) → 새 시드 −0.320, +0.121 "재현" | 사전 등록 | `kit/out/extra_report/report_extra.md`, `kit/supplementary/p4_output.md` |
+| RQ2 | 동기 24틱 −0.343, κ 100·400 +0.114 (E3X 실패. +0.114는 등록 보고서의 부트스트랩 평균이고 점추정(두 조건 오차 +0.097·+0.129의 평균)은 +0.113. 원고는 +0.114. κ 묶음은 잭나이프 t [+0.072, +0.154]에서 판정 불가, 사후) → 새 시드 −0.320, +0.121 "재현" | 사전 등록 | `kit/out/extra_report/report_extra.md`, `kit/supplementary/p4_output.md` |
 | RQ2 | 교전 명령 1 Hz 이상 파워 5.6 % (시험 입력 14.4 %), 중앙 주파수 0.14 Hz | 사전 등록 "지지" | `p3_output.md` |
 | RQ2 | 오차를 1 Hz에서 둘로 나눈 예측은 나아지지 않음(E2 안에서 두 성분 상관 0.957) | 사전 등록 "나아지지 않음" | `p3_output.md` |
 | RQ2 | 시험 비행 지표로 예측 RMS 0.068 — 상수와 구별 안 됨 | 사전 등록 "불충분" | `p1_output.md` |
@@ -425,7 +425,7 @@ P5 이후의 판정은 **퍼센타일 구간과 시드 t 구간이 같은 판정
 | RQ2 | 명령 지연 0.4 s의 효과는 주로 지면 충돌: 382 → 942경기. k_q 0.25는 398(기준과 비슷) | 서술 | `derived_numbers_output.md` §5 |
 | RQ3 | 실제형 기울기 0.022 ("다르다"). 원래 곡선의 평균 오차 −0.169 ("예측 실패"). E2 mae 범위 안 5조건(D2–D10)만 보면 −0.108, 8틱까지는 −0.061 (사후) | 사전 등록 + 사후 | `p7_output.md`, `derived_numbers_output.md` §2 |
 | RQ3 | 같은 mae에서: 원래 F25_D2(mae 4.86) D 0.394 대 실제형 F25_D8(mae 4.62) D 0.260 | 서술 | `p7_output.md` §1, `derived_numbers_output.md` §4 |
-| RQ4 | 원래 구성 한 기체 열화(GunTracker): 2틱 −19.5, 6틱 +27.0점(U자). 반등 C 원래 시드 +46.5·+36.1, 새 시드 +50.9·+35.2(GunTracker·Extender) | 사전 등록 | `report_extra.md`, `p4_output.md` |
+| RQ4 | 원래 구성 한 기체 열화(GunTracker): 2틱 −19.5, 6틱 +27.0점(U자). 반등 C 원래 시드 +46.5·+36.1, 새 시드 +50.9·+35.2(GunTracker·Extender). 반등은 시드 t에서도 유지, 2틱 하락만은 시드 t [−30.4, −8.6]에서 판정 불가(사후, `appc_tinterval_output.md`) | 사전 등록 | `report_extra.md`, `p4_output.md` |
 | RQ4 | 정밀 조준 기총에서도 반등의 64 % 남음 | 사전 등록 "반등 유지" | `p2b_output.md` |
 | RQ4 | 실제형 구성: 반등 없음. GunTracker −1.4 → −0.4 → −4.5 → −7.4, Extender +0.1 → −3.0 → −5.0 → −9.8점 (D6·D8·D10·D12) | 사전 등록 "반등 없음" | `p9c_output.md` |
 | RQ4 | 6틱 기체 공세 비율 0.011 → 0.165, 정조준 체류(0.0043)·상대 행동 비율 그대로 | 서술 | `p9ab_output.md` |
@@ -556,8 +556,8 @@ P5 이후의 판정은 **퍼센타일 구간과 시드 t 구간이 같은 판정
 | **경기 재실행 금지** | 다른 PC에서는 같은 시드라도 결과가 비트 단위로 같지 않을 수 있다(같은 PC에서만 재현 확인). 원자료 `games.csv`는 고치지 않는다 |
 | 돌려도 되는 분석 | `python kit/predict.py E3`처럼 원자료를 읽어 표를 내는 것. 단 아래 덮어쓰기 주의 |
 | **등록 파일을 다시 쓰는 명령 — 돌리지 말 것** | `predict.py E1`(→ `out/cal/tolerance.json`, 허용폭), `analyze.py E1`(→ `out/cal/delta.json`, δ_점수), `predict.py E2`(→ `out/main/curve.json`, 등록 곡선) |
-| **결과 파일을 다시 쓰는 명령 — 복사본에서만** | `analysis_extra.py`(→ `out/extra_report/report_extra.md`, 그림 7 입력), `reanalysis_p0.py`·`reanalysis_v2.py`·`reanalysis_v3.py`(→ 각 `out/reanalysis_*/`), `derived_numbers.py`, `e4_tinterval.py`, `e4_boot.py`, 각 실험 스크립트의 `--report`(→ `*_output.md`·`*_results.json`), `paper_figs.py`(→ `paper_figs/*.png`) |
-| **경기를 도는 명령 — 연구 PC에서도 돌리지 말 것** | `run.py`, `pipeline.py`, `resume.py`(시작프로그램 등록 기능도 있음), `run_extra.py`, 그리고 `supplementary`의 실험 스크립트(`p2b_precise_gun.py`, `p3_timeseries.py`, `p4_replicate.py`, `p5_gen_agents.py`, `p6_precise_sym.py`, `p7_run.py`, `p8_run.py`, `p9c_asym_real.py`, `p9ab_orig.py`, `asym_replay.py`, `roll_pilot.py`, `rerun_wallclock.py --replay`)를 **플래그 없이 또는 `--smoke`로** 실행하는 것 |
+| **결과 파일을 다시 쓰는 명령 — 복사본에서만** | `analysis_extra.py`(→ `out/extra_report/report_extra.md`, 그림 7 입력), `reanalysis_p0.py`·`reanalysis_v2.py`·`reanalysis_v3.py`(→ 각 `out/reanalysis_*/`), `derived_numbers.py`, `e4_tinterval.py`, `e4_boot.py`, 각 실험 스크립트의 `--report`(→ `*_output.md`·`*_results.json`), `paper_figs.py`(→ 그림 3·4·6·7), `paper_diagrams.py`(→ 그림 1·2·8, 손으로 고친 그림을 덮어씀), `fig5_timeseries.py --plot`(→ 그림 5), `appc_tinterval.py`, `p7_design.py`, `p7_realistic.py --bench` |
+| **경기를 도는 명령 — 연구 PC에서도 돌리지 말 것** | `run.py`, `pipeline.py`, `resume.py`(시작프로그램 등록 기능도 있음), `run_extra.py`, 그리고 `supplementary`의 실험 스크립트(`p2b_precise_gun.py`, `p3_timeseries.py`, `p4_replicate.py`, `p5_gen_agents.py`, `p6_precise_sym.py`, `p7_run.py`, `p8_run.py`, `p9c_asym_real.py`, `p9ab_orig.py`, `asym_replay.py`, `roll_pilot.py`, `rerun_wallclock.py --replay`, `fig5_timeseries.py`)를 **플래그 없이 또는 `--smoke`로** 실행하는 것. `p1_bench.py`는 플래그 없이 돌리면 교전 없는 시험 비행을 다시 돌려 원자료 `p1_bench_runs.json`을 덮어쓴다 |
 | 엔진·참가자 폴더 | `kit/aircombat/`, `kit/jsbsim_data/`, `kit/config/`, `kit/agents/`는 고치지 않는다 |
 | 확증 시드 | main·rep·x8 시드로 연습 실행을 하지 않는다 |
 
@@ -569,8 +569,8 @@ P5 이후의 판정은 **퍼센타일 구간과 시드 t 구간이 같은 판정
 | 그림 4 | `paper_figs.py` | (a) `out/rep/games.csv`, (b) `p7_results.json`, (c) `p8_results.json` |
 | 그림 6 | `paper_figs.py` | `out/main/games.csv`, `p7_results.json` |
 | 그림 7 | `paper_figs.py` | `out/extra_report/report_extra.md`, `p9c_results.json`, `p9c_output.md` |
-| 그림 1·2·8 | 새로 그림(도형) | §4, §2.2, 원고 Ⅵ-B 표 |
-| 그림 5 | 새로 계산(재생 한 경기, 연구 PC에서만) | `p3_timeseries.py`의 기록 방식(`apply_logged`)을 바탕으로 새 스크립트 |
+| 그림 1·2·8 | `paper_diagrams.py`(자료를 읽지 않는 도형. 숫자는 원고에서 옮김 — 원고 숫자를 바꾸면 함께 고친다) | §4, §2.2, 원고 Ⅵ-B 표 |
+| 그림 5 | `fig5_timeseries.py`(재생 3경기, 원자료와 같은 경기 확인. `--plot`은 저장된 시계열로 그림만) | `fig5_timeseries.csv`, `fig5_output.md` |
 | 표 1 | `kit/experiments.py`, `kit/run.py` | — |
 | 표 2 | `p7_design_output.md`, `p7_bench_output.md`, "적합 20조건 중 10이 자체 진동"은 `p1_output.md` | — |
 | 표 3 | `out/main/report_predict_E3.md` | — |
@@ -588,7 +588,11 @@ P5 이후의 판정은 **퍼센타일 구간과 시드 t 구간이 같은 판정
 
 ### 9.5 부록 C(전체 검정 일람표)에 필요한 계산
 
-시드 t 구간이 아직 없는 검정: ASYM A1, E3X 묶음 판정, P2-b, P4 T-B·T-C. 이 다섯은 원자료로 시드 t를 새로 계산해야 한다(분석만, 약 30분). 계산하면 **사후**로 표시한다. 본보기 코드: `kit/supplementary/e4_tinterval.py`(시드별 값 → t 구간), `p8_run.py`의 `two()`(퍼센타일과 시드 t를 함께 내고 두 판정이 같은지 봄). 새 스크립트로 만들고 기존 결과 파일 이름을 쓰지 않는다.
+**2026-10-24 계산 완료** (`kit/supplementary/appc_tinterval.py` → `appc_tinterval_output.md`, 사후). 시드 t 구간이 없던 ASYM A1·A2, E3X 묶음, P2-b, P4 T-A·T-B·T-C·T-D를 계산했다. 퍼센타일 구간은 같은 난수로 다시 계산해 등록 보고서 값과 같음을 확인했다(E3X만 등록 값을 옮겨 적음). 곡선을 맞춘 시드와 검증 시드가 같은 E3X는 E3의 D-9와 같은 잭나이프 t를 주로 쓴다.
+- 두 방식의 판정이 같음: 새 시드 재현 5건(T-A 동기 24·κ, T-B 두 대상, T-C), T-D 유형 대비, 반등 대비(원래 시드 +46.5·+36.1, 새 시드, P2-b 정밀 조준 기총), ASYM 기울기 b(반대 방향), E3X 동기 24 실패·k_q·σ 성공.
+- t 구간에서 판정 불가로 바뀜: 원래 시드의 E3X κ 묶음(잭나이프 t 하한 +0.072 < 0.079. 곡선을 고정하면 +0.081로 실패. 새 시드에서는 두 방식 모두 실패), ASYM 개별 칸 30개 중 8개(GunTracker 2틱 하락 −19.5 포함, 반등 대비는 유지).
+- E3의 원인 묶음 판정은 이 계산에 없다. E3의 t 구간은 `FEEDBACK_FOR_CADET_v3.md` §4 D-9(잭나이프 t, 판정 변화 없음, `kit/out/reanalysis_v3/`)에서 가져온다.
+- 남은 일: 분석 원장과 이 결과를 합쳐 부록 C 표(검정마다 구분·효과 크기·두 구간·판정)를 만든다(코딩 2). 본보기 코드: `kit/supplementary/e4_tinterval.py`(시드별 값 → t 구간), `p8_run.py`의 `two()`(퍼센타일과 시드 t를 함께 내고 두 판정이 같은지 봄). 새 스크립트로 만들고 기존 결과 파일 이름을 쓰지 않는다.
 
 ---
 
@@ -612,9 +616,9 @@ P5 이후의 판정은 **퍼센타일 구간과 시드 t 구간이 같은 판정
 | `PAPER_DRAFT_v2.md` | 작성 기준 원고. 모든 장 초안 완성 | — | 전원 |
 | `PAPER_OUTLINE_FINAL.md` | 최종 목차, 한계 L1–L22 | — | — |
 | 참고문헌 원문 확인 | **0편 (가장 시급)** | 10/25 정오 | 작성 1·2 |
-| 그림 1·2·8 | 미작성 | 10/25 정오 | 코딩 1·2·3 |
-| 그림 5 | 미작성(연구 PC에서 재생 약 10분) | 10/25 | 코딩 3 |
-| 부록 C | 미작성(분석 원장 → 표 + 시드 t 5건) | 10/25 | 코딩 2 |
+| 그림 1·2·8 | **초안 완성**(10/24, `paper_figs/fig1_architecture.png`, `fig2_design.png`, `fig8_usage.png`) — 담당자는 내용 점검·양식에 맞춘 수정 | 10/25 정오 | 코딩 1·2·3 |
+| 그림 5 | **완성**(10/24, `paper_figs/fig5_timeseries.png`) — 코딩 3은 점검만 | 10/25 | 코딩 3 |
+| 부록 C | 시드 t 계산 **완료**(10/24, `appc_tinterval_output.md`). 표 작성만 남음 | 10/25 | 코딩 2 |
 | 영문 초록 교정 | 초안 있음. 국문 초록 확정 뒤 | 10/25 저녁(지도교수 송부 전) | 작성 1 |
 | 원문 확인 못 한 문헌의 문장 삭제 | 마감선 | **10/25 12:00** | 작성 1·2 |
 | 학회 양식·분량 맞춤 | 양식 확인 필요 | 10/26 | 연구 책임자 |
@@ -647,7 +651,7 @@ P5 이후의 판정은 **퍼센타일 구간과 시드 t 구간이 같은 판정
 | 날짜 | 작성팀 | 코딩팀 | 함께 |
 |---|---|---|---|
 | 10/24 (토) | 이 문서 공부, 필수 문헌 6편부터 원문 수집 | 이 문서 공부, 맡은 장의 숫자 대조, 숫자 목록 전달 | 저녁: 질문·결정 회의(30분, §10.1) |
-| 10/25 (일) | 오전 문헌 확정, 오후 Ⅰ·Ⅱ·Ⅵ-C·D·Ⅶ 작성, 영문 초록 | 오전 그림 1·2·8, 오후 그림 5, 부록 A·B·C, Ⅲ–Ⅴ 다듬기 | 저녁: 통합본 → 지도교수 송부 |
+| 10/25 (일) | 오전 문헌 확정, 오후 Ⅰ·Ⅱ·Ⅵ-C·D·Ⅶ 작성, 영문 초록 | 오전 그림 1·2·5·8 점검(초안 완성됨), 부록 C 표, 오후 부록 A·B, Ⅲ–Ⅴ 다듬기 | 저녁: 통합본 → 지도교수 송부 |
 | 10/26 (월) | 지도교수 의견 반영, 교정, 양식 | 숫자 최종 대조 | 제출 |
 
 ### 10.5 참고문헌 — 자리별 주장과 후보 (모두 **원문 확인 전**)
@@ -710,7 +714,8 @@ P5 이후의 판정은 **퍼센타일 구간과 시드 t 구간이 같은 판정
 | 보조 분석 보고서 | `kit/supplementary/e4_boot_output.md`, `roll_analysis_output.md`, `rerun_wallclock_output.md`, `asym_replay_output.md` | 기록 |
 | 사전 실험 원자료 | `kit/out/{feas,feas2,feas3,probe}/games.csv` | 판정에 안 씀 |
 | 환경 | `kit/requirements.txt`(matplotlib 빠짐), `kit/ENGINE_VERSION.txt` | 현행 |
-| 논문 그림 | `kit/supplementary/paper_figs/`, 만드는 코드 `kit/supplementary/paper_figs.py` | 현행 |
+| 논문 그림 | `kit/supplementary/paper_figs/`(그림 1–8), 만드는 코드 `paper_figs.py`(3·4·6·7), `paper_diagrams.py`(1·2·8 초안), `fig5_timeseries.py`(5, 시계열 `fig5_timeseries.csv`, 기록 `fig5_output.md`) | 현행 |
+| 부록 C 시드 t | `kit/supplementary/appc_tinterval.py` → `appc_tinterval_output.md`, `appc_tinterval.json` (E3는 `kit/out/reanalysis_v3/` D-9) | 현행(사후) |
 | 선행 실험 비교 | 팀 저장소 브랜치 `research/l3-indi-paper-v2`의 `ai-combat-core2-main/docs/COMPARISON_OLD_VS_CADET.md` (이 폴더에 없음) | §5 반영 규칙 유효, 새 실험 서술은 이 문서 §8 우선 |
 
 ---
@@ -789,3 +794,17 @@ P5 이후의 판정은 **퍼센타일 구간과 시드 t 구간이 같은 판정
 | 파일 지도 누락(reanalysis_v2·v3, e4_boot, roll, p1_bench_runs, conds JSON), 표 2 출처 | §9.3, §12 |
 | 부록 C 시드 t의 본보기 코드 | §9.5 |
 | Ⅴ-D "지연이 길수록 커졌다"는 단조가 아님 | 원고 "대체로" |
+
+**v3 3차 검토 (2026-10-24 저녁) — 판정: 작성팀 역할 "통과", 코딩팀 역할 "통과"** (심각도 높은 문제 없음). 낮음·중간 지적을 아래처럼 고쳤다.
+
+| 지적 | 고친 내용 |
+|---|---|
+| 원래 시드 반등(+46.5·+36.1)의 시드 t가 없는데 "반등 대비는 t에서도 유지"라고 씀 | `appc_tinterval.py`에 계산 추가 — 두 대상 모두 t에서도 문턱 위. 원고 Ⅴ-E·§9.5 문장 정정 |
+| E3X κ의 t 구간이 곡선 불확실성 처리 방식에 따라 갈림 | E3의 D-9와 같은 잭나이프 t를 주 비교로 추가: [+0.072, +0.154] 판정 불가(곡선 고정 시 +0.081로 실패). 원고·목차·§9.5에 두 방식 모두 적음 |
+| "퍼센타일 재계산 일치"는 E3X에 과장(등록 값 인용) | 출력·§9.5·원장에 "E3X는 등록 값 인용" |
+| 덮어쓰기·실행 경고에 오늘 만든 스크립트와 `p1_bench.py` 누락 | §9.2. `fig5_timeseries.py`는 원자료와 같은 경기일 때만 파일을 쓰도록 코드도 고침 |
+| 오늘 끝난 일(그림 1·2·5·8, 부록 C 계산)이 남은 일로 적힌 곳 | §1, §10.2, 원고 머리말·그림 목록, 목차 §3·§5 |
+| 표 6 "독립 단위" 행, §6 RQ2·RQ4 행에 t 결과 단서 없음 | 원고 표 6, §6 |
+| "약 0.25 s"에 문헌 표시 없음 | 원고 표 6, 목차 L4·L5에 [문헌 확인 필요] |
+| 목차 Ⅱ-D Fleming–DeMets, Ⅴ-F E4 사후 표시, L13 "고장 난" | 목차 |
+| 종료 규칙 표가 문단에 끊김, `p7_run.py` 줄 번호(37–38), 원고 mae 정의(지연·흔들림 앞), 그림 1 κ 꼬리표 "피치", 그림 5 선택 설명, 파일 지도 누락 | 각 위치 |

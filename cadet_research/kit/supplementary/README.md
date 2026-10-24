@@ -22,6 +22,9 @@
 | 논문 그림 3·4·6·7 | `paper_figs.py` | 기존 자료만 읽음(경기 0판) | `paper_figs/fig3_curve.png`, `fig4_error_type.png`, `fig6_configs.png`, `fig7_asym.png` | 초안 v2용. 범주색 4개를 순서대로 쓰고 표식 모양을 함께 바꿈 |
 | 흔들림 주입·기록 재생 (P9-b·a) | `p9ab_orig.py` | `../out/p9b/games.csv` (1,344경기), `p9a_games.csv` (252경기), `p9.log` | `p9ab_output.md`, `p9ab_results.json` | 판정 불가 / 공세 비율 15배. 해석은 `../../FEEDBACK_FOR_CADET_v10.md` |
 | 파생 수치 (사후, 0판) | `derived_numbers.py` | 기존 `games.csv` (읽기만) | `derived_numbers_output.md`, `derived_numbers.json` | 보고서에 직접 없던 숫자의 출처. 공부 문서 `../../STUDY_GUIDE_v3.md` §6 |
+| 그림 5 시계열 (서술) | `fig5_timeseries.py` | P3 재생 3경기(main-0, neutral, 원자료와 같은 경기 확인) | `fig5_timeseries.csv`, `fig5_output.md`, `paper_figs/fig5_timeseries.png` | 같은 mae(1.68 대 1.72)의 둔한 형·진동형 응답. `--plot`은 경기 없이 그림만 |
+| 부록 C 시드 t (사후, 0판) | `appc_tinterval.py` | 기존 `games.csv` (읽기만) | `appc_tinterval_output.md`, `appc_tinterval.json` | 퍼센타일만 있던 8개 검정의 t 구간. 핵심 판정 유지, E3X κ(원래 시드)·ASYM 개별 칸 8/30은 판정 불가 |
+| 논문 도식 (그림 1·2·8 초안) | `paper_diagrams.py` | 없음 (도형만, 숫자는 원고에서 옮김) | `paper_figs/fig1_architecture.png`, `fig2_design.png`, `fig8_usage.png` | 5계층 구조와 열화 주입 위치, 설계 흐름, 사용 지도 |
 
 `p2b_precise_gun.py`는 엔진 파일을 고치지 않고 작업 프로세스 안에서 `aircombat.geometry.wez.WEZ_ATA_TIERS`만 바꾸며, 경기마다 바뀐 등급이 쓰이는지 확인한다.
 
