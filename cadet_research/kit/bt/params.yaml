@@ -1,0 +1,18 @@
+# 연구 파라미터 θ. make_tree.py · run_bt.py · 팀원 코드의 단일 진실.
+# node = 트리 안의 조건 이름 또는 action 의 name, key = 그 노드의 숫자 키.
+# dummy 는 트리에 들어가지 않는다. 기록만 한다 (영향 없는 변수의 대조군).
+#
+# lead_time_s 범위는 0.5–3.0 이다. 엔진 DSL 허용 범위(0.0–3.0, aircombat/tactics/dsl.py _ACTION_BOUNDS) 때문.
+# closing 은 yoyo_pull_up 의 min_fps 만 파라미터다. inverter 안의 closing min_fps: 0 은 고정.
+params:
+  - {name: merge_range_ft,    base: 6000, lo: 4000, hi: 9000, node: merged,               key: range_ft}
+  - {name: threat_aspect_deg, base: 150,  lo: 120,  hi: 170,  node: foe_threat,           key: aspect_deg}
+  - {name: gun_range_ft,      base: 3000, lo: 1500, hi: 3000, node: in_gun_envelope,      key: range_ft}
+  - {name: gun_ata_deg,       base: 45,   lo: 15,   hi: 60,   node: in_gun_envelope,      key: ata_deg}
+  - {name: fight_kcas,        base: 280,  lo: 220,  hi: 330,  node: below_fighting_speed, key: kcas}
+  - {name: energy_min_ft,     base: 500,  lo: 0,    hi: 2000, node: energy_advantage,     key: min_ft}
+  - {name: lead_time_s,       base: 2.0,  lo: 0.5,  hi: 3.0,  node: press_offense,        key: lead_time_s}
+  - {name: break_g_burst,     base: 0.5,  lo: 0,    hi: 1,    node: break_defense,        key: g_burst}
+  - {name: closing_min_fps,   base: 60,   lo: 0,    hi: 200,  node: closing,              key: min_fps}
+  - {name: floor_ft,          base: 4500, lo: 3000, hi: 7000, node: low_altitude,         key: floor_ft}
+dummy: {name: dummy, base: 0.5, lo: 0, hi: 1}

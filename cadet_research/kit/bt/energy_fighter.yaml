@@ -1,0 +1,66 @@
+# 아키타입: Energy Fighter(에너지 보존형) — 새 어휘 사용례 겸 스파링 상대.
+#
+# 성향: 파이팅 속도 대역(325–375 KCAS)을 지키는 것이 최우선. 저속이면
+# 이탈·강하로 에너지를 회복하고, 에너지 우위 + 후방 점유일 때만 공세.
+# 각도 열세는 low yo-yo 로 처리, 기본은 보수적 lag.
+#
+# 우선순위: 브레이크 > 에너지 회복(cooldown 래핑) > 우위 공세 > low yo-yo > 기본 lag
+#
+# ⚠ **조절 파라미터는 의도적으로 최적이 아니다.** 출발점이지 정답이 아니다.
+#   g_burst 0.5 = 성향에는 맞지만 국면 구분이 없다 —
+#   지속 봉투에만 머물면 각을 딸 기회 자체가 오지 않는다.
+#   lead_time_s 2.0 = 너무 멀리 내다본다. 근접에서는 조준점이 표적을 앞질러 벗어난다.
+#   commit/cooldown 데코레이터 사용례가 이 파일의 학습 포인트다 — 값은 직접 재볼 것.
+agent_name: EnergyFighter
+selector:
+  # 0) 하드덱 회피 — 최우선 (고도 4,500ft 이하면 상승 회복). 에너지 성향과 정합:
+  #    저고도는 위치에너지 고갈 상태이므로 회복이 곧 전술이다.
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+  # 1) 방어 브레이크: 적 기수 조준 + 진짜 근접일 때만 — 에너지 성향이라
+  #    브레이크를 아낀다(늦은 방어 = 공략 여지, 스파링 상대 특성)
+  - sequence:
+      - condition: {name: foe_threat, aspect_deg: 150}
+      - condition: {name: merged, range_ft: 6000}
+      - action: {pursuit: lag, g_burst: 0.5, g_full_ata_deg: 70, name: break_defense}
+  # 2) 건 솔루션 → 추적 사격 (에너지 성향이어도 사격 기회는 소비)
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 45}
+      - action: {pursuit: pure, g_burst: 0.5, g_full_ata_deg: 70,
+                 track_rng_ft: 1200, track_ata_deg: 12, name: gun_track}
+  # 3) 저속 → 에너지 회복: 적 뒤 4,000ft 를 300ft 아래로 조준(이탈+강하 가속).
+  #    cooldown 래핑: 회복 종료(속도 회복) 후 5s 재진입 차단 — 임계 근처 chattering 방지
+  - cooldown:
+      name: energy_recover
+      wait_s: 5.0
+      child:
+        sequence:
+          - condition: {name: below_fighting_speed, kcas: 280}   # 진짜 저속일 때만 이탈
+          - action: {pursuit: lag, g_burst: 0.0, name: energy_recover,
+                     lag_dist_ft: 4000, aim_above_ft: -300}
+  # 4) 에너지 우위 + 후방 점유 → 공세 전환
+  - sequence:
+      - condition: {name: energy_advantage, min_ft: 500}
+      - condition: behind_foe
+      - action: {pursuit: lead, g_burst: 0.5, g_full_ata_deg: 70,
+                 name: press_offense, lead_time_s: 2.0}
+  # 5) 각도 열세·거리 정체 → low yo-yo (BEM 4.4.6.2.3, 구 presets/low_yoyo.yaml 인라인)
+  #    국면1: 기수 이탈 + 접근율 없음 → 적 선회원 아래로 다이브 컷(중력 가속).
+  #    국면2: 접근율이 붙으면 적 기동면으로 되당겨 각도 회수.
+  - commit:
+      name: low_yoyo
+      duration_s: 3.0
+      cooldown_s: 3.0
+      child:
+        selector:
+          - sequence:
+              - condition: {name: closing, min_fps: 60}
+              - action: {pursuit: lead, name: yoyo_pull_up, aim_above_ft: 150}
+          - sequence:
+              - condition: nose_far
+              - inverter:
+                  condition: {name: closing, min_fps: 0}
+              - action: {pursuit: lead, name: yoyo_dive_cut, aim_above_ft: -500, lead_time_s: 1.5}
+  # 6) 기본: pure (중립 대치에서 기수 유지 — 에너지 성향이어도 싸움은 건다)
+  - action: {pursuit: pure, g_burst: 0.5, g_full_ata_deg: 70, name: pure_default}

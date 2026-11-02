@@ -1,0 +1,202 @@
+"""θ 목록 × 48셀(교전 기하 3 × 상대 4 × 시드 4) 실행기. 규칙은 bt/CONTRACT.md.
+
+  python bt/run_bt.py bt/thetas/baseline.csv                 # 기본 접두어 bt-smoke
+  python bt/run_bt.py thetas.json --prefix bt-pilot --procs 6
+  python bt/run_bt.py thetas.csv --dry                       # 경기 수만 센다
+  python bt/run_bt.py thetas.csv --limit 10                  # 남은 경기 중 앞 10개만
+  python bt/run_bt.py thetas.csv --prefix bt-main --unlock-confirm
+  python bt/run_bt.py bt/thetas/r0.csv --prefix bt-cal --r0  # R0 검증: 범위 밖 θ 허용, stage=r0, 결과 bt/out/r0/
+
+결과: bt/out/<접두어>/games.csv, 1경기 1줄. 이미 기록된 경기는 건너뛴다(끊기면 같은 명령으로 재개).
+run.py 를 import 하지 않는다 (run.py 는 import 시 Pilot.setup 을 감싼다). 경기 조립은 bridge.CompetitionMatch.run 과
+같은 순서로 하고, Match 를 직접 만들어 wez_time·ata_mean 과 관측기 값을 받는다.
+"""
+from __future__ import annotations
+
+import argparse
+import csv
+import hashlib
+import json
+import os
+import platform
+import socket
+import sys
+import time
+
+BT = os.path.dirname(os.path.abspath(__file__))
+KIT = os.path.dirname(BT)
+sys.path.insert(0, KIT)
+sys.path.insert(0, BT)
+
+from aircombat.bridge import _ranked_healths, derive_seed  # noqa: E402
+from aircombat.engine.factory import load_policy, make_pilot  # noqa: E402
+from aircombat.engine.match import Match  # noqa: E402
+from aircombat.engine.scenarios import initial_conditions  # noqa: E402
+import make_tree as mt  # noqa: E402
+import monitor  # noqa: E402
+
+SCENARIOS = ("perch_offense", "perch_defense", "neutral")
+OPPONENTS = {   # 이름 -> kit 기준 경로. 상대를 바꿀 때는 여기만 고친다
+    "A2_GunTracker_00": "agents/main/A2_GunTracker_00.yaml",
+    "B2_Extender_00": "agents/main/B2_Extender_00.yaml",
+    "C1_TwoCircleRate_00": "agents/main/C1_TwoCircleRate_00.yaml",
+    "D1_Reactive_00": "agents/main/D1_Reactive_00.yaml",
+}
+SEEDS = 4
+PREFIXES = ("bt-smoke", "bt-pilot", "bt-cal", "bt-cal-a", "bt-cal-b", "bt-main", "bt-confirm")
+LOCKED = ("bt-main", "bt-confirm")
+ENGINE_PARTS = ("aircombat", "jsbsim_data", "config")
+
+FIELDS = (["stage", "theta_id"] + mt.NAMES +
+          ["dummy", "scenario", "opponent", "seed_salt", "seed",
+           "winner", "end_reason", "win_mode", "hp_blue", "hp_red", "hp_blue_raw", "hp_red_raw", "wez_blue", "wez_red",
+           "ata_mean_blue", "ata_mean_red", "off_frac", "def_frac", "e_adv_ft", "t_first_wez", "node_frac",
+           "sim_time_s", "wall_s", "engine_sha", "tree_sha", "host", "python_version"])
+KEY = ("stage", "theta_id", "scenario", "opponent", "seed_salt")
+
+
+def engine_sha() -> str:
+    """aircombat/ jsbsim_data/ config/ 의 .py·데이터 파일 내용 해시. 줄끝(CRLF/LF)과 __pycache__ 는 무시한다."""
+    h = hashlib.sha256()
+    for part in ENGINE_PARTS:
+        for root, dirs, files in os.walk(os.path.join(KIT, part)):
+            dirs[:] = sorted(d for d in dirs if d != "__pycache__")
+            for name in sorted(files):
+                if name.endswith((".pyc", ".pyo")):
+                    continue
+                p = os.path.join(root, name)
+                h.update(os.path.relpath(p, KIT).replace("\\", "/").encode() + b"\0")
+                with open(p, "rb") as f:
+                    h.update(f.read().replace(b"\r\n", b"\n") + b"\0")
+    return h.hexdigest()[:12]
+
+
+def win_mode(winner: str, end_reason: str) -> str:
+    """청 승리 방식. 청이 이기지 않았으면 빈칸."""
+    if winner != "blue":
+        return ""
+    return {"health_zero": "shootdown", "hard_deck": "opp_hard_deck", "stall": "opp_stall",
+            "timeout": "judge", "overtime": "judge"}.get(end_reason, "other")
+
+
+def read_thetas(path: str, r0: bool = False) -> list[dict]:
+    if path.lower().endswith(".json"):
+        with open(path, encoding="utf-8") as f:
+            rows = json.load(f)
+    else:
+        with open(path, encoding="utf-8", newline="") as f:
+            rows = list(csv.DictReader(f))
+    return [mt.normalize(r, r0) for r in rows]
+
+
+def read_rows(path: str) -> list[dict]:
+    if not os.path.isfile(path):
+        return []
+    with open(path, "rb+") as f:                       # 쓰다 꺼져 잘린 마지막 줄 정리 (run_extra.py 와 같다)
+        data = f.read()
+        if data and not data.endswith(b"\n"):
+            f.seek(data.rfind(b"\n") + 1); f.truncate()
+    with open(path, encoding="utf-8", newline="") as f:
+        return list(csv.DictReader(f))
+
+
+def build_jobs(thetas: list[dict], prefix: str, r0: bool = False) -> list[dict]:
+    """시드는 prefix 로 정한다. r0 면 stage 만 "r0" 로 기록한다 (시드는 prefix 그대로)."""
+    jobs, seen = [], set()
+    for th in thetas:
+        tid, tree = mt.theta_id(th, r0), mt.make_tree(th, r0)
+        if tid in seen:          # 같은 θ 가 목록에 두 번 있으면 한 번만
+            continue
+        seen.add(tid)
+        for i in range(SEEDS):
+            salt = f"{prefix}-{i}"
+            for scen in SCENARIOS:
+                for opp in OPPONENTS:
+                    jobs.append(dict(stage="r0" if r0 else prefix, theta_id=tid, theta=th, tree=tree,
+                                     scenario=scen, opponent=opp, seed_salt=salt,
+                                     seed=derive_seed(scen, salt)))   # run.py 와 같은 시드 규칙
+    return jobs
+
+
+def _r(v, nd):
+    return "" if v is None else round(float(v), nd)
+
+
+def play(job: dict) -> dict:
+    """1경기. 청 = θ 트리, 적 = 상대. bridge.CompetitionMatch.run 과 같은 조립·판정 규약."""
+    t0 = time.time()
+    me, foe = load_policy(job["tree"]), load_policy(os.path.join(KIT, OPPONENTS[job["opponent"]]))
+    ic = initial_conditions(job["scenario"], seed=job["seed"])
+    blue = make_pilot("Blue", ic["blue"], *me, name="EnergyFighterBT")
+    red = make_pilot("Red", ic["red"], *foe, name=job["opponent"])
+    mon = monitor.attach(blue, red)
+    m = Match(blue, red, duration_s=300.0, acmi_path=None, log_hz=0.0,
+              acmi_comments=f"scenario={job['scenario']};seed={job['seed']}", overtime_s=0.0)
+    r = m.run()
+    hp_b, hp_r = _ranked_healths({"blue": "tree1", "red": "tree2", "draw": "draw"}[r.winner],
+                                 r.condition, r.hp_blue, r.hp_red)   # 판정패 HP 0 (run.py 결과와 같은 규약)
+    s = mon.summary()
+    th = job["theta"]
+    return {"stage": job["stage"], "theta_id": job["theta_id"],
+            **{k: th[k] for k in mt.NAMES}, "dummy": "" if th["dummy"] is None else th["dummy"],
+            "scenario": job["scenario"], "opponent": job["opponent"],
+            "seed_salt": job["seed_salt"], "seed": job["seed"],
+            "winner": r.winner, "end_reason": r.condition, "win_mode": win_mode(r.winner, r.condition),
+            "hp_blue": _r(hp_b, 2), "hp_red": _r(hp_r, 2),
+            "hp_blue_raw": _r(r.hp_blue, 2), "hp_red_raw": _r(r.hp_red, 2),
+            "wez_blue": _r(r.wez_time["blue"], 4), "wez_red": _r(r.wez_time["red"], 4),
+            "ata_mean_blue": _r(r.ata_mean["blue"], 3), "ata_mean_red": _r(r.ata_mean["red"], 3),
+            "off_frac": _r(s["off_frac"], 4), "def_frac": _r(s["def_frac"], 4),
+            "e_adv_ft": _r(s["e_adv_ft"], 1), "t_first_wez": _r(s["t_first_wez"], 2),
+            "node_frac": s["node_frac"] or "",
+            "sim_time_s": _r(r.time_s, 4), "wall_s": _r(time.time() - t0, 1),
+            "engine_sha": job["engine_sha"], "tree_sha": mt.tree_sha(job["tree"]),
+            "host": socket.gethostname(), "python_version": platform.python_version()}
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("thetas", help="θ 목록 CSV 또는 JSON")
+    ap.add_argument("--prefix", default="bt-smoke", choices=PREFIXES)
+    ap.add_argument("--unlock-confirm", action="store_true", help="bt-main·bt-confirm 실행 허용 (확증용)")
+    ap.add_argument("--procs", type=int, default=6, help="병렬 프로세스 수 (코어 수보다 작게)")
+    ap.add_argument("--r0", action="store_true", help="R0 검증: params.yaml 범위 밖 θ 허용, stage=r0, 결과 bt/out/r0/")
+    ap.add_argument("--dry", action="store_true")
+    ap.add_argument("--limit", type=int, help="남은 경기 중 앞 N개만")
+    args = ap.parse_args()
+    if args.prefix in LOCKED and not args.unlock_confirm:
+        ap.error(f"{args.prefix} 는 확증 시드다. 정말 돌릴 때만 --unlock-confirm 을 붙인다")
+    jobs = build_jobs(read_thetas(args.thetas, args.r0), args.prefix, args.r0)
+    out_dir = os.path.join(BT, "out", "r0" if args.r0 else args.prefix)
+    path = os.path.join(out_dir, "games.csv")
+    rows = read_rows(path)
+    if rows and list(rows[0]) != FIELDS:
+        sys.exit(f"{path} 의 열이 지금 계약(FIELDS)과 다르다. 옛 형식 파일은 다른 이름으로 옮기고 다시 돌린다")
+    done = {tuple(r[k] for k in KEY) for r in rows}
+    todo = [j for j in jobs if tuple(str(j[k]) for k in KEY) not in done]
+    print(f"{args.prefix}: 전체 {len(jobs)}경기, 기록됨 {len(jobs) - len(todo)}, 남음 {len(todo)}")
+    todo = todo[:args.limit]
+    if args.dry or not todo:
+        return
+    sha = engine_sha()
+    for j in todo:
+        j["engine_sha"] = sha
+    os.makedirs(out_dir, exist_ok=True)
+    import multiprocessing as mp
+    new = not os.path.isfile(path)
+    t0, n_wall = time.time(), 0
+    with mp.Pool(args.procs) as pool, open(path, "a", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=FIELDS)
+        if new:
+            w.writeheader()
+        for i, row in enumerate(pool.imap_unordered(play, todo, chunksize=1), 1):
+            w.writerow(row); f.flush()
+            n_wall += row["end_reason"] == "wall_clock"
+            if i % 12 == 0 or i == len(todo):
+                el = time.time() - t0
+                print(f"  {i}/{len(todo)}  {el:.0f}s 경과, 남은 예상 {el / i * (len(todo) - i):.0f}s", flush=True)
+    print(f"기록: {path}  (wall_clock {n_wall}경기)")
+
+
+if __name__ == "__main__":
+    main()

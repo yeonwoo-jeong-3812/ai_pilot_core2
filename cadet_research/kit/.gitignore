@@ -1,0 +1,5 @@
+__pycache__/
+bt/trees/
+bt/out/*
+!bt/out/validation.md
+!bt/out/hard_deck_traces.md
