@@ -1,5 +1,11 @@
 # BT 파라미터 실험: 팀원 계약서
 
+> **처음 받은 팀원 순서** (Python 3.11.9 권장)
+> 1. `git clone -b bt-study https://github.com/yeonwoo-jeong-3812/ai_pilot_core2.git`
+> 2. `cd ai_pilot_core2/cadet_research/kit` 후 `python -m pip install -r requirements.txt`
+> 3. `python bt/test_bt.py` → 마지막 줄 "bt 자가점검 통과"
+> 4. `python bt/crosscheck.py` → "전체 해시"가 §8의 기준 해시 `c7a8776f48d4ba9d`와 같은지 비교 (다르면 §8)
+
 연구 질문: 근접 공중전 행동트리(BT)의 숫자 파라미터가 승패를 얼마나 좌우하는가.
 연구 대상 트리는 `bt/energy_fighter.yaml`이다 (`ai-combat-core2-main/examples/energy_fighter.yaml`을 내용 그대로 복사한 원본. 고치지 않는다). 구조는 그대로 두고 숫자 10개만 바꾼다.
 이 문서와 `params.yaml`만 보고 일할 수 있게 썼다. 둘이 어긋나면 `params.yaml`이 맞다.
@@ -19,6 +25,7 @@ python bt/trace_match.py --scenario neutral --opponent A2_GunTracker_00 --seed-s
 python bt/run_bt.py bt/thetas/r0.csv --prefix bt-cal --r0  # R0 검증 전용: 범위 밖 θ 허용, stage=r0, 결과 bt/out/r0/
 python bt/make_tree.py bt/thetas/r0.csv --r0                # θ 목록의 트리만 만들기 (--r0 는 위와 같음)
 python bt/validate.py                                       # 검증 표 bt/out/validation.md 다시 만들기
+python bt/crosscheck.py                                     # PC 간 재현 점검 (고정 10경기 해시, §8)
 ```
 
 - 결과는 `bt/out/<접두어>/games.csv`에 이어 쓴다. 끊기면 같은 명령을 다시 치면 끝난 경기는 건너뛰고 이어서 돈다.
@@ -132,7 +139,7 @@ python bt/validate.py                                       # 검증 표 bt/out/
 | `bt/energy_fighter.yaml` | 연구 대상 원본 트리 |
 | `bt/params.yaml`, `bt/tree_template.yaml`, `bt/make_tree.py` | θ 정의와 트리 생성 |
 | `bt/run_bt.py`, `bt/monitor.py`, `bt/trace_match.py` | 실행, 관측, 노드 추적 |
-| `bt/test_bt.py`, `bt/validate.py` | 자가점검, 검증 표 |
+| `bt/test_bt.py`, `bt/validate.py`, `bt/crosscheck.py` | 자가점검, 검증 표, PC 간 재현 점검 |
 | `bt/designs.py`, `bt/analysis/` | 팀원 몫 (빈 틀) |
 | `bt/thetas/` | θ 목록 (`baseline.csv`, `validation.csv`, `r0.csv`) |
 | `bt/trees/` | 생성된 트리 (자동, git 제외) |
@@ -141,3 +148,33 @@ python bt/validate.py                                       # 검증 표 bt/out/
 | `bt/out/validation_runs/` | 검증 4(병렬 수)와 옛 열 형식 smoke 원자료 |
 
 `tree_template.yaml` 머리말의 "원본:" 주석은 `ai-combat-core2-main/examples/energy_fighter.yaml`을 가리킨다 (그 파일도 저장소에 그대로 있고 `bt/energy_fighter.yaml`과 내용이 같다). 주석을 고치면 `tree_sha`가 바뀌어 기존 결과와 비교할 수 없어서 그대로 둔다.
+
+## 8. PC 간 재현 점검 (`bt/crosscheck.py`)
+
+기준 θ 로 고정 10경기 (bt-smoke 시드, 기하 3종 × 상대 4 섞음) 를 돌려 결과 열의 해시를 찍는다. 파일은 쓰지 않는다.
+해시에 넣는 열은 `run_bt.FIELDS`에서 실행 환경 열 (`wall_s`, `host`, `python_version`, `engine_sha`)을 뺀 전부다.
+
+**기준 PC 결과** (2026-11-02, 커밋 `66d2d2b` 이후, 두 번 돌려 같음):
+
+| 항목 | 값 |
+|---|---|
+| python_version | 3.11.9 |
+| engine_sha | `1e0101026959` |
+| **전체 해시** | **`c7a8776f48d4ba9d`** |
+
+| 경기 | 결과 | 경기 해시 |
+|---|---|---|
+| perch_offense / A2_GunTracker_00 / bt-smoke-0 | red timeout | `97b1ee1fb633` |
+| perch_offense / C1_TwoCircleRate_00 / bt-smoke-1 | red health_zero | `68df22e62c54` |
+| perch_offense / D1_Reactive_00 / bt-smoke-2 | blue hard_deck | `027e532c1f72` |
+| perch_defense / B2_Extender_00 / bt-smoke-0 | red health_zero | `85cff8c9ffa9` |
+| perch_defense / D1_Reactive_00 / bt-smoke-1 | red health_zero | `a16338b2a801` |
+| perch_defense / A2_GunTracker_00 / bt-smoke-3 | blue hard_deck | `b76964ada423` |
+| neutral / A2_GunTracker_00 / bt-smoke-0 | blue hard_deck | `a046998e011f` |
+| neutral / B2_Extender_00 / bt-smoke-2 | red health_zero | `91eeb94067ef` |
+| neutral / C1_TwoCircleRate_00 / bt-smoke-3 | red health_zero | `c89fc93064ca` |
+| neutral / D1_Reactive_00 / bt-smoke-1 | red health_zero | `673ebace65e3` |
+
+전체 해시가 다르면: ① `engine_sha`가 다르면 엔진 파일이 다른 것이니 저장소를 다시 받는다. ② `engine_sha`는 같고 Python 버전이
+다르면 3.11.9 로 맞춰 다시 돌린다. ③ 둘 다 같은데 다르면 경기별 해시로 다른 경기를 찾아 기준 PC 담당자에게 알린다.
+결과가 다른 PC 의 games.csv 는 기준 PC 결과와 섞지 않는다. `wall_clock` 경고가 나오면 다른 프로그램을 닫고 다시 돌린다.
