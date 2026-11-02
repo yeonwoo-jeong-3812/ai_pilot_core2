@@ -28,14 +28,20 @@ python bt/validate.py                                       # 검증 표 bt/out/
 python bt/crosscheck.py                                     # PC 간 재현 점검 (고정 10경기 해시, §8)
 python bt/run_bt.py thetas.csv --prefix bt-main --unlock-confirm --shard 2/3   # 여러 PC 분산: 3대 중 2번째 몫 (bt/RUNBOOK.md)
 python bt/merge.py thetas.csv --prefix bt-main --out bt/out/bt-main/games.csv a.csv b.csv c.csv   # shard 검사·합치기
+python bt/run_bt.py thetas.csv --prefix bt-confirm --unlock-confirm --nseeds 36   # 확인 단계: 셀당 시드 36 (432경기/θ)
+python bt/designs.py                                        # 본실험 설계 파일 bt/thetas/main_*.csv 다시 만들기 (SHA-256 출력)
+python -m pip install -r bt/requirements-analysis.txt       # 분석 패키지 (bt/analysis/, designs.morris)
 python bt/run_bt.py my_thetas.csv --opponents original     # kit 원본 상대로 (기본은 보정 상대 patched)
 python bt/run_bt.py bt/thetas/diag.csv --prefix bt-diag --opponents diag-f4000   # 하드덱 진단 반사실 (bt/out/diag_hard_deck.md)
 ```
 
+- **사전등록 잠금:** `bt-main`, `bt-confirm` 은 `--unlock-confirm` 과 git 태그 `prereg-bt-v1` (사전등록 고정) 이 둘 다 있어야 돈다.
+  태그 확인은 `--force-dev`로도 건너뛸 수 없다. 1차 지표는 Δwez (`wez_blue − wez_red`) 다 (`cadet_research/PREREG_BT.md` §4).
+- **셀당 시드 수:** `--nseeds` (기본 4). 시드 i 의 `seed_salt` 는 `<접두어>-<i>`. 기본값 4 는 예전 시드와 같다 (`test_bt.py`).
 - **실행 전 점검:** `run_bt.py`는 실제로 돌기 전에 ① `bt/`에 커밋 안 된 수정이 없는지 ② Python 버전 ③ crosscheck 전체 해시를
   §8 의 값과 비교하고 하나라도 다르면 실행을 거부한다. 진단용으로만 `--force-dev`로 건너뛴다 (그 결과는 본실험에 쓰지 않는다). `--dry`는 점검하지 않는다.
 - **분산 실행:** `--shard i/n`은 `build_jobs` 순서의 k 번째 경기를 (k mod n) + 1 번 몫으로 나눈다. 같은 θ 목록·접두어·상대 묶음·n 이면
-  겹치지 않고 빠짐없이 나뉜다 (`test_bt.py`). 결과는 `bt/out/<접두어>/games_shard<i>of<n>.csv`. 합칠 때는 `bt/merge.py`
+  겹치지 않고 빠짐없이 나뉜다 (`test_bt.py`). 결과는 `bt/out/<접두어>/games_<θ 목록 파일 이름>_shard<i>of<n>.csv` (예: `games_main_lhs64_shard2of3.csv`). 합칠 때는 `bt/merge.py`
   (중복·누락·계획 밖 경기, code_commit·engine_sha·opponent_set 불일치, wall_clock, disqualified 를 검사하고 문제가 있으면 합치지 않는다).
   팀원 순서는 `bt/RUNBOOK.md`.
 - 결과는 `bt/out/<접두어>/games.csv`에 이어 쓴다. 끊기면 같은 명령을 다시 치면 끝난 경기는 건너뛰고 이어서 돈다.
@@ -149,6 +155,8 @@ python bt/run_bt.py bt/thetas/diag.csv --prefix bt-diag --opponents diag-f4000  
 - `tree_template.yaml`의 구조나 자리표시자 밖 숫자를 바꾸지 않는다. 바꾸면 `test_bt.py`가 실패해야 정상이다.
 - `bt-main`, `bt-confirm` 결과를 사전등록 전에 보지 않는다. 점검은 `bt-smoke`로 한다.
 - `games.csv`를 손으로 고치지 않는다. 예외는 §5의 `wall_clock` 줄 삭제 하나뿐이다.
+- 결과 CSV 는 커밋하지 않는다. **예외: `bt/analysis/fixtures/pilot2_sample.csv`** (분석 코드 시험용 고정 파일. 보정 상대 재예비 실험
+  `bt-pilot/games.csv` 에서 분석에 필요한 열만 뽑은 것, θ 50개 2,400경기, 약 0.8 MB). 합성 시험 데이터는 `fixtures/synth.py` 로 만들고 커밋하지 않는다.
 - `run.py`를 import 하지 않는다. import 하면 `Pilot.setup`이 바뀐다.
 
 ## 7. 폴더 구성 (`cadet_research/kit/`)
@@ -162,6 +170,10 @@ python bt/run_bt.py bt/thetas/diag.csv --prefix bt-diag --opponents diag-f4000  
 | `bt/run_bt.py`, `bt/monitor.py`, `bt/trace_match.py` | 실행, 관측, 노드 추적 |
 | `bt/test_bt.py`, `bt/validate.py`, `bt/crosscheck.py` | 자가점검, 검증 표, PC 간 재현 점검 |
 | `bt/merge.py`, `bt/RUNBOOK.md` | 여러 PC 결과 검사·합치기, 팀원 실행 순서 |
+| `bt/requirements-analysis.txt` | 분석 패키지 버전 고정 (`kit/requirements.txt` 를 불러온 뒤 추가) |
+| `bt/thetas/main_lhs64.csv`, `bt/thetas/main_morris_r16.csv` | 본실험 설계 파일 (PREREG_BT.md §5, SHA-256 고정). `.gitattributes` 로 줄끝 LF |
+| `bt/analysis/fixtures/` | 분석 시험 데이터: `pilot2_sample.csv` (실측 일부), `synth.py` (정답을 아는 합성 데이터와 정답값) |
+| `bt/tasks/` | 팀원 작업 지시서 (README.md 부터) |
 | `bt/designs.py`, `bt/analysis/` | 팀원 몫 (빈 틀) |
 | `bt/thetas/` | θ 목록 (`baseline.csv`, `validation.csv`, `r0.csv`, `pilot_lhs50.csv`, `diag.csv`) |
 | `bt/opponents_patched/` | 보정 상대 (기본 상대 묶음). 원본과 다른 곳은 최우선 노드 두 줄뿐 (`test_bt.py`가 확인) |

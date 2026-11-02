@@ -1,0 +1,3 @@
+# 설계 파일·시험 데이터는 줄끝을 LF 로 고정한다 (SHA-256 이 PC 마다 같도록, PREREG_BT.md §5)
+thetas/*.csv text eol=lf
+analysis/fixtures/*.csv text eol=lf

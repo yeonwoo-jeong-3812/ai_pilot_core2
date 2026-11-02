@@ -1,0 +1,12 @@
+# 분석용 패키지 (bt/analysis/, designs.morris). 엔진·실행 패키지는 kit/requirements.txt 그대로 (numpy 2.4.2 고정 유지).
+# 설치: python -m pip install -r bt/requirements-analysis.txt   (cadet_research/kit/ 에서)
+# kit/requirements.txt 는 엔진 키트 파일이라 bt 작업에서 고치지 않는다. 여기서 그 고정을 그대로 불러온다.
+-r ../requirements.txt
+numpy==2.4.2
+scipy==1.17.1
+pandas==3.1.0
+statsmodels==0.15.0
+scikit-learn==1.9.1
+shap==0.51.0
+SALib==1.6.0
+matplotlib==3.11.0

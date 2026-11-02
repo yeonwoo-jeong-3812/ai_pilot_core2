@@ -8,6 +8,8 @@
   python bt/run_bt.py bt/thetas/r0.csv --prefix bt-cal --r0  # R0 검증: 범위 밖 θ 허용, stage=r0, 결과 bt/out/r0/
   python bt/run_bt.py thetas.csv --opponents original        # kit 원본 상대 (기본은 patched)
   python bt/run_bt.py thetas.csv --prefix bt-main --unlock-confirm --shard 2/3   # 3대 중 2번째 PC 몫 (bt/RUNBOOK.md)
+  python bt/run_bt.py thetas.csv --prefix bt-confirm --unlock-confirm --nseeds 36 # 확인 단계: 셀당 시드 36 (432경기/θ)
+  bt-main·bt-confirm 은 git 태그 prereg-bt-v1 이 있어야 돈다 (--force-dev 로도 못 건너뜀).
 
 실행 전 점검 (bt/RUNBOOK.md): bt/ 에 커밋 안 된 수정이 없고, Python 버전·crosscheck 전체 해시가 CONTRACT.md §8 과 같아야 돈다.
 진단용으로만 --force-dev 로 건너뛴다. --dry 는 점검하지 않는다.
@@ -61,7 +63,9 @@ OPPONENT_SETS = {
 DEFAULT_SET = "patched"
 # 옛 CSV (opponent_set 열 없음) 재실행용: 원본 이름 = original, "<이름>_f4000" = diag-f4000
 OPP_PATHS = {**OPPONENTS, **{f"{k}_f4000": v for k, v in OPPONENT_SETS["diag-f4000"].items()}}
-SEEDS = 4
+SEEDS = 4                     # 셀당 시드 수 기본값 (--nseeds). 시드 i 의 salt = "<접두어>-<i>"
+PREREG_TAG = "prereg-bt-v1"   # bt-main·bt-confirm 은 이 git 태그가 있어야 돈다 (사전등록 고정 뒤)
+META_COLS = ("trajectory", "step")   # θ 목록의 설명 열 (Morris 궤적 번호·궤적 안 순서). θ 에는 안 들어간다
 PREFIXES = ("bt-smoke", "bt-pilot", "bt-cal", "bt-cal-a", "bt-cal-b", "bt-diag", "bt-main", "bt-confirm")
 LOCKED = ("bt-main", "bt-confirm")
 ENGINE_PARTS = ("aircombat", "jsbsim_data", "config")
@@ -110,6 +114,14 @@ def shard(jobs: list[dict], spec: str | None) -> list[dict]:
     return [j for k, j in enumerate(jobs) if k % n == i - 1]
 
 
+def has_prereg_tag() -> bool:
+    try:
+        out = subprocess.run(["git", "tag", "-l", PREREG_TAG], cwd=BT, capture_output=True, text=True, check=True).stdout
+        return out.strip() == PREREG_TAG
+    except (OSError, subprocess.CalledProcessError):
+        return False
+
+
 def preflight() -> list[str]:
     """실행 전 점검. 문제 목록 (빈 목록 = 통과). CONTRACT.md §8 의 Python 버전·crosscheck 전체 해시와 비교한다."""
     problems = []
@@ -148,7 +160,7 @@ def read_thetas(path: str, r0: bool = False) -> list[dict]:
     else:
         with open(path, encoding="utf-8", newline="") as f:
             rows = list(csv.DictReader(f))
-    return [mt.normalize(r, r0) for r in rows]
+    return [mt.normalize({k: v for k, v in r.items() if k not in META_COLS}, r0) for r in rows]
 
 
 def read_rows(path: str) -> list[dict]:
@@ -162,7 +174,8 @@ def read_rows(path: str) -> list[dict]:
         return list(csv.DictReader(f))
 
 
-def build_jobs(thetas: list[dict], prefix: str, r0: bool = False, opponent_set: str = DEFAULT_SET) -> list[dict]:
+def build_jobs(thetas: list[dict], prefix: str, r0: bool = False, opponent_set: str = DEFAULT_SET,
+               nseeds: int = SEEDS) -> list[dict]:
     """시드는 prefix 로 정한다. r0 면 stage 만 "r0" 로 기록한다 (시드는 prefix 그대로)."""
     jobs, seen = [], set()
     for th in thetas:
@@ -170,7 +183,7 @@ def build_jobs(thetas: list[dict], prefix: str, r0: bool = False, opponent_set: 
         if tid in seen:          # 같은 θ 가 목록에 두 번 있으면 한 번만
             continue
         seen.add(tid)
-        for i in range(SEEDS):
+        for i in range(nseeds):
             salt = f"{prefix}-{i}"
             for scen in SCENARIOS:
                 for opp in OPPONENT_SETS[opponent_set]:
@@ -225,21 +238,27 @@ def main():
     ap.add_argument("--r0", action="store_true", help="R0 검증: params.yaml 범위 밖 θ 허용, stage=r0, 결과 bt/out/r0/")
     ap.add_argument("--opponents", default=DEFAULT_SET, choices=list(OPPONENT_SETS),
                     help=f"상대 묶음 (기본 {DEFAULT_SET}). original = kit 원본, diag-f4000 = bt-diag 전용")
-    ap.add_argument("--shard", help="i/n: n 대 중 i 번째 몫만 (결과 파일 games_shard<i>of<n>.csv)")
+    ap.add_argument("--nseeds", type=int, default=SEEDS,
+                    help=f"셀당 시드 수 (기본 {SEEDS}). 확인 단계는 bt-confirm --nseeds 36 (PREREG_BT.md)")
+    ap.add_argument("--shard", help="i/n: n 대 중 i 번째 몫만 (결과 파일 games_<θ목록 이름>_shard<i>of<n>.csv)")
     ap.add_argument("--force-dev", action="store_true", help="진단용: 실행 전 점검 (커밋·Python·crosscheck) 을 건너뛴다")
     ap.add_argument("--dry", action="store_true")
     ap.add_argument("--limit", type=int, help="남은 경기 중 앞 N개만")
     args = ap.parse_args()
+    if args.nseeds < 1:
+        ap.error("--nseeds 는 1 이상")
     if args.prefix in LOCKED and not args.unlock_confirm:
         ap.error(f"{args.prefix} 는 확증 시드다. 정말 돌릴 때만 --unlock-confirm 을 붙인다")
     if args.opponents == "diag-f4000" and args.prefix != "bt-diag":
         ap.error("--opponents diag-f4000 은 --prefix bt-diag 에서만 쓴다")
     try:
-        jobs = shard(build_jobs(read_thetas(args.thetas, args.r0), args.prefix, args.r0, args.opponents), args.shard)
+        jobs = shard(build_jobs(read_thetas(args.thetas, args.r0), args.prefix, args.r0, args.opponents, args.nseeds),
+                     args.shard)
     except ValueError as e:
         ap.error(str(e))
     out_dir = os.path.join(BT, "out", "r0" if args.r0 else args.prefix)
-    name = "games.csv" if not args.shard else "games_shard{}of{}.csv".format(*args.shard.split("/"))
+    stem = os.path.splitext(os.path.basename(args.thetas))[0]      # 설계마다 파일을 나눠 merge 가 θ 목록별로 검사하게
+    name = "games.csv" if not args.shard else "games_{}_shard{}of{}.csv".format(stem, *args.shard.split("/"))
     path = os.path.join(out_dir, name)
     rows = read_rows(path)
     if rows and list(rows[0]) != FIELDS:
@@ -250,6 +269,8 @@ def main():
     todo = todo[:args.limit]
     if args.dry or not todo:
         return
+    if args.prefix in LOCKED and not has_prereg_tag():     # --force-dev 로도 건너뛰지 않는다
+        sys.exit(f"실행 거부: {args.prefix} 는 사전등록 고정 태그 {PREREG_TAG} 가 있어야 돈다 (PREREG_BT.md)")
     if args.force_dev:
         print("⚠ --force-dev: 실행 전 점검을 건너뛴다 (진단용. 본실험 결과에 쓰지 않는다)")
     else:

@@ -138,6 +138,59 @@ def test_shard_partition():
         raise AssertionError(bad)
 
 
+def test_nseeds_default_unchanged():
+    """--nseeds 기본 4 는 예전 시드와 같고, 36 이면 앞 4개가 같은 시드에 32개가 더 붙는다."""
+    th = [mt.normalize(BASE)]
+    old = [(j["scenario"], j["opponent"], j["seed_salt"], j["seed"]) for j in run_bt.build_jobs(th, "bt-cal")]
+    assert old == [(j["scenario"], j["opponent"], j["seed_salt"], j["seed"]) for j in run_bt.build_jobs(th, "bt-cal", nseeds=4)]
+    assert len(old) == 48 and {x[2] for x in old} == {f"bt-cal-{i}" for i in range(4)}
+    assert old[0][3] == run_bt.derive_seed(old[0][0], "bt-cal-0")
+    many = run_bt.build_jobs(th, "bt-confirm", nseeds=36)
+    assert len(many) == 432 and len({j["seed_salt"] for j in many}) == 36
+    four = {(j["scenario"], j["opponent"], j["seed_salt"], j["seed"]) for j in run_bt.build_jobs(th, "bt-confirm")}
+    assert four <= {(j["scenario"], j["opponent"], j["seed_salt"], j["seed"]) for j in many}
+
+
+def test_main_design_files():
+    """본실험 설계 파일: 범위·더미·θ 개수·궤적 구조, 같은 seed 면 같은 파일 (PREREG_BT.md §5 의 SHA-256)."""
+    import csv
+    import hashlib
+    import shutil
+    import tempfile
+    import designs
+    tmp = tempfile.mkdtemp()
+    try:
+        made = designs.make_main(tmp)
+        for name, sha in made.items():
+            with open(os.path.join(BT, "thetas", name), "rb") as f:
+                data = f.read().replace(b"\r\n", b"\n")                       # 줄끝 LF 기준 (bt/.gitattributes)
+                assert hashlib.sha256(data).hexdigest() == sha, name           # 저장된 파일 = 같은 seed 로 다시 만든 파일
+        assert designs.make_main(tmp) == made
+    finally:
+        shutil.rmtree(tmp)
+    dims = mt.PARAMS + [mt.DUMMY]
+    for name, n in (("main_lhs64.csv", 64), ("main_morris_r16.csv", 192)):
+        with open(os.path.join(BT, "thetas", name), encoding="utf-8", newline="") as f:
+            rows = list(csv.DictReader(f))
+        assert len(rows) == n and "dummy" in rows[0], name
+        for p in dims:
+            assert all(float(p["lo"]) <= float(r[p["name"]]) <= float(p["hi"]) for r in rows), (name, p["name"])
+        ths = run_bt.read_thetas(os.path.join(BT, "thetas", name))         # 설명 열은 θ 에서 빠진다
+        assert len({mt.theta_id(t) for t in ths}) == n, name
+    m = designs.morris(16, 4, designs.MAIN_SEED)
+    assert m == designs.morris(16, 4, designs.MAIN_SEED) and m != designs.morris(16, 4, 1)
+    assert len(m) == 192 and sorted({t["trajectory"] for t in m}) == list(range(16))
+    for p in dims:
+        assert len({t[p["name"]] for t in m}) == 4, p["name"]                 # 수준 4
+    for tr in range(16):                                                     # 궤적 안에서 한 번에 요인 하나만 바뀐다
+        pts = [t for t in m if t["trajectory"] == tr]
+        assert [t["step"] for t in pts] == list(range(12))
+        changed = [sum(a[p["name"]] != b[p["name"]] for p in dims) for a, b in zip(pts, pts[1:])]
+        assert changed == [1] * 11, (tr, changed)
+        assert sorted(next(p["name"] for p in dims if a[p["name"]] != b[p["name"]]) for a, b in zip(pts, pts[1:])) == \
+            sorted(p["name"] for p in dims)
+
+
 def _job(tree):
     j = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke")
     j = next(x for x in j if x["scenario"] == "neutral" and x["opponent"] == "B2_Extender_00")

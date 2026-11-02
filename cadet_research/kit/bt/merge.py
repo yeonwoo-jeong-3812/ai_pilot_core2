@@ -20,10 +20,10 @@ sys.path.insert(0, BT)
 import run_bt  # noqa: E402
 
 
-def check(paths, thetas, prefix, r0=False, opponent_set=run_bt.DEFAULT_SET):
+def check(paths, thetas, prefix, r0=False, opponent_set=run_bt.DEFAULT_SET, nseeds=run_bt.SEEDS):
     """(합칠 행, 보고 줄, 문제 수)."""
     expected = {tuple(str(j[k]) for k in run_bt.KEY)
-                for j in run_bt.build_jobs(run_bt.read_thetas(thetas, r0), prefix, r0, opponent_set)}
+                for j in run_bt.build_jobs(run_bt.read_thetas(thetas, r0), prefix, r0, opponent_set, nseeds)}
     L, problems, rows = [], 0, []
     L += ["| 파일 | 경기 | code_commit | engine_sha | opponent_set | wall_clock | disqualified |", "|---|---|---|---|---|---|---|"]
     for p in paths:
@@ -68,17 +68,18 @@ def main():
     ap.add_argument("--prefix", required=True, choices=run_bt.PREFIXES)
     ap.add_argument("--opponents", default=run_bt.DEFAULT_SET, choices=list(run_bt.OPPONENT_SETS))
     ap.add_argument("--r0", action="store_true")
+    ap.add_argument("--nseeds", type=int, default=run_bt.SEEDS)
     ap.add_argument("--out", required=True, help="합친 games.csv (이미 있으면 덮어쓰지 않는다)")
     ap.add_argument("--report", help="보고서 경로 (기본 <out>.merge_report.md)")
     a = ap.parse_args()
     if os.path.exists(a.out):
         sys.exit(f"{a.out} 가 이미 있다. 덮어쓰지 않는다")
-    rows, L, problems = check(a.inputs, a.thetas, a.prefix, a.r0, a.opponents)
+    rows, L, problems = check(a.inputs, a.thetas, a.prefix, a.r0, a.opponents, a.nseeds)
     L = ["# merge 보고서", "", f"θ 목록 `{a.thetas}`, 접두어 {a.prefix}, 상대 묶음 {a.opponents}", ""] + L
     L += ["", f"**{'합침: ' + a.out if not problems else f'문제 {problems}건 — 합치지 않음'}**"]
     if not problems:
         order = {k: i for i, k in enumerate(tuple(str(j[k]) for k in run_bt.KEY) for j in run_bt.build_jobs(
-            run_bt.read_thetas(a.thetas, a.r0), a.prefix, a.r0, a.opponents))}
+            run_bt.read_thetas(a.thetas, a.r0), a.prefix, a.r0, a.opponents, a.nseeds))}
         rows.sort(key=lambda r: order[tuple(r[k] for k in run_bt.KEY)])     # build_jobs 순서로 정렬
         os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
         with open(a.out, "w", encoding="utf-8", newline="") as f:
