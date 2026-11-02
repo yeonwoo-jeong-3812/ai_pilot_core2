@@ -22,7 +22,7 @@ from aircombat.engine.scenarios import initial_conditions  # noqa: E402
 
 def trace(job: dict, every: int = 6):
     """(결과, 표본 목록). 표본 = (t, 청 노드, 청 고도, 청 KCAS, 적 노드, 적 고도, 적 KCAS), 20 Hz."""
-    me, foe = load_policy(job["tree"]), load_policy(os.path.join(run_bt.KIT, run_bt.OPPONENTS[job["opponent"]]))
+    me, foe = load_policy(job["tree"]), load_policy(os.path.join(run_bt.KIT, run_bt.OPP_PATHS[job["opponent"]]))
     ic = initial_conditions(job["scenario"], seed=job["seed"])
     blue = make_pilot("Blue", ic["blue"], *me, name="EnergyFighterBT")
     red = make_pilot("Red", ic["red"], *foe, name=job["opponent"])

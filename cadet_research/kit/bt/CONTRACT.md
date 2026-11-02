@@ -4,7 +4,7 @@
 > 1. `git clone -c core.longpaths=true -b bt-study https://github.com/yeonwoo-jeong-3812/ai_pilot_core2.git` (Windows 긴 경로 때문에 옵션 필수)
 > 2. `cd ai_pilot_core2/cadet_research/kit` 후 `python -m pip install -r requirements.txt`
 > 3. `python bt/test_bt.py` → 마지막 줄 "bt 자가점검 통과"
-> 4. `python bt/crosscheck.py` → "전체 해시"가 §8의 기준 해시 `c7a8776f48d4ba9d`와 같은지 비교 (다르면 §8)
+> 4. `python bt/crosscheck.py` → "전체 해시"가 §8의 기준 해시 `8ccad3d1e0e7ae05`와 같은지 비교 (다르면 §8)
 
 연구 질문: 근접 공중전 행동트리(BT)의 숫자 파라미터가 승패를 얼마나 좌우하는가.
 연구 대상 트리는 `bt/energy_fighter.yaml`이다 (`ai-combat-core2-main/examples/energy_fighter.yaml`을 내용 그대로 복사한 원본. 고치지 않는다). 구조는 그대로 두고 숫자 10개만 바꾼다.
@@ -26,6 +26,7 @@ python bt/run_bt.py bt/thetas/r0.csv --prefix bt-cal --r0  # R0 검증 전용: �
 python bt/make_tree.py bt/thetas/r0.csv --r0                # θ 목록의 트리만 만들기 (--r0 는 위와 같음)
 python bt/validate.py                                       # 검증 표 bt/out/validation.md 다시 만들기
 python bt/crosscheck.py                                     # PC 간 재현 점검 (고정 10경기 해시, §8)
+python bt/run_bt.py bt/thetas/diag.csv --prefix bt-diag [--diag-opponents]   # 하드덱 진단 반사실 (bt/out/diag_hard_deck.md)
 ```
 
 - 결과는 `bt/out/<접두어>/games.csv`에 이어 쓴다. 끊기면 같은 명령을 다시 치면 끝난 경기는 건너뛰고 이어서 돈다.
@@ -70,6 +71,7 @@ python bt/crosscheck.py                                     # PC 간 재현 점�
 | `e_adv_ft` | 비에너지 우위 평균: (h + V²/2g)청 − (h + V²/2g)적 | ft |
 | `t_first_wez` | 청이 처음 WEZ 기하(500–3,000 ft, ATA < 30°)에 든 시각. 한 번도 없으면 빈칸 | s |
 | `node_frac` | 청 트리가 실행한 action 노드별 시간 비율. JSON 문자열 `{"노드이름": 비율, ...}`, 합 1. 노드 이름은 `Pilot._cmd.name` (dwell 히스테리시스 뒤 실제 명령), 20 Hz 표본 | 0–1 |
+| `node_frac_red` | 홍(상대) 트리의 같은 기록 (`foe._cmd.name`). 상대 climb (= low_altitude) 작동 등을 본다 | 0–1 |
 | `sim_time_s` | 경기 종료 시각 (시뮬레이션 시간) | s |
 | `wall_s` | 실제 걸린 시간. 재현 대상 아님 | s |
 | `engine_sha` | `aircombat/`, `jsbsim_data/`, `config/` 내용 해시 앞 12자리 (줄끝·`__pycache__` 무시) | 문자열 |
@@ -81,7 +83,7 @@ python bt/crosscheck.py                                     # PC 간 재현 점�
 `timeout` 300 s 종료 (피해 교환 있음, 체력 많은 쪽 승), `no_contact` 300 s 동안 양쪽 무피해 (무승부),
 `disqualified` 트리 오류, `wall_clock` **실제 시간 120 s 안전장치에 걸림 (실행 인공물, §5)**.
 
-`off_frac`, `def_frac`, `e_adv_ft`, `t_first_wez`, `node_frac`는 `bt/monitor.py`가 잰다 (읽기 전용). `node_frac`는 bt에서 추가한 것이다. 앞의 넷은 origin/YEOP의
+`off_frac`, `def_frac`, `e_adv_ft`, `t_first_wez`, `node_frac`, `node_frac_red`는 `bt/monitor.py`가 잰다 (읽기 전용). `node_frac`, `node_frac_red`는 bt에서 추가한 것이다. 앞의 넷은 origin/YEOP의
 `research/indi/combat.py`와 같은 정의다. 엔진의 `wez_blue`(120 Hz, 엔진 판정)과 `t_first_wez`(20 Hz 표본)는 표본 주기가 달라
 작은 차이가 날 수 있다.
 
@@ -97,6 +99,7 @@ python bt/crosscheck.py                                     # PC 간 재현 점�
   | `bt-cal-a`, `bt-cal-b` | 보정용 별도 시드 묶음. 같은 θ를 서로 다른 시드로 돌려 시드 잡음을 잰다 |
   | `bt-main` | 본실험. `--unlock-confirm` 없이는 안 돈다 |
   | `bt-confirm` | 확증. `--unlock-confirm` 없이는 안 돈다 |
+  | `bt-diag` | 진단 전용. `--diag-opponents`(상대를 `bt/diag_opponents/` 복사본으로)는 이 접두어에서만 쓴다. 결과를 본 실험과 섞지 않는다 |
   | `r0` (stage 값) | R0 검증 전용. `--r0`로 `params.yaml` 범위 밖 θ 를 돌린다. 시드는 `--prefix`의 것을 쓰고 결과는 `bt/out/r0/` |
 
 - 같은 `(scenario, seed_salt)`면 θ와 상대가 달라도 초기조건이 같다 (공통 난수). θ끼리 비교할 때 초기조건 잡음이 상쇄된다.
@@ -118,6 +121,8 @@ python bt/crosscheck.py                                     # PC 간 재현 점�
 - **`wall_clock`.** 엔진은 경기 하나가 실제 시간 120 s를 넘으면 무승부로 끊는다. PC가 바쁘면 생기고, 재현되지 않는다.
   실행이 끝나면 `run_bt.py`가 개수를 찍는다. 생기면 그 줄을 games.csv에서 지우고 같은 명령을 다시 쳐서 다시 돌린다
   (kit의 `run_extra.py`와 같은 처리). 분석에는 넣지 않는다. 자주 생기면 `--procs`를 줄인다.
+- **열이 추가되면 옛 games.csv 와 열이 다르다.** `node_frac_red`는 하드덱 진단 때 추가했다. 그 전 결과 (bt-cal, bt-pilot 등) 에는 없다.
+- **상대 하드덱이 많다.** 상대 4종은 `low_altitude floor_ft`가 1,200 ft 다. 진단 결과는 `bt/out/diag_hard_deck.md`.
 - θ 목록에 같은 θ가 두 번 있으면 한 번만 돈다. dummy만 다른 θ는 트리 파일은 같고 `theta_id`는 다르다.
 
 ## 6. 하면 안 되는 것
@@ -141,7 +146,9 @@ python bt/crosscheck.py                                     # PC 간 재현 점�
 | `bt/run_bt.py`, `bt/monitor.py`, `bt/trace_match.py` | 실행, 관측, 노드 추적 |
 | `bt/test_bt.py`, `bt/validate.py`, `bt/crosscheck.py` | 자가점검, 검증 표, PC 간 재현 점검 |
 | `bt/designs.py`, `bt/analysis/` | 팀원 몫 (빈 틀) |
-| `bt/thetas/` | θ 목록 (`baseline.csv`, `validation.csv`, `r0.csv`) |
+| `bt/thetas/` | θ 목록 (`baseline.csv`, `validation.csv`, `r0.csv`, `pilot_lhs50.csv`, `diag.csv`) |
+| `bt/diag_opponents/` | 진단 전용 상대 복사본 (floor_ft 1200 → 4000 만 다름). 본 실험에 쓰지 않는다 |
+| `bt/diag_trace.py`, `bt/diag_report.py` | 하드덱 진단 (재실행 추적, 보고서) |
 | `bt/trees/` | 생성된 트리 (자동, git 제외) |
 | `bt/out/<접두어>/games.csv`, `bt/out/r0/games.csv` | 원자료 (git 제외) |
 | `bt/out/validation.md`, `bt/out/hard_deck_traces.md` | 검증 결과와 하드덱 경기 추적 (git 포함) |
@@ -154,26 +161,26 @@ python bt/crosscheck.py                                     # PC 간 재현 점�
 기준 θ 로 고정 10경기 (bt-smoke 시드, 기하 3종 × 상대 4 섞음) 를 돌려 결과 열의 해시를 찍는다. 파일은 쓰지 않는다.
 해시에 넣는 열은 `run_bt.FIELDS`에서 실행 환경 열 (`wall_s`, `host`, `python_version`, `engine_sha`)을 뺀 전부다.
 
-**기준 PC 결과** (2026-11-02, 커밋 `66d2d2b` 이후, 두 번 돌려 같음):
+**기준 PC 결과** (2026-11-02, `node_frac_red` 열 추가 뒤 다시 잼, 두 번 돌려 같음. 그 전 해시 `c7a8776f48d4ba9d` 는 열이 하나 적던 때 값):
 
 | 항목 | 값 |
 |---|---|
 | python_version | 3.11.9 |
 | engine_sha | `1e0101026959` |
-| **전체 해시** | **`c7a8776f48d4ba9d`** |
+| **전체 해시** | **`8ccad3d1e0e7ae05`** |
 
 | 경기 | 결과 | 경기 해시 |
 |---|---|---|
-| perch_offense / A2_GunTracker_00 / bt-smoke-0 | red timeout | `97b1ee1fb633` |
-| perch_offense / C1_TwoCircleRate_00 / bt-smoke-1 | red health_zero | `68df22e62c54` |
-| perch_offense / D1_Reactive_00 / bt-smoke-2 | blue hard_deck | `027e532c1f72` |
-| perch_defense / B2_Extender_00 / bt-smoke-0 | red health_zero | `85cff8c9ffa9` |
-| perch_defense / D1_Reactive_00 / bt-smoke-1 | red health_zero | `a16338b2a801` |
-| perch_defense / A2_GunTracker_00 / bt-smoke-3 | blue hard_deck | `b76964ada423` |
-| neutral / A2_GunTracker_00 / bt-smoke-0 | blue hard_deck | `a046998e011f` |
-| neutral / B2_Extender_00 / bt-smoke-2 | red health_zero | `91eeb94067ef` |
-| neutral / C1_TwoCircleRate_00 / bt-smoke-3 | red health_zero | `c89fc93064ca` |
-| neutral / D1_Reactive_00 / bt-smoke-1 | red health_zero | `673ebace65e3` |
+| perch_offense / A2_GunTracker_00 / bt-smoke-0 | red timeout | `72e3e736c7d8` |
+| perch_offense / C1_TwoCircleRate_00 / bt-smoke-1 | red health_zero | `61b3f8f9541e` |
+| perch_offense / D1_Reactive_00 / bt-smoke-2 | blue hard_deck | `5b4f3103d1b4` |
+| perch_defense / B2_Extender_00 / bt-smoke-0 | red health_zero | `ffebf1f8d099` |
+| perch_defense / D1_Reactive_00 / bt-smoke-1 | red health_zero | `fdd8038bede5` |
+| perch_defense / A2_GunTracker_00 / bt-smoke-3 | blue hard_deck | `cbff2e47ec3e` |
+| neutral / A2_GunTracker_00 / bt-smoke-0 | blue hard_deck | `260308d1db35` |
+| neutral / B2_Extender_00 / bt-smoke-2 | red health_zero | `26c361bcd4b9` |
+| neutral / C1_TwoCircleRate_00 / bt-smoke-3 | red health_zero | `0befb1f04d78` |
+| neutral / D1_Reactive_00 / bt-smoke-1 | red health_zero | `e8ecf8623535` |
 
 전체 해시가 다르면: ① `engine_sha`가 다르면 엔진 파일이 다른 것이니 저장소를 다시 받는다. ② `engine_sha`는 같고 Python 버전이
 다르면 3.11.9 로 맞춰 다시 돌린다. ③ 둘 다 같은데 다르면 경기별 해시로 다른 경기를 찾아 기준 PC 담당자에게 알린다.
