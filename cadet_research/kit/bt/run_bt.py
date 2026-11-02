@@ -94,6 +94,13 @@ def engine_sha() -> str:
     return h.hexdigest()[:12]
 
 
+def out_dir_for(prefix: str, r0: bool = False, opponent_set: str = DEFAULT_SET) -> str:
+    """결과 폴더. 기본 상대 묶음 (patched) 은 bt/out/<접두어> (예전 그대로), 다른 묶음은 bt/out/<접두어>-<묶음>
+    (예: bt/out/bt-main-original) 으로 나눠 보정 상대 결과 파일에 섞이지 않게 한다. r0 는 접두어 자리에 "r0"."""
+    base = "r0" if r0 else prefix
+    return os.path.join(BT, "out", base if opponent_set == DEFAULT_SET else f"{base}-{opponent_set}")
+
+
 def code_commit() -> str:
     """실행 시점 git 커밋 해시 (짧은 형식). git 저장소가 아니면 "unknown"."""
     try:
@@ -256,7 +263,7 @@ def main():
                      args.shard)
     except ValueError as e:
         ap.error(str(e))
-    out_dir = os.path.join(BT, "out", "r0" if args.r0 else args.prefix)
+    out_dir = out_dir_for(args.prefix, args.r0, args.opponents)
     stem = os.path.splitext(os.path.basename(args.thetas))[0]      # 설계마다 파일을 나눠 merge 가 θ 목록별로 검사하게
     name = "games.csv" if not args.shard else "games_{}_shard{}of{}.csv".format(stem, *args.shard.split("/"))
     path = os.path.join(out_dir, name)

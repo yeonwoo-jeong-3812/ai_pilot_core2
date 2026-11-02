@@ -53,6 +53,7 @@ python bt/run_bt.py bt/thetas/diag.csv --prefix bt-diag --opponents diag-f4000  
 - **상대 묶음 (`--opponents`, 기본 `patched`):** `patched` = `bt/opponents_patched/` (원본에서 최우선 low_altitude → climb 노드만
   청 recover 와 같게: floor_ft 4500, g_burst 0.8. 규칙과 diff 는 `bt/analysis/opponent_patch_rules.md`), `original` = `kit/agents/main/` 원본,
   `diag-f4000` = 하드덱 진단 전용 (bt-diag 에서만). 상대 이름은 묶음과 상관없이 같고 `opponent_set` 열로 구분한다.
+  결과 폴더: `patched` 는 `bt/out/<접두어>/`, 다른 묶음은 `bt/out/<접두어>-<묶음>/` (예: `bt/out/bt-main-original/`) — 보정 상대 결과에 섞이지 않게.
 - 청(blue)은 항상 θ 트리, 적(red)은 항상 상대다. `perch_defense`는 `perch_offense`의 진영을 맞바꾼 기하라서,
   청을 고정해도 공세와 수세가 둘 다 들어간다.
 

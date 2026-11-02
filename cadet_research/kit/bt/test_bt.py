@@ -225,6 +225,19 @@ def test_read_games_keeps_ids():
     assert str(d.trajectory.dtype).startswith("int") and len(d) == 192 and len(l) == 64
 
 
+def test_out_dir_by_opponent_set():
+    """기본 상대 (patched) 결과 폴더는 예전 그대로, 다른 묶음은 접두어-묶음 폴더로 나뉜다. 재개 키에는 opponent_set 이 들어 있다."""
+    out = os.path.join(BT, "out")
+    assert run_bt.out_dir_for("bt-main") == run_bt.out_dir_for("bt-main", opponent_set="patched") == os.path.join(out, "bt-main")
+    assert run_bt.out_dir_for("bt-cal", r0=True) == os.path.join(out, "r0")
+    assert run_bt.out_dir_for("bt-main", opponent_set="original") == os.path.join(out, "bt-main-original")
+    assert run_bt.out_dir_for("bt-diag", opponent_set="diag-f4000") == os.path.join(out, "bt-diag-diag-f4000")
+    assert "opponent_set" in run_bt.KEY
+    th = [mt.normalize(BASE)]
+    key = lambda js: {tuple(str(j[k]) for k in run_bt.KEY) for j in js}
+    assert not key(run_bt.build_jobs(th, "bt-main")) & key(run_bt.build_jobs(th, "bt-main", opponent_set="original"))
+
+
 def _job(tree):
     j = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke")
     j = next(x for x in j if x["scenario"] == "neutral" and x["opponent"] == "B2_Extender_00")
