@@ -1,5 +1,22 @@
 # TASK B — Morris 중요도와 대리모델
 
+> ### ⚠ 2026-11-03 추가 사항 (이미 작업 중이면 반드시 반영)
+>
+> **결과 CSV와 설계 파일은 반드시 `read_games`/`read_design` (`bt/analysis/io_utils.py`) 으로 읽는다.** `pd.read_csv` 를 직접 쓰지 않는다.
+> pandas 기본 읽기는 식별자를 숫자로 바꾼다: theta_id `686747538e50` → 6.87e+58, `06930348e037` → 앞의 0 이 사라진 지수,
+> `242774203459` → 정수, engine_sha `1e0101026959` → `inf`. 본실험 θ 256개 중 4개가 숫자+e 형태, 1개가 숫자만이다.
+> 일부 θ 만 담은 파일·표에서는 theta_id 열 전체가 숫자로 읽혀 θ 가 섞이거나 사라진다.
+>
+> ```python
+> import sys; sys.path.insert(0, "bt/analysis")      # cadet_research/kit/ 에서
+> from io_utils import read_games, read_design
+> df = read_games("bt/analysis/fixtures/pilot2_sample.csv")     # 식별자 열은 str, 수치 열은 숫자
+> design = read_design("bt/thetas/main_morris_r16.csv")          # 파라미터 float, trajectory·step int, theta_id 열 포함
+> ```
+>
+> `io_utils.py` 는 bt-study 에 있다 (`git pull origin bt-study` 로 자기 브랜치에 받아 온다). 고치지 말고 가져다 쓴다.
+> 테스트: `bt/test_bt.py` 의 `test_read_games_keeps_ids`.
+
 ## Claude Code에게
 
 이 파일 하나로 작업을 시작할 수 있게 썼다. 아래 순서를 지켜라.
@@ -59,7 +76,7 @@ pandas 를 쓴다. games.csv 에는 궤적 정보가 없다. **θ ↔ 궤적은 
 `analysis/morris.py`
 | 함수 | 입력 | 출력 |
 |---|---|---|
-| `theta_means(games_df, design_path, by_geometry=False) -> DataFrame` | games.csv DataFrame (wall_clock 뺀 것), `bt/thetas/main_morris_r16.csv` | θ 마다 한 행: 파라미터 11개, `trajectory`, `step`, `theta_id`, `y` (평균 Δwez). `by_geometry=True` 면 (θ, 기하) 마다 한 행 + `scenario` |
+| `theta_means(games_df, design_path, by_geometry=False) -> DataFrame` | **결과 CSV와 설계 파일은 반드시 `read_games`/`read_design` (`bt/analysis/io_utils.py`) 으로 읽는다.** (games_df 는 `read_games` 결과, 설계 파일은 `read_design`) games.csv DataFrame (wall_clock 뺀 것), `bt/thetas/main_morris_r16.csv` | θ 마다 한 행: 파라미터 11개, `trajectory`, `step`, `theta_id`, `y` (평균 Δwez). `by_geometry=True` 면 (θ, 기하) 마다 한 행 + `scenario` |
 | `elementary_effects(tm) -> DataFrame` | `theta_means` 결과 (한 기하 또는 전체) | 궤적마다 요인마다 한 행: `trajectory, param, ee`. EE = (y(다음 점) − y(이전 점)) / Δ, Δ 는 정규화 단위 (x = (θ − lo)/(hi − lo)) 의 변화량 (SALib `analyze.morris` 정의와 같다) |
 | `indices(ee) -> DataFrame` | `elementary_effects` 결과 | 요인마다 `param, mu_star, mu, sigma` |
 | `bootstrap(ee, n_boot=2000, seed=20261108) -> DataFrame` | 같음 | `param, mu_star, mu_star_lo, mu_star_hi, mu, sigma` (궤적 단위 재표집, 백분위 95%) |
@@ -74,7 +91,7 @@ pandas 를 쓴다. games.csv 에는 궤적 정보가 없다. **θ ↔ 궤적은 
 `analysis/surrogate.py`
 | 함수 | 입력 | 출력 |
 |---|---|---|
-| `theta_table(games_df, design_paths) -> DataFrame` | games.csv DataFrame, `[main_lhs64.csv, main_morris_r16.csv]` | θ 마다 한 행: 파라미터 11개, `theta_id`, `design` (`lhs`/`morris`), `row` (설계 파일 행 순서), `trajectory` (Morris 만, LHS 는 빈 값), `y` (48경기 평균 Δwez). 본실험이면 256행 |
+| `theta_table(games_df, design_paths) -> DataFrame` | **결과 CSV와 설계 파일은 반드시 `read_games`/`read_design` (`bt/analysis/io_utils.py`) 으로 읽는다.** (games_df 는 `read_games` 결과, 설계 파일은 `read_design`) games.csv DataFrame, `[main_lhs64.csv, main_morris_r16.csv]` | θ 마다 한 행: 파라미터 11개, `theta_id`, `design` (`lhs`/`morris`), `row` (설계 파일 행 순서), `trajectory` (Morris 만, LHS 는 빈 값), `y` (48경기 평균 Δwez). 본실험이면 256행 |
 | `holdout_split(tt, seed=20261108) -> (train_ids, test_ids)` | `theta_table` 결과 | 위 "떼어 두기" 순서 그대로: Morris 궤적 3개의 θ 36개 + LHS 행 13개 = 49 θ 를 test 로 |
 | `fit_holdout(tt, seed=20261108) -> dict` | `theta_table` 결과 | `holdout_split` 로 나눠 학습. `model`, `r2_holdout`, `train_ids`, `test_ids`, `test_trajectories`. 모형은 `HistGradientBoostingRegressor(random_state=20261108)`, 그 밖의 하이퍼파라미터는 scikit-learn 기본값 |
 | `shap_report(fit, tt, out_dir) -> bool` | | R² ≥ 0.5 일 때만 `TreeExplainer` SHAP 값 표 (`surrogate_shap.csv`) 와 그림 (요약 그림) 을 쓰고 True. 미달이면 아무것도 안 쓰고 False |

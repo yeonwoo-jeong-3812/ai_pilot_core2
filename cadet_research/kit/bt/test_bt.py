@@ -191,6 +191,40 @@ def test_main_design_files():
             sorted(p["name"] for p in dims)
 
 
+def test_read_games_keeps_ids():
+    """숫자+e·숫자만인 theta_id 와 engine_sha 를 read_games 는 문자열로 보존하고, pandas 기본 읽기는 깨뜨린다."""
+    import csv
+    import math
+    import tempfile
+    import pandas as pd
+    sys.path.insert(0, os.path.join(BT, "analysis"))
+    from io_utils import read_games, read_design
+    ids = ["686747538e50", "06930348e037", "242774203459"]          # 본실험 θ 에 실제로 있는 형태
+    fd, path = tempfile.mkstemp(suffix=".csv")
+    os.close(fd)
+    try:
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["theta_id", "seed", "engine_sha", "code_commit", "wez_blue", "wez_red", "t_first_wez", "node_frac"])
+            for i in ids:
+                w.writerow([i, "0123", "1e0101026959", "a7bbb5f88b9d", "3.5", "1.25", "", ""])
+        bad = pd.read_csv(path)                                      # pandas 기본
+        assert bad.theta_id.dtype != object and math.isinf(bad.engine_sha.iloc[0]), bad.dtypes
+        assert str(bad.theta_id.iloc[1]) != "06930348e037"
+        good = read_games(path)
+        assert list(good.theta_id) == ids and list(good.engine_sha) == ["1e0101026959"] * 3
+        assert list(good.seed) == ["0123"] * 3 and list(good.code_commit) == ["a7bbb5f88b9d"] * 3
+        assert list(good.wez_blue - good.wez_red) == [2.25] * 3 and good.t_first_wez.isna().all()
+        assert list(good.node_frac) == [""] * 3
+    finally:
+        os.remove(path)
+    d = read_design(os.path.join(BT, "thetas", "main_morris_r16.csv"))
+    l = read_design(os.path.join(BT, "thetas", "main_lhs64.csv"))
+    e_ids = {"686747538e50", "443592e60339", "06930348e037", "220745e32020"}     # 본실험 θ 256개 중 숫자+e 형태 전부
+    assert set(d.theta_id) | set(l.theta_id) >= e_ids and "242774203459" in set(d.theta_id) | set(l.theta_id)
+    assert str(d.trajectory.dtype).startswith("int") and len(d) == 192 and len(l) == 64
+
+
 def _job(tree):
     j = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke")
     j = next(x for x in j if x["scenario"] == "neutral" and x["opponent"] == "B2_Extender_00")

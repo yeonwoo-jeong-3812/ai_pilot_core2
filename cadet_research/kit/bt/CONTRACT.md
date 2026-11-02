@@ -58,6 +58,10 @@ python bt/run_bt.py bt/thetas/diag.csv --prefix bt-diag --opponents diag-f4000  
 
 ## 2. games.csv 열 (이 순서와 이름이 계약이다)
 
+**결과 CSV와 설계 파일은 반드시 `read_games`/`read_design` (`bt/analysis/io_utils.py`) 으로 읽는다.** pandas 기본 읽기 (`pd.read_csv`) 는 숫자+e 형태 theta_id (예: `686747538e50`) 와 숫자만인 theta_id 를 숫자로,
+engine_sha `1e0101026959` 를 `inf` 로 바꾼다 (본실험 θ 256개 중 숫자+e 4개, 숫자만 1개). `read_games` 는 식별자·문자열 열을 str 로,
+나머지를 숫자로 읽는다 (`test_bt.py` 의 `test_read_games_keeps_ids`). csv 모듈로 읽는 코드 (`run_bt.py`, `merge.py` 등) 는 모든 값이 문자열이라 해당 없다.
+
 | 열 | 뜻 | 단위·값 |
 |---|---|---|
 | `stage` | 시드 접두어 = 데이터의 쓰임 (§3). `--r0` 실행이면 `r0` | `bt-smoke` 등, `r0` |

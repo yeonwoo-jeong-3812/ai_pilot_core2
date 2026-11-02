@@ -1,5 +1,22 @@
 # TASK A — RQ1 분산분해와 확인 단계 비교
 
+> ### ⚠ 2026-11-03 추가 사항 (이미 작업 중이면 반드시 반영)
+>
+> **결과 CSV와 설계 파일은 반드시 `read_games`/`read_design` (`bt/analysis/io_utils.py`) 으로 읽는다.** `pd.read_csv` 를 직접 쓰지 않는다.
+> pandas 기본 읽기는 식별자를 숫자로 바꾼다: theta_id `686747538e50` → 6.87e+58, `06930348e037` → 앞의 0 이 사라진 지수,
+> `242774203459` → 정수, engine_sha `1e0101026959` → `inf`. 본실험 θ 256개 중 4개가 숫자+e 형태, 1개가 숫자만이다.
+> 일부 θ 만 담은 파일·표에서는 theta_id 열 전체가 숫자로 읽혀 θ 가 섞이거나 사라진다.
+>
+> ```python
+> import sys; sys.path.insert(0, "bt/analysis")      # cadet_research/kit/ 에서
+> from io_utils import read_games, read_design
+> df = read_games("bt/analysis/fixtures/pilot2_sample.csv")     # 식별자 열은 str, 수치 열은 숫자
+> design = read_design("bt/thetas/main_morris_r16.csv")          # 파라미터 float, trajectory·step int, theta_id 열 포함
+> ```
+>
+> `io_utils.py` 는 bt-study 에 있다 (`git pull origin bt-study` 로 자기 브랜치에 받아 온다). 고치지 말고 가져다 쓴다.
+> 테스트: `bt/test_bt.py` 의 `test_read_games_keeps_ids`.
+
 ## Claude Code에게
 
 이 파일 하나로 작업을 시작할 수 있게 썼다. 아래 순서를 지켜라.
@@ -55,7 +72,7 @@ pandas 를 쓴다. 입력 DataFrame 은 games.csv 를 그대로 읽은 것 (열 
 `analysis/anova.py`
 | 함수 | 입력 | 출력 |
 |---|---|---|
-| `load(path) -> DataFrame` | games.csv 경로 | `end_reason == "wall_clock"` 행을 뺀 DataFrame + `dwez` 열 (= wez_blue − wez_red). 뺀 수를 출력한다 |
+| `load(path) -> DataFrame` | games.csv 경로 | **결과 CSV와 설계 파일은 반드시 `read_games`/`read_design` (`bt/analysis/io_utils.py`) 으로 읽는다.** (`read_games(path)` 로 읽는다) `end_reason == "wall_clock"` 행을 뺀 DataFrame + `dwez` 열 (= wez_blue − wez_red). 뺀 수를 출력한다 |
 | `check_balance(df, n_seeds=4)` | `load` 결과 | 모든 θ 가 (기하 3 × 상대 4 × 시드 4) 48칸을 정확히 하나씩 가지면 통과. 아니면 `ValueError` — 메시지에 빠진 칸 `(theta_id, scenario, opponent, seed_salt)` 목록과 겹친 칸 목록. `eta2()` 와 `eta2_bootstrap()` 이 시작할 때 부른다 |
 | `resample_thetas(df, rng) -> DataFrame` | `load` 결과, `numpy.random.Generator` | θ 를 복원추출 (θ 수만큼) 한 표본. 뽑힐 때마다 새 θ 이름 (`theta_id` 를 `<원래 id>#<뽑힌 순번>` 처럼) 을 붙여, 같은 θ 가 두 번 뽑혀도 서로 다른 수준이 된다 |
 | `eta2(df) -> dict[str, float]` | `load` 결과 | 키 `theta`, `geometry`, `opponent`, `theta:geometry`, `theta:opponent`, `geometry:opponent`, `residual` → η². 합 = 1 |
