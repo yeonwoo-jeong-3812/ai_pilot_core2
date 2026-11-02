@@ -119,10 +119,29 @@ def test_patched_opponents_only_climb_node():
                        {"action": {"pursuit": "pure", "g_burst": 0.8, "aim_above_ft": 4000.0, "name": "climb"}}], name
 
 
+def test_shard_partition():
+    """--shard i/n: 겹치지 않고 빠짐없이 나뉘고, 합치면 전체와 같다 (같은 θ 목록·n)."""
+    import designs
+    jobs = run_bt.build_jobs([mt.normalize(t) for t in designs.lhs(5, 7)], "bt-smoke")
+    key = lambda j: tuple(str(j[k]) for k in run_bt.KEY)
+    for n in (1, 2, 3, 7):
+        parts = [run_bt.shard(jobs, f"{i}/{n}") for i in range(1, n + 1)]
+        keys = [key(j) for p in parts for j in p]
+        assert len(keys) == len(set(keys)) == len(jobs) and set(keys) == {key(j) for j in jobs}, n
+        assert max(map(len, parts)) - min(map(len, parts)) <= 1, n
+    assert run_bt.shard(jobs, None) == jobs
+    for bad in ("0/2", "3/2", "2", "a/b"):
+        try:
+            run_bt.shard(jobs, bad)
+        except ValueError:
+            continue
+        raise AssertionError(bad)
+
+
 def _job(tree):
     j = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke")
     j = next(x for x in j if x["scenario"] == "neutral" and x["opponent"] == "B2_Extender_00")
-    return {**j, "tree": tree, "engine_sha": "test"}
+    return {**j, "tree": tree, "engine_sha": "test", "code_commit": "test"}
 
 
 VOLATILE = ("wall_s", "host", "tree_sha")

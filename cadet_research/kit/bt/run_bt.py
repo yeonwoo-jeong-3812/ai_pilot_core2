@@ -7,6 +7,10 @@
   python bt/run_bt.py thetas.csv --prefix bt-main --unlock-confirm
   python bt/run_bt.py bt/thetas/r0.csv --prefix bt-cal --r0  # R0 검증: 범위 밖 θ 허용, stage=r0, 결과 bt/out/r0/
   python bt/run_bt.py thetas.csv --opponents original        # kit 원본 상대 (기본은 patched)
+  python bt/run_bt.py thetas.csv --prefix bt-main --unlock-confirm --shard 2/3   # 3대 중 2번째 PC 몫 (bt/RUNBOOK.md)
+
+실행 전 점검 (bt/RUNBOOK.md): bt/ 에 커밋 안 된 수정이 없고, Python 버전·crosscheck 전체 해시가 CONTRACT.md §8 과 같아야 돈다.
+진단용으로만 --force-dev 로 건너뛴다. --dry 는 점검하지 않는다.
 
 결과: bt/out/<접두어>/games.csv, 1경기 1줄. 이미 기록된 경기는 건너뛴다(끊기면 같은 명령으로 재개).
 run.py 를 import 하지 않는다 (run.py 는 import 시 Pilot.setup 을 감싼다). 경기 조립은 bridge.CompetitionMatch.run 과
@@ -20,7 +24,9 @@ import hashlib
 import json
 import os
 import platform
+import re
 import socket
+import subprocess
 import sys
 import time
 
@@ -64,7 +70,7 @@ FIELDS = (["stage", "theta_id"] + mt.NAMES +
           ["dummy", "scenario", "opponent", "opponent_set", "seed_salt", "seed",
            "winner", "end_reason", "win_mode", "hp_blue", "hp_red", "hp_blue_raw", "hp_red_raw", "wez_blue", "wez_red",
            "ata_mean_blue", "ata_mean_red", "off_frac", "def_frac", "e_adv_ft", "t_first_wez", "node_frac", "node_frac_red",
-           "sim_time_s", "wall_s", "engine_sha", "tree_sha", "host", "python_version"])
+           "sim_time_s", "wall_s", "engine_sha", "tree_sha", "code_commit", "host", "python_version"])
 KEY = ("stage", "theta_id", "scenario", "opponent", "opponent_set", "seed_salt")
 
 
@@ -82,6 +88,49 @@ def engine_sha() -> str:
                 with open(p, "rb") as f:
                     h.update(f.read().replace(b"\r\n", b"\n") + b"\0")
     return h.hexdigest()[:12]
+
+
+def code_commit() -> str:
+    """실행 시점 git 커밋 해시 (짧은 형식). git 저장소가 아니면 "unknown"."""
+    try:
+        return subprocess.run(["git", "rev-parse", "--short=12", "HEAD"], cwd=BT, capture_output=True,
+                              text=True, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
+def shard(jobs: list[dict], spec: str | None) -> list[dict]:
+    """--shard i/n: build_jobs 순서의 k 번째 경기를 (k mod n) + 1 번 몫으로. 같은 θ 목록·n 이면 겹치지 않고 빠짐없이 나뉜다."""
+    if not spec:
+        return jobs
+    m = re.fullmatch(r"(\d+)/(\d+)", spec)
+    if not m or not 1 <= int(m.group(1)) <= int(m.group(2)):
+        raise ValueError(f"--shard 는 i/n (1 ≤ i ≤ n) 형식: {spec!r}")
+    i, n = int(m.group(1)), int(m.group(2))
+    return [j for k, j in enumerate(jobs) if k % n == i - 1]
+
+
+def preflight() -> list[str]:
+    """실행 전 점검. 문제 목록 (빈 목록 = 통과). CONTRACT.md §8 의 Python 버전·crosscheck 전체 해시와 비교한다."""
+    problems = []
+    try:
+        dirty = subprocess.run(["git", "status", "--porcelain", "--", "."], cwd=BT, capture_output=True,
+                               text=True, check=True).stdout.strip()
+        if dirty:
+            problems.append("bt/ 에 커밋 안 된 수정이 있다:\n" + dirty)
+    except (OSError, subprocess.CalledProcessError) as e:
+        problems.append(f"git 상태를 읽을 수 없다: {e}")
+    with open(os.path.join(BT, "CONTRACT.md"), encoding="utf-8") as f:
+        contract = f.read()
+    want_py = re.search(r"\| python_version \| ([\d.]+) \|", contract).group(1)
+    want_hash = re.search(r"\| \*\*전체 해시\*\* \| \*\*`([0-9a-f]+)`\*\* \|", contract).group(1)
+    if platform.python_version() != want_py:
+        problems.append(f"Python {platform.python_version()} ≠ CONTRACT {want_py}")
+    import crosscheck
+    got = crosscheck.compute()["overall"]
+    if got != want_hash:
+        problems.append(f"crosscheck 전체 해시 {got} ≠ CONTRACT {want_hash}")
+    return problems
 
 
 def win_mode(winner: str, end_reason: str) -> str:
@@ -163,7 +212,7 @@ def play(job: dict) -> dict:
             "e_adv_ft": _r(s["e_adv_ft"], 1), "t_first_wez": _r(s["t_first_wez"], 2),
             "node_frac": s["node_frac"] or "", "node_frac_red": s["node_frac_red"] or "",
             "sim_time_s": _r(r.time_s, 4), "wall_s": _r(time.time() - t0, 1),
-            "engine_sha": job["engine_sha"], "tree_sha": mt.tree_sha(job["tree"]),
+            "engine_sha": job["engine_sha"], "tree_sha": mt.tree_sha(job["tree"]), "code_commit": job["code_commit"],
             "host": socket.gethostname(), "python_version": platform.python_version()}
 
 
@@ -176,6 +225,8 @@ def main():
     ap.add_argument("--r0", action="store_true", help="R0 검증: params.yaml 범위 밖 θ 허용, stage=r0, 결과 bt/out/r0/")
     ap.add_argument("--opponents", default=DEFAULT_SET, choices=list(OPPONENT_SETS),
                     help=f"상대 묶음 (기본 {DEFAULT_SET}). original = kit 원본, diag-f4000 = bt-diag 전용")
+    ap.add_argument("--shard", help="i/n: n 대 중 i 번째 몫만 (결과 파일 games_shard<i>of<n>.csv)")
+    ap.add_argument("--force-dev", action="store_true", help="진단용: 실행 전 점검 (커밋·Python·crosscheck) 을 건너뛴다")
     ap.add_argument("--dry", action="store_true")
     ap.add_argument("--limit", type=int, help="남은 경기 중 앞 N개만")
     args = ap.parse_args()
@@ -183,10 +234,13 @@ def main():
         ap.error(f"{args.prefix} 는 확증 시드다. 정말 돌릴 때만 --unlock-confirm 을 붙인다")
     if args.opponents == "diag-f4000" and args.prefix != "bt-diag":
         ap.error("--opponents diag-f4000 은 --prefix bt-diag 에서만 쓴다")
-    jobs = build_jobs(read_thetas(args.thetas, args.r0), args.prefix, args.r0,
-                      args.opponents)
+    try:
+        jobs = shard(build_jobs(read_thetas(args.thetas, args.r0), args.prefix, args.r0, args.opponents), args.shard)
+    except ValueError as e:
+        ap.error(str(e))
     out_dir = os.path.join(BT, "out", "r0" if args.r0 else args.prefix)
-    path = os.path.join(out_dir, "games.csv")
+    name = "games.csv" if not args.shard else "games_shard{}of{}.csv".format(*args.shard.split("/"))
+    path = os.path.join(out_dir, name)
     rows = read_rows(path)
     if rows and list(rows[0]) != FIELDS:
         sys.exit(f"{path} 의 열이 지금 계약(FIELDS)과 다르다. 옛 형식 파일은 다른 이름으로 옮기고 다시 돌린다")
@@ -196,9 +250,17 @@ def main():
     todo = todo[:args.limit]
     if args.dry or not todo:
         return
-    sha = engine_sha()
+    if args.force_dev:
+        print("⚠ --force-dev: 실행 전 점검을 건너뛴다 (진단용. 본실험 결과에 쓰지 않는다)")
+    else:
+        print("실행 전 점검 (커밋 상태, Python, crosscheck 10경기) ...", flush=True)
+        problems = preflight()
+        if problems:
+            sys.exit("실행 거부:\n- " + "\n- ".join(problems) + "\n(진단용으로만 --force-dev)")
+        print("  통과", flush=True)
+    sha, commit = engine_sha(), code_commit()
     for j in todo:
-        j["engine_sha"] = sha
+        j["engine_sha"], j["code_commit"] = sha, commit
     os.makedirs(out_dir, exist_ok=True)
     import multiprocessing as mp
     new = not os.path.isfile(path)

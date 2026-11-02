@@ -109,7 +109,7 @@ def main():
                  "bt-cal-b": rows(os.path.join(OUT, "bt-cal-b", "games_original.csv"))}
     assert all(len(v) == 48 for v in base_sets.values()) and all(len(v) == 48 for v in by.values())
     L = ["# 검증 결과", "", "판정 규칙은 `bt/validate.py` 머리말에 결과를 보기 전에 고정했다. 기준 θ = `bt/thetas/baseline.csv`.", "",
-         "**§1–7 은 원본 상대 (`kit/agents/main`) 결과다.** 상대 보정 (`opponent_set` 열) 전에 돌린 것이라 원자료는 "
+         "**1차 지표는 Δwez 다 (§8.2.1, 2026-11-02 변경).** **§1–7 은 원본 상대 (`kit/agents/main`) 결과다.** 상대 보정 (`opponent_set` 열) 전에 돌린 것이라 원자료는 "
          "`games_original.csv` 로 이름만 바꿔 보관했다. 보정 상대 결과는 §8, 계산 예산은 §9.", ""]
 
     L += ["## 1. θ별 요약 (bt-cal, 48경기씩)", "", "| θ | 승-무-패 | 승률 | wez_blue − wez_red 평균 [s] (95% CI) | wall_clock |", "|---|---|---|---|---|"]
@@ -297,11 +297,29 @@ def patched_section():
                  f"| {abs(d['wezd'][0]) / noise['wezd']:.2f} | {fmt(d['hpd'], 1)} | {abs(d['hpd'][0]) / noise['hpd']:.2f} "
                  f"| {fmt(nd, 3) if nd else '—'} |")
     d, nd = res["R0-2 (fight_kcas=1000)"]
-    sens = nd[1] > 0.3 and all(d[m][0] < 0 and d[m][2] < 0 and abs(d[m][0]) > noise[m] for m in ("win", "wezd"))
-    spec = all(abs(res["미세 (6010/281)"][0][m][0]) <= noise[m] for m in ("win", "wezd"))
-    L += ["", f"- 민감도 (R0-2 가 (a) 노드 Δ CI 하한 > 0.3, (b) 승률·wez 차 모두 Δ < 0, CI 상한 < 0, |Δ| > 잡음): **{'O' if sens else 'X'}**",
-          f"- 특이도 (미세 θ 가 승률·wez 차 모두 잡음 범위 안): **{'O' if spec else 'X'}**",
-          f"- **보정 상대 R0 판정: {'통과' if sens and spec else '불통과'}**. 체력 차는 판정에 쓰지 않고 함께 적는다.", "",
+    ok_b = lambda m: d[m][0] < 0 and d[m][2] < 0 and abs(d[m][0]) > noise[m]
+    in_noise = lambda m: abs(res["미세 (6010/281)"][0][m][0]) <= noise[m]
+    sens_old, spec_old = nd[1] > 0.3 and ok_b("win") and ok_b("wezd"), in_noise("win") and in_noise("wezd")
+    sens, spec = nd[1] > 0.3 and ok_b("wezd"), in_noise("wezd")          # 1차 지표 (Δwez) 기준
+    L += ["", "**판정 (1차 지표 Δwez 기준, 아래 \"1차 지표 변경 기록\" 이후의 규칙)**", "",
+          f"- 민감도 (R0-2 가 (a) 노드 Δ CI 하한 > 0.3, (b) Δwez 의 Δ < 0, CI 상한 < 0, |Δ| > 잡음): **{'O' if sens else 'X'}**",
+          f"- 특이도 (미세 θ 의 Δwez 가 잡음 범위 안): **{'O' if spec else 'X'}**",
+          f"- **보정 상대 R0 판정 (Δwez): {'통과' if sens and spec else '불통과'}**",
+          f"- 보조 지표 (보고만): 승률 (b) {'O' if ok_b('win') else 'X'}, 특이도 {'O' if in_noise('win') else 'X'}; "
+          f"체력 차 (b) {'O' if ok_b('hpd') else 'X'}, 특이도 {'O' if in_noise('hpd') else 'X'}",
+          f"- 참고: 변경 전 규칙 (승률·wez 차 두 지표 모두) 으로는 민감도 {'O' if sens_old else 'X'}, 특이도 {'O' if spec_old else 'X'} → "
+          f"**{'통과' if sens_old and spec_old else '불통과'}** (2026-11-02 첫 보고)", "",
+          "### 8.2.1 1차 지표 변경 기록", "",
+          "- **언제:** 2026-11-02. 원본 상대·보정 상대 예비 실험 (pilot_report, pilot2_report) 과 보정 상대 R0 (§8.2) 결과를 "
+          "**모두 본 뒤에** 정했다. 사전등록 규칙이 아니다.",
+          "- **변경 전:** 1차 지표 = pilot_rules (2) 결과 = **승률** (R 이 큰 쪽, 1.5배 넘으면 그쪽). R0 판정은 승률·wez 차 두 지표 모두.",
+          "- **변경 후:** 1차 지표 = **Δwez (wez_blue − wez_red)**. 보조 지표 = 승률, 실제 체력 차 (hp_blue_raw − hp_red_raw), win_mode 분포.",
+          "  - 새 규칙: \"1차 지표는 보정 상대 환경의 R0 민감도·특이도를 통과해야 자격이 있고, 자격 있는 후보 "
+          "(pilot_rules 의 원래 후보인 승률, Δwez) 중 예비 실험 R 이 큰 것을 택한다.\"",
+          "  - R0 판정은 앞으로 1차 지표 기준으로 하고, 보조 지표 결과는 함께 보고만 한다.",
+          f"- **이유:** 승률은 보정 상대 R0 민감도 불통과 — 기준 θ 승률 약 {means['bt-cal']['win']:.2f} 의 바닥 효과로 "
+          f"확실한 악화 θ (R0-2) 의 Δ승률 CI 가 0 을 넘었다 ({fmt(d['win'], 3)}). "
+          f"Δwez 는 통과 (효과/잡음 {abs(d['wezd'][0]) / noise['wezd']:.2f}), 재예비 실험 R 5.46. 자격 있는 후보가 Δwez 하나다.", "",
           "승리 방식 (청 승리만):", "", "| θ | 승 | " + " | ".join(MODES) + " |", "|---|---|" + "---|" * len(MODES)]
     for name, g in (("기준", base), ("R0-2", r02), ("미세", micro)):
         c = C.Counter(win_mode(r["winner"], r["end_reason"]) for r in g.values())
@@ -351,15 +369,16 @@ def budget_section(need):
          f"처리량 = 실제 경과 시간 / 경기 수. 보정 상대 **{sp:.2f} s/경기** (재예비 실험 2,400경기, 경기당 wall_s 평균 {ws:.1f} s 를 6개 병렬), "
          f"원본 상대 {so:.2f} s/경기 (예비 실험). PC 3대는 같은 사양 3대에 경기를 똑같이 나눈다고 가정한다 (실측 아님).", "",
          "| 단계 | θ 수 | 경기 수 | 처리량 | PC 1대 [h] | PC 3대 [h] |", "|---|---|---|---|---|---|"]
-    rowsb = [("RQ1: LHS θ 64 × 48", 64, 64 * 48, sp)]
-    for r in (10, 16, 20):
-        rowsb.append((f"RQ2: Morris r = {r} (궤적당 θ 12) × 48", r * 12, r * 12 * 48, sp))
-    for (m, dlt), ns in need.items():
-        rowsb.append((f"확인: θ 4 × {ns[0]} 경기 ({'승률' if m == 'win' else 'wez 차'} {dlt}, bt-cal 합동 sd)", 4, 4 * ns[0], sp))
+    # PREREG_BT.md 설계 (2026-11-02 팀 결정): RQ1 LHS 64 × 48, RQ2 Morris r = 16 (θ 192) × 48, 확인 θ 4 × 432 (Δwez 0.5 s)
+    rowsb = [("RQ1: LHS θ 64 × 48", 64, 64 * 48, sp),
+             ("RQ2: Morris 수준 4, 궤적 16 (θ 192) × 48", 192, 192 * 48, sp),
+             ("확인: θ 4 (기준 + 후보 3) × 432 (48경기 묶음 9개)", 4, 4 * 432, sp)]
+    rowsb.append(("**합계 (본실험)**", sum(r[1] for r in rowsb), sum(r[2] for r in rowsb), sp))
     rowsb.append(("선택: 원본 상대 견고성 (RQ1 θ 64 × 48)", 64, 64 * 48, so))
     for name, nt, ng, s in rowsb:
         L.append(f"| {name} | {nt} | {ng:,} | {s:.2f} | {ng * s / 3600:.1f} | {ng * s / 3600 / 3:.1f} |")
-    L += ["", "확인 단계 경기 수는 θ 하나당 (기준과 짝짓는 비교) 이다. 기준 θ 도 같은 수만큼 돌린다고 보면 θ 4개 = 기준 + 상위 3개.", ""]
+    L += ["", "확인 단계 432경기/θ 는 최소 의미 차이 Δwez 0.5 s 의 검정력 표 (§8.4) 를 보고 팀이 정한 값이다 (48경기 묶음 9개). "
+          "참고로 §8.4 의 필요 경기 수 (Δwez 0.5 s) 는 bt-cal 합동 sd 217, 재예비 θ 쌍 중앙값 268, 90 백분위 408 이다.", ""]
     return L
 
 

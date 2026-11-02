@@ -26,10 +26,18 @@ python bt/run_bt.py bt/thetas/r0.csv --prefix bt-cal --r0  # R0 검증 전용: �
 python bt/make_tree.py bt/thetas/r0.csv --r0                # θ 목록의 트리만 만들기 (--r0 는 위와 같음)
 python bt/validate.py                                       # 검증 표 bt/out/validation.md 다시 만들기
 python bt/crosscheck.py                                     # PC 간 재현 점검 (고정 10경기 해시, §8)
+python bt/run_bt.py thetas.csv --prefix bt-main --unlock-confirm --shard 2/3   # 여러 PC 분산: 3대 중 2번째 몫 (bt/RUNBOOK.md)
+python bt/merge.py thetas.csv --prefix bt-main --out bt/out/bt-main/games.csv a.csv b.csv c.csv   # shard 검사·합치기
 python bt/run_bt.py my_thetas.csv --opponents original     # kit 원본 상대로 (기본은 보정 상대 patched)
 python bt/run_bt.py bt/thetas/diag.csv --prefix bt-diag --opponents diag-f4000   # 하드덱 진단 반사실 (bt/out/diag_hard_deck.md)
 ```
 
+- **실행 전 점검:** `run_bt.py`는 실제로 돌기 전에 ① `bt/`에 커밋 안 된 수정이 없는지 ② Python 버전 ③ crosscheck 전체 해시를
+  §8 의 값과 비교하고 하나라도 다르면 실행을 거부한다. 진단용으로만 `--force-dev`로 건너뛴다 (그 결과는 본실험에 쓰지 않는다). `--dry`는 점검하지 않는다.
+- **분산 실행:** `--shard i/n`은 `build_jobs` 순서의 k 번째 경기를 (k mod n) + 1 번 몫으로 나눈다. 같은 θ 목록·접두어·상대 묶음·n 이면
+  겹치지 않고 빠짐없이 나뉜다 (`test_bt.py`). 결과는 `bt/out/<접두어>/games_shard<i>of<n>.csv`. 합칠 때는 `bt/merge.py`
+  (중복·누락·계획 밖 경기, code_commit·engine_sha·opponent_set 불일치, wall_clock, disqualified 를 검사하고 문제가 있으면 합치지 않는다).
+  팀원 순서는 `bt/RUNBOOK.md`.
 - 결과는 `bt/out/<접두어>/games.csv`에 이어 쓴다. 끊기면 같은 명령을 다시 치면 끝난 경기는 건너뛰고 이어서 돈다.
 - `--procs`는 CPU 코어 수보다 작게 준다. 8코어 PC는 6.
 - θ 목록 파일: CSV는 첫 줄이 열 이름, JSON은 dict 목록이다. 키는 `params.yaml`의 10개 이름과 `dummy`. 열 순서는 상관없다.
@@ -81,6 +89,7 @@ python bt/run_bt.py bt/thetas/diag.csv --prefix bt-diag --opponents diag-f4000  
 | `wall_s` | 실제 걸린 시간. 재현 대상 아님 | s |
 | `engine_sha` | `aircombat/`, `jsbsim_data/`, `config/` 내용 해시 앞 12자리 (줄끝·`__pycache__` 무시) | 문자열 |
 | `tree_sha` | 실제로 쓴 트리 파일의 sha256 앞 12자리 | 문자열 |
+| `code_commit` | 실행 시점 저장소 git 커밋 해시 앞 12자리 (`git rev-parse HEAD`). git 이 아니면 `unknown`. 재현 대상 아님 (crosscheck 해시에서 뺌) | 문자열 |
 | `host` | 실행한 PC 이름. 재현 대상 아님 | 문자열 |
 | `python_version` | 실행한 Python 버전 (`platform.python_version()`) | 예: `3.11.9` |
 
@@ -126,7 +135,7 @@ python bt/run_bt.py bt/thetas/diag.csv --prefix bt-diag --opponents diag-f4000  
 - **`wall_clock`.** 엔진은 경기 하나가 실제 시간 120 s를 넘으면 무승부로 끊는다. PC가 바쁘면 생기고, 재현되지 않는다.
   실행이 끝나면 `run_bt.py`가 개수를 찍는다. 생기면 그 줄을 games.csv에서 지우고 같은 명령을 다시 쳐서 다시 돌린다
   (kit의 `run_extra.py`와 같은 처리). 분석에는 넣지 않는다. 자주 생기면 `--procs`를 줄인다.
-- **열이 추가되면 옛 games.csv 와 열이 다르다.** `node_frac_red`는 하드덱 진단 때, `opponent_set`은 상대 보정 때 추가했다. 그 전 결과 (bt-cal, bt-pilot 등) 에는 없다.
+- **열이 추가되면 옛 games.csv 와 열이 다르다.** `node_frac_red`는 하드덱 진단 때, `opponent_set`은 상대 보정 때, `code_commit`은 분산 실행 준비 때 추가했다. 그 전 결과 (bt-cal, bt-pilot 등) 에는 없다.
 - **원본 상대는 하드덱이 많다.** 원본 상대 4종은 `low_altitude floor_ft`가 1,200 ft 이고 climb 이 g_burst 0 이다 (진단: `bt/out/diag_hard_deck.md`).
   그래서 기본 상대를 보정 상대 (`patched`) 로 바꿨다. `opponent_set` 열이 생기기 전 결과 (예비 실험 `bt-pilot/games_original.csv`,
   진단 `bt-diag/games_diag1.csv`) 는 모두 원본 상대다 (진단의 `_f4000` 이름 상대 제외).
@@ -152,6 +161,7 @@ python bt/run_bt.py bt/thetas/diag.csv --prefix bt-diag --opponents diag-f4000  
 | `bt/params.yaml`, `bt/tree_template.yaml`, `bt/make_tree.py` | θ 정의와 트리 생성 |
 | `bt/run_bt.py`, `bt/monitor.py`, `bt/trace_match.py` | 실행, 관측, 노드 추적 |
 | `bt/test_bt.py`, `bt/validate.py`, `bt/crosscheck.py` | 자가점검, 검증 표, PC 간 재현 점검 |
+| `bt/merge.py`, `bt/RUNBOOK.md` | 여러 PC 결과 검사·합치기, 팀원 실행 순서 |
 | `bt/designs.py`, `bt/analysis/` | 팀원 몫 (빈 틀) |
 | `bt/thetas/` | θ 목록 (`baseline.csv`, `validation.csv`, `r0.csv`, `pilot_lhs50.csv`, `diag.csv`) |
 | `bt/opponents_patched/` | 보정 상대 (기본 상대 묶음). 원본과 다른 곳은 최우선 노드 두 줄뿐 (`test_bt.py`가 확인) |
