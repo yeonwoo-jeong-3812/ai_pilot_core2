@@ -9,14 +9,14 @@
 |---|---|---|---|---|
 | `TASK_A_rq1_confirm.md` | 코딩 팀원 1 | RQ1 분산분해 (`analysis/anova.py`), 확인 단계 비교 (`analysis/confirm.py`) | `bt-task-a` | 2026-11-06 |
 | `TASK_B_morris_surrogate.md` | 코딩 팀원 2 | Morris μ*·μ·σ (`analysis/morris.py`), 대리모델·SHAP (`analysis/surrogate.py`) | `bt-task-b` | 2026-11-06 |
-| `TASK_RUN.md` | PC 를 내는 팀원 모두 (PC1, PC2, PC3) | 본실험 계산 분담 (`--shard i/3`) | 없음 (코드 안 고침) | 태그 `prereg-bt-v1` 생성 뒤. 날짜 [팀 결정 필요] |
+| `TASK_RUN.md` | PC1 연우, PC2 주엽, PC3 주혁 | 본실험 계산 분담 (`--shard i/3`) | 없음 (코드 안 고침) | 태그 `prereg-bt-v1` 생성 뒤 시작, 2026-11-06 까지 결과 전달 |
 
 ## 작업 순서
 
 1. 연우: PREREG_BT.md 고정 전 점검표 확인 → 태그 `prereg-bt-v1` 생성 (그 전에는 bt-main·bt-confirm 실행이 거부된다).
 2. 코딩 팀원 1·2: TASK_A, TASK_B 를 **동시에** 진행 (서로 다른 파일만 고친다). 시험 데이터 (`bt/analysis/fixtures/`) 로만 개발한다.
    본실험 결과가 없어도 끝낼 수 있다.
-3. PC 팀원: 태그가 생기면 TASK_RUN 으로 RQ1·RQ2 를 나눠 돌리고 결과 파일을 보낸다 (보내는 곳 [팀 결정 필요]).
+3. PC 팀원: 태그가 생기면 TASK_RUN 으로 RQ1·RQ2 를 나눠 돌리고 결과 파일을 팀 공유 구글 드라이브 'BT논문/bt-main' 폴더 에 올린다 (2026-11-06 까지).
 4. 연우: 결과를 `bt/merge.py` 로 합치고, TASK_A·B 브랜치를 검토해 bt-study 에 합친 뒤 본실험 결과에 분석을 돌린다.
 5. RQ3 (확인 단계) 는 11/13 관문 (대리모델 R² 기준 충족 + 계산 여유) 을 넘을 때만 진행한다 (PREREG_BT.md §1).
 

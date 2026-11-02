@@ -26,6 +26,7 @@
 > - **입력:** θ 별 48경기 평균 Δwez (기하별 분석은 θ 별 그 기하 16경기 평균).
 > - **지표:** 파라미터마다 기본효과의 μ* (절댓값 평균), μ (평균), σ (표준편차). 전체와 기하별로 계산한다.
 > - **부트스트랩:** 단위는 **궤적**, **2,000회, seed 20261108**. 95% CI (백분위).
+>   기하별 계산은 **한 번 뽑은 궤적 묶음으로 세 기하를 함께** 계산한다 (기하 간 μ* 차이의 CI 가 짝을 이루도록).
 > - **중요 판정:** 파라미터 μ* 의 95% CI 하한 > 더미 μ* 의 95% CI 상한.
 > - **기하별 순위:** 기하별 μ* 순위와 기하 쌍 사이 **Spearman 순위 상관** (서술용, 부트스트랩 CI).
 >   **"기하별 순위가 다르다"** = 어떤 파라미터가 한 기하에서는 중요, 다른 기하에서는 중요 아님이고, 두 기하 μ* 차이의 95% CI 가 0 을 포함하지 않을 때.
@@ -38,7 +39,11 @@
 ### 대리모델 (PREREG_BT.md §6.3 그대로)
 
 > - **모형:** scikit-learn `HistGradientBoostingRegressor`. 입력 θ (10개 + 더미), 출력 θ 별 평균 Δwez.
-> - **데이터:** bt-main θ 256개 (RQ1 64 + RQ2 192). **무작위 20% θ 를 떼어 둔다 (seed 20261108).**
+> - **데이터:** bt-main θ 256개 (RQ1 64 + RQ2 192).
+> - **떼어 두기 (집단 단위):** Morris θ 는 **궤적 단위로 16개 중 3개 (36 θ)**, LHS θ 는 **θ 단위로 64개 중 13개**, 합계 **49 θ (약 19%)**, seed 20261108.
+>   순서: `rng = numpy.random.default_rng(20261108)` → Morris 궤적 `rng.choice(16, 3, replace=False)` → LHS θ (설계 파일 행 순서 0–63)
+>   `rng.choice(64, 13, replace=False)`. 나머지 207 θ 로 학습한다.
+>   이유: 같은 궤적의 이웃 θ (요인 하나만 다름) 가 학습 쪽에 남으면 떼어 둔 데이터 R² 가 부풀려진다. 그래서 궤적은 통째로 한쪽에만 둔다.
 > - **보고 조건:** 떼어 둔 데이터 **R² ≥ 0.5 일 때만** SHAP (`TreeExplainer`) 해석을 결과로 보고한다. 미달이면 SHAP 은 보고하지 않는다.
 
 ### 지표와 제외 (PREREG_BT.md §4, §7, CONTRACT.md §5)
@@ -63,20 +68,23 @@ pandas 를 쓴다. games.csv 에는 궤적 정보가 없다. **θ ↔ 궤적은 
 | `plot_mu_sigma(boot, path)`, `plot_geometry_rank(result, path)` | | μ*–σ 산점도 (dummy 표시, CI 막대), 기하별 μ* 순위 그림 (png) |
 | CLI: `python bt/analysis/morris.py <games.csv> --design bt/thetas/main_morris_r16.csv --out <폴더>` | | `morris.csv`, `morris.md`, `morris_geometry.md`, 그림 2개 |
 
-- 기하별 부트스트랩도 같은 궤적 재표집을 쓴다 (한 번 뽑은 궤적 묶음으로 세 기하를 함께 계산하면 차이 CI 가 짝을 이룬다. 다른 방식이 필요하면 "질문").
+- 기하별 부트스트랩은 한 번 뽑은 궤적 묶음으로 세 기하를 함께 계산한다 (PREREG_BT.md §6.2).
 - SALib `analyze.morris` 를 μ*·μ·σ 점추정 확인에 써도 되지만, CI 는 위 사양 (궤적 재표집 2,000회, seed 20261108, 백분위) 으로 직접 계산한다.
 
 `analysis/surrogate.py`
 | 함수 | 입력 | 출력 |
 |---|---|---|
-| `theta_table(games_df, design_paths) -> DataFrame` | games.csv DataFrame, `[main_lhs64.csv, main_morris_r16.csv]` | θ 마다 한 행: 파라미터 11개 + `y` (48경기 평균 Δwez). 본실험이면 256행 |
-| `fit_holdout(tt, frac=0.2, seed=20261108) -> dict` | `theta_table` 결과 | `model`, `r2_holdout`, `train_ids`, `test_ids`. 모형은 `HistGradientBoostingRegressor(random_state=20261108)`, 그 밖의 하이퍼파라미터는 scikit-learn 기본값 |
+| `theta_table(games_df, design_paths) -> DataFrame` | games.csv DataFrame, `[main_lhs64.csv, main_morris_r16.csv]` | θ 마다 한 행: 파라미터 11개, `theta_id`, `design` (`lhs`/`morris`), `row` (설계 파일 행 순서), `trajectory` (Morris 만, LHS 는 빈 값), `y` (48경기 평균 Δwez). 본실험이면 256행 |
+| `holdout_split(tt, seed=20261108) -> (train_ids, test_ids)` | `theta_table` 결과 | 위 "떼어 두기" 순서 그대로: Morris 궤적 3개의 θ 36개 + LHS 행 13개 = 49 θ 를 test 로 |
+| `fit_holdout(tt, seed=20261108) -> dict` | `theta_table` 결과 | `holdout_split` 로 나눠 학습. `model`, `r2_holdout`, `train_ids`, `test_ids`, `test_trajectories`. 모형은 `HistGradientBoostingRegressor(random_state=20261108)`, 그 밖의 하이퍼파라미터는 scikit-learn 기본값 |
 | `shap_report(fit, tt, out_dir) -> bool` | | R² ≥ 0.5 일 때만 `TreeExplainer` SHAP 값 표 (`surrogate_shap.csv`) 와 그림 (요약 그림) 을 쓰고 True. 미달이면 아무것도 안 쓰고 False |
 | CLI: `python bt/analysis/surrogate.py <games.csv> --designs bt/thetas/main_lhs64.csv bt/thetas/main_morris_r16.csv --out <폴더>` | | `surrogate.md` (R², 보고 여부), 조건부 SHAP 파일 |
 
 ## 시험 데이터 위치
 
 - `kit/bt/analysis/fixtures/synth.py`: 정답을 아는 합성 데이터. `synth.morris(path)` 가 `main_morris_r16.csv` θ 192개 × 48경기 CSV 를 만든다.
+  대리모델 시험은 `synth.surrogate(path)` (본실험과 같은 θ 256개 × 48경기) 와 정답 `synth.TRUTH_SURROGATE` (떼어 둘 θ 49개, 뽑히는 궤적 {0, 5, 12},
+  참고 R² 0.954, 순수 잡음 −0.502) 를 쓴다. `synth.holdout_ids(...)` 는 정답 비교용 떼어 두기 계산이다 (구현에 복사해 쓰지 말고 테스트에서 비교만).
   정답은 `synth.TRUTH_MORRIS` (중요 파라미터 3개, 더미 포함 나머지 8개 중요 아님, 비선형 1개, floor_ft 는 neutral 에서만 효과 0 → 기하별로 다름).
   합성 CSV 는 커밋하지 않는다 (테스트 안에서 임시 폴더에 만든다). 엔진을 import 하므로 `cadet_research/kit/` 에서 실행한다.
 - `kit/bt/analysis/fixtures/pilot2_sample.csv`: 실측 일부 (예비 실험, LHS θ 50개). Morris 형식이 아니다 → `surrogate.theta_table` / `fit_holdout` 이
@@ -93,10 +101,12 @@ pandas 를 쓴다. games.csv 에는 궤적 정보가 없다. **θ ↔ 궤적은 
    - `threat_aspect_deg` 의 σ 가 `fight_kcas` 의 σ 보다 크다 (비선형).
    - `geometry_compare` 가 `floor_ft` 를 "기하별로 다르다" 로 판정하고 (공세·수세 중요, neutral 중요 아님), `fight_kcas` 는 다르지 않다고 판정.
    - seed 가 같으면 부트스트랩 결과가 같다.
-2. `test_surrogate.py`
-   - 합성 데이터 (`synth.morris`) 로 `fit_holdout` 의 R² 가 0.5 이상 → `shap_report` 가 True 이고 파일을 쓴다.
-   - y 를 순수 잡음으로 바꾼 데이터에서는 R² < 0.5 → `shap_report` 가 False 이고 파일을 쓰지 않는다.
-   - 같은 seed 면 떼어 둔 θ 와 R² 가 같다. 떼어 둔 비율이 20% (192 θ → 38 또는 39개) 다.
+2. `test_surrogate.py` (합성 데이터 `synth.surrogate`, θ 256개)
+   - **떼어 둔 θ 수:** 정확히 49개 (Morris 36 = 궤적 3개 × 12, LHS 13). 학습 207개.
+   - **궤적이 나뉘지 않음:** Morris 궤적 16개 각각에 대해 그 궤적의 θ 12개가 모두 학습 쪽이거나 모두 떼어 둔 쪽이다. 떼어 둔 궤적이 `TRUTH_SURROGATE["holdout_trajectory_ids"]` 와 같다.
+   - 떼어 둔 θ id 집합이 `synth.holdout_ids(...)` 결과와 같다. 같은 seed 면 떼어 둔 θ 와 R² 가 같다.
+   - `fit_holdout` 의 R² 가 0.5 이상 (참고값 0.954) → `shap_report` 가 True 이고 파일을 쓴다.
+   - y 를 순수 잡음 (`numpy.random.default_rng(1).normal(size=256)`) 으로 바꾸면 R² < 0.5 (참고값 −0.502) → `shap_report` 가 False 이고 파일을 쓰지 않는다.
 
 예시 출력 (합성 데이터, 형식 예):
 
@@ -112,7 +122,7 @@ dummy              0.1x     ...                                     False
 ## 하지 말 것
 
 - PREREG_BT.md 에 없는 분석 방법 (다른 민감도 지표, 다른 대리모델, 하이퍼파라미터 탐색, 다른 판정 규칙) 을 새로 만들거나 추가하지 않는다.
-- 사양의 숫자 (2,000회, seed 20261108, 20%, R² 0.5, 수준 4·궤적 16) 를 바꾸지 않는다. R² 가 0.5 미만일 때 SHAP 을 결과로 내지 않는다.
+- 사양의 숫자 (2,000회, seed 20261108, 떼어 두기 궤적 3/16·LHS 13/64 와 뽑는 순서, R² 0.5, 수준 4·궤적 16) 를 바꾸지 않는다. R² 가 0.5 미만일 때 SHAP 을 결과로 내지 않는다.
 - 엔진·`bt/` 기존 코드·설계 파일 (`bt/thetas/main_*.csv`)·PREREG_BT.md·CONTRACT.md·`fixtures/` 를 고치지 않는다. 결과 CSV 를 커밋하지 않는다.
 - bt-main·bt-confirm 시뮬레이션을 돌리지 않는다 (이 TASK 는 분석 코드만).
 - bt-study 에 직접 push 하지 않는다.

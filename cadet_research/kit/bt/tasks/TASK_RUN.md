@@ -12,7 +12,7 @@
   `PREREG_BT.md` §5 (설계·시드), §7 (제외·재실행 규칙).
 - **작업 브랜치:** 없음. `bt-study` 를 받아서 돌리기만 한다. 아무것도 커밋·push 하지 않는다.
 - **수정해도 되는 파일:** 없음 (이 파일 끝 "질문", "실행 기록" 절만 적어서 연우에게 보낸다).
-- **마감:** 태그 `prereg-bt-v1` 이 생긴 뒤 시작. 끝낼 날짜 [팀 결정 필요].
+- **마감:** 태그 `prereg-bt-v1` 이 생긴 뒤 시작, **2026-11-06 까지 결과 전달.**
 
 ## 0. 태그가 생기기 전에는 실행하지 말 것
 
@@ -32,9 +32,9 @@
 
 | PC | 이름 (누구 PC) | shard |
 |---|---|---|
-| PC1 | [팀 결정 필요] | `1/3` |
-| PC2 | [팀 결정 필요] | `2/3` |
-| PC3 | [팀 결정 필요] | `3/3` |
+| PC1 | 연우 | `1/3` |
+| PC2 | 주엽 | `2/3` |
+| PC3 | 주혁 | `3/3` |
 
 ## 3. 실행 명령 (자기 shard 번호 i 로, `cadet_research/kit/` 에서)
 
@@ -56,7 +56,7 @@ python bt/run_bt.py bt/thetas/main_morris_r16.csv --prefix bt-main --unlock-conf
 ## 5. 결과 파일과 보내는 곳
 
 - 결과 파일 (이름 바꾸지 말 것): `bt/out/bt-main/games_main_lhs64_shard<i>of3.csv`, `bt/out/bt-main/games_main_morris_r16_shard<i>of3.csv`
-- 보내는 곳: **[팀 결정 필요]** (RUNBOOK.md 8번과 같음).
+- 보내는 곳: **팀 공유 구글 드라이브 'BT논문/bt-main' 폴더** (RUNBOOK.md 8번과 같음). 2026-11-06 까지.
 - 보낼 때 함께: crosscheck 출력 마지막 3줄, `python --version`, 아래 "실행 기록".
 - 연우가 `bt/merge.py` 로 검사·합친다 (중복·누락·code_commit·engine_sha·opponent_set 불일치·wall_clock·disqualified 가 하나라도 있으면 합치지 않는다).
 

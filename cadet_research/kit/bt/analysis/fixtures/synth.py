@@ -1,6 +1,6 @@
 """정답을 아는 합성 데이터 생성기 (분석 코드 시험용). 열 이름은 CONTRACT.md §2 의 games.csv 그대로 (pilot2_sample.csv 와 같은 열).
 
-  python bt/analysis/fixtures/synth.py <출력 폴더>      # synth_rq1.csv, synth_morris.csv, synth_confirm.csv
+  python bt/analysis/fixtures/synth.py <출력 폴더>      # synth_rq1.csv, synth_morris.csv, synth_confirm.csv, synth_surrogate.csv
   from fixtures import synth; synth.rq1(path); synth.TRUTH_RQ1 ...    # 테스트에서
 
 정답은 이 파일의 TRUTH_* 에 있다. 엔진은 돌리지 않는다. seed 고정 (SEED).
@@ -137,6 +137,43 @@ def morris(path):
                   for th in ths for s in SCENARIOS for o in OPPONENTS for i in range(4)])
 
 
+# ── (b2) 대리모델: 본실험과 같은 θ 256개 (main_lhs64.csv 64 + main_morris_r16.csv 192) × 48경기 ─────────────────────
+# 값은 (b) 와 같은 함수 morris_f + 셀 효과 + 잡음 N(0, 1.5²). 떼어 두기는 PREREG_BT.md §6.3 의 집단 단위 규칙:
+#   rng = numpy.random.default_rng(20261108); Morris 궤적 rng.choice(16, 3, replace=False) 의 θ 36개,
+#   이어서 LHS θ (파일 행 순서 0–63) rng.choice(64, 13, replace=False) 의 13개 → 합계 49 θ.
+# 정답: 떼어 둔 θ 49개 (궤적 3개 전체 + LHS 13개), 같은 궤적의 θ 가 학습·떼어 둠 양쪽에 나뉘지 않음,
+#   기본값 HistGradientBoostingRegressor(random_state=20261108) 의 떼어 둔 R² ≥ 0.5 (이 생성기로 확인한 값 r2_holdout_check),
+#   y 를 순수 잡음으로 바꾸면 R² < 0.5 (r2_noise_check).
+TRUTH_SURROGATE = {
+    "design_files": ("bt/thetas/main_lhs64.csv", "bt/thetas/main_morris_r16.csv"), "n_theta": 256,
+    "holdout_seed": 20261108, "holdout_trajectories": 3, "holdout_lhs": 13, "n_holdout": 49,
+    "r2_min": 0.5,
+    "holdout_trajectory_ids": {0, 5, 12},   # 위 규칙으로 뽑힌 Morris 궤적 (seed 20261108)
+    # 참고값 (2026-11-02, 이 생성기 + HistGradientBoostingRegressor(random_state=20261108), 나머지 기본값으로 확인):
+    "r2_holdout_check": 0.954,                # 떼어 둔 49 θ 의 R² (≥ 0.5 이어야 함)
+    "r2_noise_check": -0.502,                 # y 를 numpy.random.default_rng(1).normal(size=256) 로 바꾼 경우 (< 0.5 이어야 함)
+}
+
+
+def holdout_ids(lhs_ids, morris_ids, morris_traj, seed=20261108):
+    """PREREG_BT.md §6.3 떼어 두기 (정답 계산용). lhs_ids: LHS θ id (파일 행 순서), morris_ids·morris_traj: Morris θ id 와 궤적 번호."""
+    rng = np.random.default_rng(seed)
+    trajs = set(int(t) for t in rng.choice(16, 3, replace=False))
+    lhs_pick = rng.choice(64, 13, replace=False)
+    return ({i for i, t in zip(morris_ids, morris_traj) if t in trajs} | {lhs_ids[k] for k in lhs_pick}), trajs
+
+
+def surrogate(path):
+    import run_bt
+    rng = np.random.default_rng(SEED + 3)
+    rows = []
+    for name in ("main_lhs64.csv", "main_morris_r16.csv"):
+        for th in run_bt.read_thetas(os.path.join(BT, "thetas", name)):
+            rows += [_rows("synth-surrogate", th, s, o, i, morris_f(th, s) + _CELL[(s, o)] + rng.normal(0, TRUTH_MORRIS["noise_sd"]))
+                     for s in SCENARIOS for o in OPPONENTS for i in range(4)]
+    _write(path, rows)
+
+
 # ── (c) 확인 단계: 기준 θ + 후보 θ 3개, θ 마다 432경기 (기하 3 × 상대 4 × 시드 36), 같은 셀끼리 짝 ──────────────────
 # 후보 − 기준 짝 차이 Δwez 의 표본 평균과 표본 표준편차 (ddof=1) 를 정확히 맞췄다: 평균 = delta, sd = 2.0 (432쌍).
 # 기대 판정 (PREREG_BT.md §6.4: "낫다" = Holm 보정 후 단측 유의 (α 0.05) 이고 95% CI 하한 > 0, "실질적으로 낫다" = 여기에
@@ -178,10 +215,11 @@ def confirm(path):
 
 def write_all(out_dir):
     os.makedirs(out_dir, exist_ok=True)
-    out = {k: os.path.join(out_dir, f"synth_{k}.csv") for k in ("rq1", "morris", "confirm")}
+    out = {k: os.path.join(out_dir, f"synth_{k}.csv") for k in ("rq1", "morris", "confirm", "surrogate")}
     rq1(out["rq1"])
     morris(out["morris"])
     confirm(out["confirm"])
+    surrogate(out["surrogate"])
     return out
 
 

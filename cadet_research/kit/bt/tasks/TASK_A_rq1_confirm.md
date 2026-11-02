@@ -23,15 +23,19 @@
 
 ### RQ1 (PREREG_BT.md §6.1 그대로)
 
-> - **모형:** 경기별 Δwez = θ + 기하 + 상대 + θ×기하 + θ×상대 + 기하×상대 + 잔차 (시드).
+> - **모형:** 경기별 Δwez = θ + 기하 + 상대 + θ×기하 + θ×상대 + 기하×상대 + 잔차 (시드 잡음 + θ×기하×상대 3중 상호작용, 셀당 관측이 시드뿐이라 분리 불가).
 > - **방법:** 균형 완전교차 설계이므로 **고정효과 ANOVA 제곱합 비율 (η²)** 을 분산 비율로 쓴다 (각 항 제곱합 / 전체 제곱합).
+> - **균형 검사:** 분석 전에 모든 θ 가 48칸 (기하 3 × 상대 4 × 시드 4) 을 정확히 하나씩 갖는지 검사하고, 아니면 빠진 (또는 겹친) 칸 목록과 함께
+>   오류로 멈춘다. wall_clock 경기는 §7 대로 재실행으로 채운 뒤 분석한다 (빈 칸을 둔 채 분석하지 않는다).
 > - **불확실성:** **θ 단위 재표집 부트스트랩 2,000회, seed 20261108**, 각 항 η² 의 95% CI (백분위).
+>   θ 를 복원추출해 같은 θ 가 여러 번 뽑히면 **뽑힐 때마다 새 θ 이름을 붙여 서로 다른 수준으로** 계산한다 (재표집 표본도 θ 64개 수준의 균형 설계).
 > - 데이터: bt-main 의 RQ1 θ 64개 × 48경기 (`main_lhs64.csv`).
 
 ### 확인 단계 (PREREG_BT.md §6.4 그대로)
 
 > - θ 4개 (기준 + 후보 3) 를 bt-confirm 시드에서 θ 당 **432경기** 돌린다.
 > - **비교:** 후보 θ − 기준 θ 의 **짝 차이 Δwez (같은 기하·상대·시드끼리)**.
+> - **검정:** 짝 차이에 대한 **t 분포 (자유도 n − 1)** 로 단측 p, 95% CI, TOST 를 계산한다.
 > - **"낫다"** = Holm 보정 후 단측 유의 (α 0.05) **이고** 95% CI 하한 > 0.
 > - **"실질적으로 낫다"** = "낫다" **이고** 점추정 ≥ 0.5 s (최소 의미 차이 Δwez 0.5 s).
 > - **동등성:** ±0.5 s TOST (α 0.05).
@@ -52,8 +56,10 @@ pandas 를 쓴다. 입력 DataFrame 은 games.csv 를 그대로 읽은 것 (열 
 | 함수 | 입력 | 출력 |
 |---|---|---|
 | `load(path) -> DataFrame` | games.csv 경로 | `end_reason == "wall_clock"` 행을 뺀 DataFrame + `dwez` 열 (= wez_blue − wez_red). 뺀 수를 출력한다 |
+| `check_balance(df, n_seeds=4)` | `load` 결과 | 모든 θ 가 (기하 3 × 상대 4 × 시드 4) 48칸을 정확히 하나씩 가지면 통과. 아니면 `ValueError` — 메시지에 빠진 칸 `(theta_id, scenario, opponent, seed_salt)` 목록과 겹친 칸 목록. `eta2()` 와 `eta2_bootstrap()` 이 시작할 때 부른다 |
+| `resample_thetas(df, rng) -> DataFrame` | `load` 결과, `numpy.random.Generator` | θ 를 복원추출 (θ 수만큼) 한 표본. 뽑힐 때마다 새 θ 이름 (`theta_id` 를 `<원래 id>#<뽑힌 순번>` 처럼) 을 붙여, 같은 θ 가 두 번 뽑혀도 서로 다른 수준이 된다 |
 | `eta2(df) -> dict[str, float]` | `load` 결과 | 키 `theta`, `geometry`, `opponent`, `theta:geometry`, `theta:opponent`, `geometry:opponent`, `residual` → η². 합 = 1 |
-| `eta2_bootstrap(df, n_boot=2000, seed=20261108) -> DataFrame` | `load` 결과 | 열 `term, eta2, ci_lo, ci_hi` (θ 단위 재표집, 백분위 95%) |
+| `eta2_bootstrap(df, n_boot=2000, seed=20261108) -> DataFrame` | `load` 결과 | 열 `term, eta2, ci_lo, ci_hi` (`rng = numpy.random.default_rng(seed)` 로 `resample_thetas` 를 n_boot 번, 백분위 95%) |
 | `plot_eta2(table, path)` | `eta2_bootstrap` 결과 | 항목별 η² 막대 + 95% CI 오차 막대 그림 (png) |
 | CLI: `python bt/analysis/anova.py <games.csv> --out <폴더>` | | `<폴더>/rq1_eta2.csv`, `rq1_eta2.md` (표), `rq1_eta2.png` |
 
@@ -64,7 +70,7 @@ pandas 를 쓴다. 입력 DataFrame 은 games.csv 를 그대로 읽은 것 (열 
 | `compare(df, baseline_id, alpha=0.05, mid=0.5) -> DataFrame` | 같음 | 후보마다 한 행: `theta_id, n, mean, ci_lo, ci_hi, p_one_sided, p_holm, better, practically_better, p_tost, equivalent, win_diff, hp_diff` |
 | CLI: `python bt/analysis/confirm.py <games.csv> --baseline <theta_id> --out <폴더>` | | `<폴더>/confirm.csv`, `confirm.md` |
 
-- 짝 비교의 검정·CI 는 짝 차이에 대한 t 분포 (자유도 n − 1) 로 계산한다. (PREREG 에 검정 종류가 적혀 있지 않다 — 다른 방법이 필요하다고 생각되면 바꾸지 말고 "질문" 에 적는다.)
+- 짝 비교의 검정·CI·TOST 는 짝 차이에 대한 t 분포 (자유도 n − 1) 로 계산한다 (PREREG_BT.md §6.4).
 - `win_diff`, `hp_diff` 는 보조 지표 짝 차이 평균 (서술용, 판정에 안 씀).
 
 ## 시험 데이터 위치
@@ -82,6 +88,11 @@ pandas 를 쓴다. 입력 DataFrame 은 games.csv 를 그대로 읽은 것 (열 
    - `synth.rq1` 데이터에서 `eta2()` 7개 값이 `TRUTH_RQ1["eta2"]` 와 `TRUTH_RQ1["tolerance"]` (1e-6) 안에서 같다.
    - 같은 데이터에서 `eta2_bootstrap(n_boot=200)` 의 각 CI 가 점추정을 포함하고, seed 가 같으면 결과가 같다.
    - `pilot2_sample.csv` 로 CLI 가 오류 없이 돌고 세 파일을 만든다 (η² 합 = 1).
+   - **균형 검사:** `synth.rq1` 데이터에서 한 행을 지우면 `eta2()` 가 `ValueError` 를 내고, 메시지에 지운 칸 `(theta_id, scenario, opponent, seed_salt)` 이 들어 있다.
+     한 행을 복제해도 (겹친 칸) 오류를 낸다.
+   - **재표집 이름 붙이기:** `resample_thetas` 결과는 항상 θ 이름이 64개로 서로 다르고 이름마다 정확히 48행이며 (`check_balance` 통과),
+     같은 원래 θ 가 두 번 이상 뽑힌 표본이 실제로 나오는 seed 에서 그 θ 가 서로 다른 이름 여럿으로 들어 있다.
+     또 그런 표본에서 θ 항의 자유도 (서로 다른 θ 수준 − 1) 가 63 이다 (같은 이름으로 합쳐 버리면 63 보다 작아진다).
 2. `test_confirm.py`
    - `synth.confirm` 데이터에서 후보 3개의 `mean` 이 `TRUTH_CONFIRM` 의 delta 와 1e-9 안에서 같고, `better`, `practically_better`, `equivalent` 가 정답과 같다.
    - `p_one_sided` 가 정답 참고값과 소수 3자리에서 같고, `ci_lo`, `ci_hi` 가 정답 `ci95` 와 0.001 안에서 같다.
