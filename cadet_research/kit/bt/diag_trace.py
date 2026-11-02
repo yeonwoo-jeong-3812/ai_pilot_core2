@@ -41,7 +41,8 @@ def sample(p):
 def run(row: dict):
     th = mt.normalize({k: row[k] for k in mt.NAMES + ["dummy"]})
     seed = run_bt.derive_seed(row["scenario"], row["seed_salt"])
-    me, foe = load_policy(mt.make_tree(th)), load_policy(os.path.join(run_bt.KIT, run_bt.OPP_PATHS[row["opponent"]]))
+    me, foe = load_policy(mt.make_tree(th)), load_policy(os.path.join(run_bt.KIT, run_bt.OPPONENT_SETS[row["opponent_set"]][row["opponent"]] if row.get("opponent_set")
+                                       else run_bt.OPP_PATHS[row["opponent"]]))
     ic = initial_conditions(row["scenario"], seed=seed)
     blue = make_pilot("Blue", ic["blue"], *me, name="EnergyFighterBT")
     red = make_pilot("Red", ic["red"], *foe, name=row["opponent"])
@@ -87,7 +88,7 @@ def classify(g: dict) -> dict:
 
 def f4000():
     """수정 상대도 하드덱을 뚫는 이유: climb 중 뱅크·G·강하각."""
-    with open(os.path.join(BT, "out", "bt-diag", "games.csv"), encoding="utf-8", newline="") as f:
+    with open(os.path.join(BT, "out", "bt-diag", "games_diag1.csv"), encoding="utf-8", newline="") as f:
         hd = [r for r in csv.DictReader(f) if r["opponent"].endswith("_f4000")
               and r["end_reason"] == "hard_deck" and r["winner"] == "blue"]
     with Pool(4) as pool:
@@ -109,7 +110,7 @@ def f4000():
 def main():
     if "--f4000" in sys.argv:
         return f4000()
-    with open(os.path.join(BT, "out", "bt-pilot", "games.csv"), encoding="utf-8", newline="") as f:
+    with open(os.path.join(BT, "out", "bt-pilot", "games_original.csv"), encoding="utf-8", newline="") as f:
         hd = [r for r in csv.DictReader(f) if r["end_reason"] == "hard_deck"]
     pick = random.Random(SEED).sample(hd, N_GAMES)
     with Pool(2) as pool:

@@ -22,7 +22,7 @@ from aircombat.engine.scenarios import initial_conditions  # noqa: E402
 
 def trace(job: dict, every: int = 6):
     """(결과, 표본 목록). 표본 = (t, 청 노드, 청 고도, 청 KCAS, 적 노드, 적 고도, 적 KCAS), 20 Hz."""
-    me, foe = load_policy(job["tree"]), load_policy(os.path.join(run_bt.KIT, run_bt.OPP_PATHS[job["opponent"]]))
+    me, foe = load_policy(job["tree"]), load_policy(os.path.join(run_bt.KIT, run_bt.OPPONENT_SETS[job["opponent_set"]][job["opponent"]]))
     ic = initial_conditions(job["scenario"], seed=job["seed"])
     blue = make_pilot("Blue", ic["blue"], *me, name="EnergyFighterBT")
     red = make_pilot("Red", ic["red"], *foe, name=job["opponent"])
@@ -59,11 +59,12 @@ def main():
     ap.add_argument("--seed-salt", required=True)
     ap.add_argument("--theta", default=os.path.join(BT, "thetas", "baseline.csv"))
     ap.add_argument("--row", type=int, default=0)
+    ap.add_argument("--opponents", default=run_bt.DEFAULT_SET, choices=list(run_bt.OPPONENT_SETS))
     ap.add_argument("--last", type=float, default=10.0, help="끝나기 전 몇 초")
     a = ap.parse_args()
     th = run_bt.read_thetas(a.theta)[a.row]
     seed = run_bt.derive_seed(a.scenario, a.seed_salt)
-    r, log = trace(dict(tree=mt.make_tree(th), scenario=a.scenario, opponent=a.opponent, seed=seed))
+    r, log = trace(dict(tree=mt.make_tree(th), scenario=a.scenario, opponent=a.opponent, opponent_set=a.opponents, seed=seed))
     print(f"{a.scenario} / {a.opponent} / {a.seed_salt}: {r.winner} {r.condition} t={r.time_s:.2f}s "
           f"HP {r.hp_blue:.1f}/{r.hp_red:.1f}")
     print("| 구간 [s] | 청 노드 | 청 고도 ft (KCAS) | 적 노드 | 적 고도 ft (KCAS) |")

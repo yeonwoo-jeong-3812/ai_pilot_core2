@@ -104,6 +104,21 @@ def test_lhs_reproducible():
         assert [{k: float(v) for k, v in r.items()} for r in csv.DictReader(f)] == a    # 저장된 목록 = lhs(50, 20261102)
 
 
+def test_patched_opponents_only_climb_node():
+    """보정 상대 = 원본에서 최우선 low_altitude → climb 노드만 바뀜 (floor_ft 4500, g_burst 0.8). 나머지 바이트 동일."""
+    for name, rel in run_bt.OPPONENTS.items():
+        src = open(os.path.join(run_bt.KIT, rel), "rb").read()
+        dst = open(os.path.join(run_bt.KIT, run_bt.OPPONENT_SETS["patched"][name]), "rb").read()
+        nl = b"\r\n" if b"\r\n" in src else b"\n"
+        old = nl.join([b"      floor_ft: 1200.0", b"  - action:", b"      pursuit: pure", b"      aim_above_ft: 4000.0"])
+        new = nl.join([b"      floor_ft: 4500.0", b"  - action:", b"      pursuit: pure", b"      g_burst: 0.8",
+                       b"      aim_above_ft: 4000.0"])
+        assert src.count(old) == 1 and dst == src.replace(old, new), name
+        top = yaml.safe_load(dst)["selector"][0]["sequence"]
+        assert top == [{"condition": {"name": "low_altitude", "floor_ft": 4500.0}},
+                       {"action": {"pursuit": "pure", "g_burst": 0.8, "aim_above_ft": 4000.0, "name": "climb"}}], name
+
+
 def _job(tree):
     j = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke")
     j = next(x for x in j if x["scenario"] == "neutral" and x["opponent"] == "B2_Extender_00")

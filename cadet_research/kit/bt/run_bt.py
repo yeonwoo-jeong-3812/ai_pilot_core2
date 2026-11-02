@@ -6,6 +6,7 @@
   python bt/run_bt.py thetas.csv --limit 10                  # 남은 경기 중 앞 10개만
   python bt/run_bt.py thetas.csv --prefix bt-main --unlock-confirm
   python bt/run_bt.py bt/thetas/r0.csv --prefix bt-cal --r0  # R0 검증: 범위 밖 θ 허용, stage=r0, 결과 bt/out/r0/
+  python bt/run_bt.py thetas.csv --opponents original        # kit 원본 상대 (기본은 patched)
 
 결과: bt/out/<접두어>/games.csv, 1경기 1줄. 이미 기록된 경기는 건너뛴다(끊기면 같은 명령으로 재개).
 run.py 를 import 하지 않는다 (run.py 는 import 시 Pilot.setup 을 감싼다). 경기 조립은 bridge.CompetitionMatch.run 과
@@ -42,20 +43,29 @@ OPPONENTS = {   # 이름 -> kit 기준 경로. 상대를 바꿀 때는 여기만
     "C1_TwoCircleRate_00": "agents/main/C1_TwoCircleRate_00.yaml",
     "D1_Reactive_00": "agents/main/D1_Reactive_00.yaml",
 }
-# 진단 전용 상대 (bt/diag_opponents/): 원본에서 low_altitude floor_ft 만 1200 → 4000. --diag-opponents 로만 쓴다
-DIAG_OPPONENTS = {f"{k}_f4000": "bt/diag_opponents/" + os.path.basename(v) for k, v in OPPONENTS.items()}
-OPP_PATHS = {**OPPONENTS, **DIAG_OPPONENTS}
+# 상대 묶음 (--opponents). 이름은 같고 파일만 다르다. CSV 의 opponent_set 열로 구분한다.
+#   original    kit/agents/main 원본 (고치지 않는다)
+#   patched     bt/opponents_patched: 최우선 low_altitude → climb 노드만 청 recover 와 같게 (bt/analysis/opponent_patch_rules.md)
+#   diag-f4000  bt/diag_opponents: floor_ft 만 1200 → 4000 (하드덱 진단 전용, bt-diag 에서만)
+OPPONENT_SETS = {
+    "original": OPPONENTS,
+    "patched": {k: "bt/opponents_patched/" + os.path.basename(v) for k, v in OPPONENTS.items()},
+    "diag-f4000": {k: "bt/diag_opponents/" + os.path.basename(v) for k, v in OPPONENTS.items()},
+}
+DEFAULT_SET = "patched"
+# 옛 CSV (opponent_set 열 없음) 재실행용: 원본 이름 = original, "<이름>_f4000" = diag-f4000
+OPP_PATHS = {**OPPONENTS, **{f"{k}_f4000": v for k, v in OPPONENT_SETS["diag-f4000"].items()}}
 SEEDS = 4
 PREFIXES = ("bt-smoke", "bt-pilot", "bt-cal", "bt-cal-a", "bt-cal-b", "bt-diag", "bt-main", "bt-confirm")
 LOCKED = ("bt-main", "bt-confirm")
 ENGINE_PARTS = ("aircombat", "jsbsim_data", "config")
 
 FIELDS = (["stage", "theta_id"] + mt.NAMES +
-          ["dummy", "scenario", "opponent", "seed_salt", "seed",
+          ["dummy", "scenario", "opponent", "opponent_set", "seed_salt", "seed",
            "winner", "end_reason", "win_mode", "hp_blue", "hp_red", "hp_blue_raw", "hp_red_raw", "wez_blue", "wez_red",
            "ata_mean_blue", "ata_mean_red", "off_frac", "def_frac", "e_adv_ft", "t_first_wez", "node_frac", "node_frac_red",
            "sim_time_s", "wall_s", "engine_sha", "tree_sha", "host", "python_version"])
-KEY = ("stage", "theta_id", "scenario", "opponent", "seed_salt")
+KEY = ("stage", "theta_id", "scenario", "opponent", "opponent_set", "seed_salt")
 
 
 def engine_sha() -> str:
@@ -103,7 +113,7 @@ def read_rows(path: str) -> list[dict]:
         return list(csv.DictReader(f))
 
 
-def build_jobs(thetas: list[dict], prefix: str, r0: bool = False, opponents: dict = OPPONENTS) -> list[dict]:
+def build_jobs(thetas: list[dict], prefix: str, r0: bool = False, opponent_set: str = DEFAULT_SET) -> list[dict]:
     """시드는 prefix 로 정한다. r0 면 stage 만 "r0" 로 기록한다 (시드는 prefix 그대로)."""
     jobs, seen = [], set()
     for th in thetas:
@@ -114,9 +124,9 @@ def build_jobs(thetas: list[dict], prefix: str, r0: bool = False, opponents: dic
         for i in range(SEEDS):
             salt = f"{prefix}-{i}"
             for scen in SCENARIOS:
-                for opp in opponents:
+                for opp in OPPONENT_SETS[opponent_set]:
                     jobs.append(dict(stage="r0" if r0 else prefix, theta_id=tid, theta=th, tree=tree,
-                                     scenario=scen, opponent=opp, seed_salt=salt,
+                                     scenario=scen, opponent=opp, opponent_set=opponent_set, seed_salt=salt,
                                      seed=derive_seed(scen, salt)))   # run.py 와 같은 시드 규칙
     return jobs
 
@@ -128,7 +138,7 @@ def _r(v, nd):
 def play(job: dict) -> dict:
     """1경기. 청 = θ 트리, 적 = 상대. bridge.CompetitionMatch.run 과 같은 조립·판정 규약."""
     t0 = time.time()
-    me, foe = load_policy(job["tree"]), load_policy(os.path.join(KIT, OPP_PATHS[job["opponent"]]))
+    me, foe = load_policy(job["tree"]), load_policy(os.path.join(KIT, OPPONENT_SETS[job["opponent_set"]][job["opponent"]]))
     ic = initial_conditions(job["scenario"], seed=job["seed"])
     blue = make_pilot("Blue", ic["blue"], *me, name="EnergyFighterBT")
     red = make_pilot("Red", ic["red"], *foe, name=job["opponent"])
@@ -142,7 +152,7 @@ def play(job: dict) -> dict:
     th = job["theta"]
     return {"stage": job["stage"], "theta_id": job["theta_id"],
             **{k: th[k] for k in mt.NAMES}, "dummy": "" if th["dummy"] is None else th["dummy"],
-            "scenario": job["scenario"], "opponent": job["opponent"],
+            "scenario": job["scenario"], "opponent": job["opponent"], "opponent_set": job["opponent_set"],
             "seed_salt": job["seed_salt"], "seed": job["seed"],
             "winner": r.winner, "end_reason": r.condition, "win_mode": win_mode(r.winner, r.condition),
             "hp_blue": _r(hp_b, 2), "hp_red": _r(hp_r, 2),
@@ -164,16 +174,17 @@ def main():
     ap.add_argument("--unlock-confirm", action="store_true", help="bt-main·bt-confirm 실행 허용 (확증용)")
     ap.add_argument("--procs", type=int, default=6, help="병렬 프로세스 수 (코어 수보다 작게)")
     ap.add_argument("--r0", action="store_true", help="R0 검증: params.yaml 범위 밖 θ 허용, stage=r0, 결과 bt/out/r0/")
-    ap.add_argument("--diag-opponents", action="store_true", help="진단 전용: 상대를 bt/diag_opponents/ 의 복사본으로 (bt-diag 에서만)")
+    ap.add_argument("--opponents", default=DEFAULT_SET, choices=list(OPPONENT_SETS),
+                    help=f"상대 묶음 (기본 {DEFAULT_SET}). original = kit 원본, diag-f4000 = bt-diag 전용")
     ap.add_argument("--dry", action="store_true")
     ap.add_argument("--limit", type=int, help="남은 경기 중 앞 N개만")
     args = ap.parse_args()
     if args.prefix in LOCKED and not args.unlock_confirm:
         ap.error(f"{args.prefix} 는 확증 시드다. 정말 돌릴 때만 --unlock-confirm 을 붙인다")
-    if args.diag_opponents and args.prefix != "bt-diag":
-        ap.error("--diag-opponents 는 --prefix bt-diag 에서만 쓴다")
+    if args.opponents == "diag-f4000" and args.prefix != "bt-diag":
+        ap.error("--opponents diag-f4000 은 --prefix bt-diag 에서만 쓴다")
     jobs = build_jobs(read_thetas(args.thetas, args.r0), args.prefix, args.r0,
-                      DIAG_OPPONENTS if args.diag_opponents else OPPONENTS)
+                      args.opponents)
     out_dir = os.path.join(BT, "out", "r0" if args.r0 else args.prefix)
     path = os.path.join(out_dir, "games.csv")
     rows = read_rows(path)

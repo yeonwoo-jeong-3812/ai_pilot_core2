@@ -53,3 +53,63 @@
 
 - `bt/analysis/pilot_rules.md`는 고치지 않고 그대로 적용한다. θ 는 `bt/thetas/pilot_lhs50.csv` 50개 그대로, `bt-pilot` 시드,
   보정 상대로 2,400경기. 결과는 `bt/out/pilot2_report.md`, 원본 상대 예비 실험과 나란히 비교한다.
+
+## 생성된 보정 상대 (원본과의 diff, 규칙 커밋 뒤에 붙임)
+
+`bt/opponents_patched/` 4종. 줄끝 (CRLF) 을 포함해 아래 두 줄 외에는 원본과 바이트 단위로 같다 (`test_bt.test_patched_opponents_only_climb_node`).
+
+```diff
+--- kit/agents/main/A2_GunTracker_00.yaml
++++ bt/opponents_patched/A2_GunTracker_00.yaml
+@@ -8,7 +8,8 @@
+   - condition:
+       name: low_altitude
+-      floor_ft: 1200.0
++      floor_ft: 4500.0
+   - action:
+       pursuit: pure
++      g_burst: 0.8
+       aim_above_ft: 4000.0
+       name: climb
+--- kit/agents/main/B2_Extender_00.yaml
++++ bt/opponents_patched/B2_Extender_00.yaml
+@@ -10,7 +10,8 @@
+   - condition:
+       name: low_altitude
+-      floor_ft: 1200.0
++      floor_ft: 4500.0
+   - action:
+       pursuit: pure
++      g_burst: 0.8
+       aim_above_ft: 4000.0
+       name: climb
+--- kit/agents/main/C1_TwoCircleRate_00.yaml
++++ bt/opponents_patched/C1_TwoCircleRate_00.yaml
+@@ -8,7 +8,8 @@
+   - condition:
+       name: low_altitude
+-      floor_ft: 1200.0
++      floor_ft: 4500.0
+   - action:
+       pursuit: pure
++      g_burst: 0.8
+       aim_above_ft: 4000.0
+       name: climb
+--- kit/agents/main/D1_Reactive_00.yaml
++++ bt/opponents_patched/D1_Reactive_00.yaml
+@@ -8,7 +8,8 @@
+   - condition:
+       name: low_altitude
+-      floor_ft: 1200.0
++      floor_ft: 4500.0
+   - action:
+       pursuit: pure
++      g_burst: 0.8
+       aim_above_ft: 4000.0
+       name: climb
+```
+
+## 검증 결과
+
+**1단계 합격** (2단계 시도 안 함). 상대 하드덱 비율 전체 0.000 (≤ 0.05), 상대별 최대 0.000 (≤ 0.10), 상대 climb 실행 비율 평균 0.125 (≤ 0.20). 표 전체는 `bt/out/opponent_patch_check.md`.
+

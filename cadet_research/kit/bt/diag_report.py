@@ -2,7 +2,7 @@
 
   python bt/diag_trace.py && python bt/diag_report.py
 
-입력: bt/out/bt-pilot/games.csv (예비 실험), bt/out/diag/ (diag_trace.py 결과), bt/out/bt-diag/games.csv (반사실),
+입력: bt/out/bt-pilot/games_original.csv (원본 상대 예비 실험), bt/out/diag/ (diag_trace.py 결과), bt/out/bt-diag/games_diag1.csv (반사실),
 kit/out/*/games.csv (INDI 논문 실험, 있으면).
 """
 from __future__ import annotations
@@ -45,7 +45,7 @@ def main():
          "청이 낮은 고도로 끌어들이면 상대가 하드덱을 뚫는다.", ""]
 
     # 1. 기존 데이터
-    pilot = rows(os.path.join(OUT, "bt-pilot", "games.csv"))
+    pilot = rows(os.path.join(OUT, "bt-pilot", "games_original.csv"))
     hd = [r for r in pilot if r["end_reason"] == "hard_deck"]
     L += ["## 1. 기존 데이터 (예비 실험 2,400경기)", "",
           f"- 하드덱 종료 {len(hd)}경기: **상대(홍)가 닿음 {sum(r['winner'] == 'blue' for r in hd)}**, "
@@ -100,7 +100,7 @@ def main():
           "9 G 를 쓰지 않는다. 9 G 로 회복 가능했던 경기도 여기서 부족해진다.", ""]
 
     # 3. 반사실
-    diag = rows(os.path.join(OUT, "bt-diag", "games.csv"))
+    diag = rows(os.path.join(OUT, "bt-diag", "games_diag1.csv"))
     thetas = {mt.theta_id(t): t for t in (mt.normalize(r) for r in rows(os.path.join(BT, "thetas", "diag.csv")))}
     L += ["## 3. 반사실 실험 (bt-diag 시드, 상대 floor_ft 1200 → 4000 복사본, 나머지 바이트 동일)", "",
           "| 청 floor_ft | 상대 | 경기 | 승률 | 상대 하드덱 | 청 하드덱 | 격추승 비율 | wez 차 평균 [s] (95% CI) | 승리 방식 " +
