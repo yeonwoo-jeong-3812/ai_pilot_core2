@@ -39,6 +39,7 @@ games_procs4_overlap.csv (procs 4 첫 실행, 다른 실행과 1분 겹쳐 3경�
 from __future__ import annotations
 
 import csv
+import collections as C
 import itertools
 import json
 import math
@@ -101,13 +102,15 @@ def cell(r):
 
 
 def main():
-    cal = rows(os.path.join(OUT, "bt-cal", "games.csv"))
+    cal = rows(os.path.join(OUT, "bt-cal", "games_original.csv"))
     by = {t: {cell(r): r for r in cal if r["theta_id"] == t} for t in NAMES}
     base_sets = {"bt-cal": list(by[BASE].values()),
-                 "bt-cal-a": rows(os.path.join(OUT, "bt-cal-a", "games.csv")),
-                 "bt-cal-b": rows(os.path.join(OUT, "bt-cal-b", "games.csv"))}
+                 "bt-cal-a": rows(os.path.join(OUT, "bt-cal-a", "games_original.csv")),
+                 "bt-cal-b": rows(os.path.join(OUT, "bt-cal-b", "games_original.csv"))}
     assert all(len(v) == 48 for v in base_sets.values()) and all(len(v) == 48 for v in by.values())
-    L = ["# 검증 결과", "", "판정 규칙은 `bt/validate.py` 머리말에 결과를 보기 전에 고정했다. 기준 θ = `bt/thetas/baseline.csv`.", ""]
+    L = ["# 검증 결과", "", "판정 규칙은 `bt/validate.py` 머리말에 결과를 보기 전에 고정했다. 기준 θ = `bt/thetas/baseline.csv`.", "",
+         "**§1–7 은 원본 상대 (`kit/agents/main`) 결과다.** 상대 보정 (`opponent_set` 열) 전에 돌린 것이라 원자료는 "
+         "`games_original.csv` 로 이름만 바꿔 보관했다. 보정 상대 결과는 §8, 계산 예산은 §9.", ""]
 
     L += ["## 1. θ별 요약 (bt-cal, 48경기씩)", "", "| θ | 승-무-패 | 승률 | wez_blue − wez_red 평균 [s] (95% CI) | wall_clock |", "|---|---|---|---|---|"]
     for t, name in NAMES.items():
@@ -146,7 +149,7 @@ def main():
           "- **민감도 증거:** A 는 기준보다 승률·wez 차가 모두 잡음 범위 밖으로 높고 짝 95% CI 가 0 위에 있다. "
           "방향은 예상과 반대였지만, 지표가 θ 사이의 실제 차이를 잡아낸다는 증거다.", ""]
 
-    r0 = [r for r in rows(os.path.join(OUT, "r0", "games.csv")) if r["seed_salt"].startswith("bt-cal-")]
+    r0 = [r for r in rows(os.path.join(OUT, "r0", "games_original.csv")) if r["seed_salt"].startswith("bt-cal-")]
     rb = {cell(r): r for r in r0 if r["theta_id"] == BASE}
     rt = {t: {cell(r): r for r in r0 if r["theta_id"] == t} for t in R0}
     assert len(rb) == 48 and all(len(g) == 48 for g in rt.values()), (len(rb), {t: len(g) for t, g in rt.items()})
@@ -241,9 +244,123 @@ def main():
         L.append(f"| {p} | {sum(r['end_reason'] == 'wall_clock' for r in g)} | {st.mean(ws):.1f} | {max(ws):.1f} | {diff}경기 |")
     L += ["", "procs 4 는 단독으로 다시 돌린 결과다. 첫 실행(`games_procs4_overlap.csv`)은 다른 실행과 약 1분 겹쳐 "
           "3경기가 중복 기록되고 wall_s 가 부풀었을 수 있어 **분석에서 뺐다** (저장소 밖에 보관).", ""]
+    L += patched_section()
     with open(os.path.join(OUT, "validation.md"), "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(L) + "\n")
     print("\n".join(L))
+
+
+PM = {"win": "승률", "wezd": "wez 차 [s]", "hpd": "체력 차 [HP]"}
+
+
+def pmetric(r, m):
+    """보정 상대 절 지표. hpd = hp_blue_raw − hp_red_raw (판정 처리 전 실제 체력 차)."""
+    return float(r["hp_blue_raw"]) - float(r["hp_red_raw"]) if m == "hpd" else metric(r, m)
+
+
+def pair_sd(g, base, m):
+    return st.stdev(pmetric(g[c], m) - pmetric(base[c], m) for c in base)
+
+
+def patched_section():
+    """§8 보정 상대 측정 점검 (변경 후 R0 규칙 그대로) + §9 계산 예산."""
+    cal = rows(os.path.join(OUT, "bt-cal", "games.csv"))
+    r0 = [r for r in rows(os.path.join(OUT, "r0", "games.csv")) if r["seed_salt"].startswith("bt-cal-")]
+    sets = {"bt-cal": cal, "bt-cal-a": rows(os.path.join(OUT, "bt-cal-a", "games.csv")),
+            "bt-cal-b": rows(os.path.join(OUT, "bt-cal-b", "games.csv"))}
+    assert {r["opponent_set"] for g in (cal, r0, sets["bt-cal-a"], sets["bt-cal-b"]) for r in g} == {"patched"}
+    base = {cell(r): r for r in cal if r["theta_id"] == BASE}
+    micro = {cell(r): r for r in cal if r["theta_id"] == MICRO}
+    r02 = {cell(r): r for r in r0 if r["theta_id"] == "3a56e68f882e"}
+    base_sets = {k: [r for r in g if r["theta_id"] == BASE] for k, g in sets.items()}
+    assert len(base) == len(micro) == len(r02) == 48 and all(len(g) == 48 for g in base_sets.values())
+    L = ["## 8. 보정 상대에서 측정 점검 재확인 (`--opponents patched`)", "",
+         "§5 의 **변경 후 R0 규칙 (민감도·특이도)** 을 그대로 적용했다. 상대만 보정 상대로 바꾸고 θ·시드는 같다. "
+         "R0-2 는 `--r0` (stage r0) 로 돌렸고 기준 θ 는 bt-cal 결과와 짝짓는다 (같은 θ·시드는 결과가 같다, §5 재현 확인).", "",
+         "### 8.1 잡음 (기준 θ, 시드 묶음 3개)", "", "| 시드 묶음 | 승률 | wez 차 [s] | 체력 차 [HP] |", "|---|---|---|---|"]
+    means = {k: {m: st.mean(pmetric(r, m) for r in g) for m in PM} for k, g in base_sets.items()}
+    for k in base_sets:
+        L.append(f"| {k} | {means[k]['win']:.3f} | {means[k]['wezd']:+.2f} | {means[k]['hpd']:+.1f} |")
+    noise = {m: max(abs(means[a][m] - means[b][m]) for a, b in itertools.combinations(means, 2)) for m in PM}
+    L += ["", f"잡음 범위 (쌍별 최대 |Δ|): 승률 **{noise['win']:.3f}**, wez 차 **{noise['wezd']:.2f} s**, "
+          f"체력 차 **{noise['hpd']:.1f} HP** (원본 상대: 승률 0.104, wez 차 0.28 s)", ""]
+
+    L += ["### 8.2 R0 (변경 후 규칙)", "",
+          "| θ | Δ승률 (95% CI) | 효과/잡음 | Δwez 차 [s] (95% CI) | 효과/잡음 | Δ체력 차 [HP] (95% CI) | 효과/잡음 | 의도 노드 Δnode_frac (95% CI) |",
+          "|---|---|---|---|---|---|---|---|"]
+    res = {}
+    for name, g, node in (("R0-2 (fight_kcas=1000)", r02, "energy_recover"), ("미세 (6010/281)", micro, None)):
+        d = {m: ci([pmetric(g[c], m) - pmetric(base[c], m) for c in base]) for m in PM}
+        nd = ci([metric(g[c], node) - metric(base[c], node) for c in base]) if node else None
+        res[name] = (d, nd)
+        L.append(f"| {name} | {fmt(d['win'], 3)} | {abs(d['win'][0]) / noise['win']:.2f} | {fmt(d['wezd'], 2)} "
+                 f"| {abs(d['wezd'][0]) / noise['wezd']:.2f} | {fmt(d['hpd'], 1)} | {abs(d['hpd'][0]) / noise['hpd']:.2f} "
+                 f"| {fmt(nd, 3) if nd else '—'} |")
+    d, nd = res["R0-2 (fight_kcas=1000)"]
+    sens = nd[1] > 0.3 and all(d[m][0] < 0 and d[m][2] < 0 and abs(d[m][0]) > noise[m] for m in ("win", "wezd"))
+    spec = all(abs(res["미세 (6010/281)"][0][m][0]) <= noise[m] for m in ("win", "wezd"))
+    L += ["", f"- 민감도 (R0-2 가 (a) 노드 Δ CI 하한 > 0.3, (b) 승률·wez 차 모두 Δ < 0, CI 상한 < 0, |Δ| > 잡음): **{'O' if sens else 'X'}**",
+          f"- 특이도 (미세 θ 가 승률·wez 차 모두 잡음 범위 안): **{'O' if spec else 'X'}**",
+          f"- **보정 상대 R0 판정: {'통과' if sens and spec else '불통과'}**. 체력 차는 판정에 쓰지 않고 함께 적는다.", "",
+          "승리 방식 (청 승리만):", "", "| θ | 승 | " + " | ".join(MODES) + " |", "|---|---|" + "---|" * len(MODES)]
+    for name, g in (("기준", base), ("R0-2", r02), ("미세", micro)):
+        c = C.Counter(win_mode(r["winner"], r["end_reason"]) for r in g.values())
+        L.append(f"| {name} | {48 - c['']} | " + " | ".join(str(c[k]) for k in MODES) + " |")
+
+    # 짝 차이 sd: bt-cal (미세, R0-2) + 참고로 재예비 실험의 θ 쌍 (같은 48셀) 전체
+    sd = {m: {"미세": pair_sd(micro, base, m), "R0-2": pair_sd(r02, base, m)} for m in PM}
+    p2 = rows(os.path.join(OUT, "bt-pilot", "games.csv"))
+    byt = {}
+    for r in p2:
+        byt.setdefault(r["theta_id"], {})[cell(r)] = r
+    pairs = [(a, b) for a, b in itertools.combinations(byt.values(), 2)]
+    p2sd = {m: sorted(pair_sd(a, b, m) for a, b in pairs) for m in PM}
+    rms = lambda v: (st.mean(x * x for x in v)) ** 0.5
+    L += ["", "### 8.3 짝지은 차이 표준편차 (같은 셀끼리, θ − 기준)", "",
+          "| 출처 | sd(Δ승률) | sd(Δwez 차) [s] | sd(Δ체력 차) [HP] |", "|---|---|---|---|"]
+    for k in ("미세", "R0-2"):
+        L.append(f"| bt-cal: {k} − 기준 | {sd['win'][k]:.3f} | {sd['wezd'][k]:.2f} | {sd['hpd'][k]:.1f} |")
+    L.append(f"| **bt-cal 합동 (RMS)** | **{rms(sd['win'].values()):.3f}** | **{rms(sd['wezd'].values()):.2f}** | **{rms(sd['hpd'].values()):.1f}** |")
+    L.append(f"| 참고: 재예비 실험 θ 쌍 {len(pairs)}개, 중앙값 | {st.median(p2sd['win']):.3f} | {st.median(p2sd['wezd']):.2f} | {st.median(p2sd['hpd']):.1f} |")
+    L.append(f"| 참고: 재예비 실험 θ 쌍, 90 백분위 | {p2sd['win'][int(0.9 * len(pairs))]:.3f} | {p2sd['wezd'][int(0.9 * len(pairs))]:.2f} | {p2sd['hpd'][int(0.9 * len(pairs))]:.1f} |")
+    z = st.NormalDist().inv_cdf(0.975) + st.NormalDist().inv_cdf(0.80)
+    L += ["", "### 8.4 검정력 (95% 신뢰수준, 검정력 80%, 짝 비교, 정규 근사)", "",
+          f"n = ({z:.3f} · sd / Δ)². bt-cal 은 보정 상대에서 θ 가 2개뿐이라 (미세, R0-2) 재예비 실험 θ 쌍의 중앙값·90 백분위도 함께 계산한다. "
+          "체력 차는 최소 의미 차이가 정해지지 않아 표준편차만 적는다 (§8.3).", "",
+          "| 잡을 차이 Δ | bt-cal 합동 sd | 48경기 묶음 | 재예비 θ 쌍 중앙값 sd | 묶음 | 재예비 θ 쌍 90 백분위 sd | 묶음 |",
+          "|---|---|---|---|---|---|---|"]
+    need = {}
+    for m, dlt, unit in (("win", 0.10, ""), ("win", 0.15, ""), ("wezd", 0.3, " s"), ("wezd", 0.5, " s")):
+        ns = [math.ceil((z * v / dlt) ** 2) for v in (rms(sd[m].values()), st.median(p2sd[m]), p2sd[m][int(0.9 * len(pairs))])]
+        need[(m, dlt)] = ns
+        L.append(f"| {PM[m].split(' [')[0]} {dlt}{unit} | {ns[0]} | {ns[0] / 48:.1f} | {ns[1]} | {ns[1] / 48:.1f} | {ns[2]} | {ns[2] / 48:.1f} |")
+    return L + [""] + budget_section(need)
+
+
+def budget_section(need):
+    """§9 계산 예산. 처리량 = 실제 실행 경과 시간 / 경기 수 (--procs 6, 이 PC)."""
+    import re
+    def elapsed(path, n):
+        with open(path, encoding="utf-8", errors="replace") as f:
+            m = re.findall(rf"{n}/{n}\s+(\d+)s", f.read())
+        return int(m[-1]) / n
+    sp = elapsed(os.path.join(OUT, "bt-pilot", "run_stdout.log"), 2400)               # 보정 상대 재예비 실험
+    so = elapsed(os.path.join(OUT, "bt-pilot", "run_stdout_original.log"), 2313)      # 원본 상대 예비 실험 (재개분)
+    ws = st.mean(float(r["wall_s"]) for r in rows(os.path.join(OUT, "bt-pilot", "games.csv")))
+    L = ["## 9. 계산 예산 (이 PC, --procs 6)", "",
+         f"처리량 = 실제 경과 시간 / 경기 수. 보정 상대 **{sp:.2f} s/경기** (재예비 실험 2,400경기, 경기당 wall_s 평균 {ws:.1f} s 를 6개 병렬), "
+         f"원본 상대 {so:.2f} s/경기 (예비 실험). PC 3대는 같은 사양 3대에 경기를 똑같이 나눈다고 가정한다 (실측 아님).", "",
+         "| 단계 | θ 수 | 경기 수 | 처리량 | PC 1대 [h] | PC 3대 [h] |", "|---|---|---|---|---|---|"]
+    rowsb = [("RQ1: LHS θ 64 × 48", 64, 64 * 48, sp)]
+    for r in (10, 16, 20):
+        rowsb.append((f"RQ2: Morris r = {r} (궤적당 θ 12) × 48", r * 12, r * 12 * 48, sp))
+    for (m, dlt), ns in need.items():
+        rowsb.append((f"확인: θ 4 × {ns[0]} 경기 ({'승률' if m == 'win' else 'wez 차'} {dlt}, bt-cal 합동 sd)", 4, 4 * ns[0], sp))
+    rowsb.append(("선택: 원본 상대 견고성 (RQ1 θ 64 × 48)", 64, 64 * 48, so))
+    for name, nt, ng, s in rowsb:
+        L.append(f"| {name} | {nt} | {ng:,} | {s:.2f} | {ng * s / 3600:.1f} | {ng * s / 3600 / 3:.1f} |")
+    L += ["", "확인 단계 경기 수는 θ 하나당 (기준과 짝짓는 비교) 이다. 기준 θ 도 같은 수만큼 돌린다고 보면 θ 4개 = 기준 + 상위 3개.", ""]
+    return L
 
 
 if __name__ == "__main__":
