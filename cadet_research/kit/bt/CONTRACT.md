@@ -1,7 +1,7 @@
 # BT 파라미터 실험: 팀원 계약서
 
 > **처음 받은 팀원 순서** (Python 3.11.9 권장)
-> 1. `git clone -b bt-study https://github.com/yeonwoo-jeong-3812/ai_pilot_core2.git`
+> 1. `git clone -c core.longpaths=true -b bt-study https://github.com/yeonwoo-jeong-3812/ai_pilot_core2.git` (Windows 긴 경로 때문에 옵션 필수)
 > 2. `cd ai_pilot_core2/cadet_research/kit` 후 `python -m pip install -r requirements.txt`
 > 3. `python bt/test_bt.py` → 마지막 줄 "bt 자가점검 통과"
 > 4. `python bt/crosscheck.py` → "전체 해시"가 §8의 기준 해시 `c7a8776f48d4ba9d`와 같은지 비교 (다르면 §8)
