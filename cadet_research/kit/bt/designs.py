@@ -17,8 +17,15 @@ def oat(levels: int) -> list[dict]:
 
 
 def lhs(n: int, seed: int) -> list[dict]:
-    """라틴 하이퍼큐브 n 점 (dummy 포함 11차원). 같은 seed 면 같은 목록."""
-    raise NotImplementedError
+    """라틴 하이퍼큐브 n 점 (dummy 포함 11차원). 같은 seed 면 같은 목록.
+    차원마다 [0,1) 을 n 층으로 나눠 층을 무작위로 섞고 층 안에서 균등 추출 → lo..hi 로 늘린다."""
+    import numpy as np
+    import make_tree as mt
+    rng = np.random.default_rng(seed)
+    dims = mt.PARAMS + [mt.DUMMY]
+    u = (np.array([rng.permutation(n) for _ in dims]).T + rng.random((n, len(dims)))) / n
+    return [{p["name"]: float(p["lo"]) + float(x) * (float(p["hi"]) - float(p["lo"]))
+             for p, x in zip(dims, row)} for row in u]
 
 
 def write(thetas: list[dict], path: str) -> None:

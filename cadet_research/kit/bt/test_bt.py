@@ -91,6 +91,19 @@ def test_r0_and_win_mode():
             wm("blue", "out_of_bounds"), wm("red", "health_zero"), wm("draw", "no_contact")) ==         ("shootdown", "opp_hard_deck", "opp_stall", "judge", "other", "", "")
 
 
+def test_lhs_reproducible():
+    import csv
+    import designs
+    a, b = designs.lhs(50, 20261102), designs.lhs(50, 20261102)
+    assert a == b and a != designs.lhs(50, 1)
+    for p in mt.PARAMS + [mt.DUMMY]:                     # 차원마다 n 층에 한 점씩
+        lo, hi = float(p["lo"]), float(p["hi"])
+        strata = sorted(min(int((t[p["name"]] - lo) / (hi - lo) * 50), 49) for t in a)
+        assert strata == list(range(50)), p["name"]
+    with open(os.path.join(BT, "thetas", "pilot_lhs50.csv"), encoding="utf-8", newline="") as f:
+        assert [{k: float(v) for k, v in r.items()} for r in csv.DictReader(f)] == a    # 저장된 목록 = lhs(50, 20261102)
+
+
 def _job(tree):
     j = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke")
     j = next(x for x in j if x["scenario"] == "neutral" and x["opponent"] == "B2_Extender_00")
