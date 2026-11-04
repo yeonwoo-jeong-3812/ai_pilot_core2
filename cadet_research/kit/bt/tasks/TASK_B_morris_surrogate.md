@@ -1,5 +1,23 @@
 # TASK B — Morris 중요도와 대리모델
 
+> ### ⚠ 2026-11-05 추가 사항: RQ2 중요 판정 규칙 변경 (이미 작업 중이면 반드시 반영)
+>
+> **문제 (주혁 발견):** 더미는 트리에 들어가지 않아 더미만 바뀐 θ 는 결과가 완전히 같다. 더미 μ*·CI 가 정확히 0 이 되어
+> 예전 판정 "μ* CI 하한 > 더미 μ* CI 상한" 이 "μ* CI 하한 > 0" 이 된다. 그래서 판정만 아래로 바꾼다 (`PREREG_BT_DEVIATIONS.md` #3).
+> μ*·μ·σ 계산, 궤적 단위 부트스트랩 CI, 기하별 비교 정의는 그대로다.
+>
+> - **중요 판정 (2026-11-05 변경, `PREREG_BT_DEVIATIONS.md` #3 — §6.2 의 "더미 μ* CI 상한" 비교를 대신한다):**
+>   - Morris 단계 (궤적 t, 바뀐 파라미터 i) 마다 셀별 짝 차이 d_c = y(다음 θ, c) − y(이전 θ, c), c = 48셀 (기하·상대·시드).
+>     EE = mean(d_c) / Δ (정규화 단위, 기존 정의와 같음).
+>   - 잡음 기준선: 각 단계의 d_c 부호를 서로 독립적으로 무작위로 뒤집어 EE 와 파라미터별 μ* 를 다시 계산하는 것을 2,000회 반복한다 (seed 20261108).
+>     파라미터 i 의 잡음 기준선 = 그 μ* 귀무 분포의 95백분위.
+>   - 중요 판정: 관측 μ* 의 부트스트랩 95% CI 하한 > 그 파라미터의 잡음 기준선.
+>   - 기하별 분석도 같은 방식 (셀 16개) 으로 하고, "기하별로 다르다" 정의는 이 중요 판정을 그대로 쓴다.
+>   - 더미 μ* 가 정확히 0 인 것은 재현성 확인 결과로 함께 보고한다.
+>
+> 함수 사양: 예전 `important(boot)` 대신 `step_diffs(...)`, `noise_floor(...)`, `important(boot, floor)` (아래 "구현할 함수" 표).
+> 시험 데이터: `synth.morris_null(path)` + 정답 `synth.TRUTH_MORRIS_NULL` (더미는 정확히 0, 효과 없는 파라미터는 평균 0 잡음, 효과 있는 파라미터는 뚜렷한 평균 이동).
+
 > ### ⚠ 2026-11-03 추가 사항 (이미 작업 중이면 반드시 반영)
 >
 > **결과 CSV와 설계 파일은 반드시 `read_games`/`read_design` (`bt/analysis/io_utils.py`) 으로 읽는다.** `pd.read_csv` 를 직접 쓰지 않는다.
@@ -44,7 +62,15 @@
 > - **지표:** 파라미터마다 기본효과의 μ* (절댓값 평균), μ (평균), σ (표준편차). 전체와 기하별로 계산한다.
 > - **부트스트랩:** 단위는 **궤적**, **2,000회, seed 20261108**. 95% CI (백분위).
 >   기하별 계산은 **한 번 뽑은 궤적 묶음으로 세 기하를 함께** 계산한다 (기하 간 μ* 차이의 CI 가 짝을 이루도록).
-> - **중요 판정:** 파라미터 μ* 의 95% CI 하한 > 더미 μ* 의 95% CI 상한.
+> - ~~**중요 판정:** 파라미터 μ* 의 95% CI 하한 > 더미 μ* 의 95% CI 상한.~~ (고정본 원문. 2026-11-05 아래 규칙으로 바뀜)
+> - **중요 판정 (2026-11-05 변경, `PREREG_BT_DEVIATIONS.md` #3 — §6.2 의 "더미 μ* CI 상한" 비교를 대신한다):**
+>   - Morris 단계 (궤적 t, 바뀐 파라미터 i) 마다 셀별 짝 차이 d_c = y(다음 θ, c) − y(이전 θ, c), c = 48셀 (기하·상대·시드).
+>     EE = mean(d_c) / Δ (정규화 단위, 기존 정의와 같음).
+>   - 잡음 기준선: 각 단계의 d_c 부호를 서로 독립적으로 무작위로 뒤집어 EE 와 파라미터별 μ* 를 다시 계산하는 것을 2,000회 반복한다 (seed 20261108).
+>     파라미터 i 의 잡음 기준선 = 그 μ* 귀무 분포의 95백분위.
+>   - 중요 판정: 관측 μ* 의 부트스트랩 95% CI 하한 > 그 파라미터의 잡음 기준선.
+>   - 기하별 분석도 같은 방식 (셀 16개) 으로 하고, "기하별로 다르다" 정의는 이 중요 판정을 그대로 쓴다.
+>   - 더미 μ* 가 정확히 0 인 것은 재현성 확인 결과로 함께 보고한다.
 > - **기하별 순위:** 기하별 μ* 순위와 기하 쌍 사이 **Spearman 순위 상관** (서술용, 부트스트랩 CI).
 >   **"기하별 순위가 다르다"** = 어떤 파라미터가 한 기하에서는 중요, 다른 기하에서는 중요 아님이고, 두 기하 μ* 차이의 95% CI 가 0 을 포함하지 않을 때.
 
@@ -80,8 +106,10 @@ pandas 를 쓴다. games.csv 에는 궤적 정보가 없다. **θ ↔ 궤적은 
 | `elementary_effects(tm) -> DataFrame` | `theta_means` 결과 (한 기하 또는 전체) | 궤적마다 요인마다 한 행: `trajectory, param, ee`. EE = (y(다음 점) − y(이전 점)) / Δ, Δ 는 정규화 단위 (x = (θ − lo)/(hi − lo)) 의 변화량 (SALib `analyze.morris` 정의와 같다) |
 | `indices(ee) -> DataFrame` | `elementary_effects` 결과 | 요인마다 `param, mu_star, mu, sigma` |
 | `bootstrap(ee, n_boot=2000, seed=20261108) -> DataFrame` | 같음 | `param, mu_star, mu_star_lo, mu_star_hi, mu, sigma` (궤적 단위 재표집, 백분위 95%) |
-| `important(boot) -> dict[str, bool]` | `bootstrap` 결과 | 요인 → μ* CI 하한 > dummy μ* CI 상한 |
-| `geometry_compare(games_df, design_path, n_boot=2000, seed=20261108) -> dict` | | 기하별 `bootstrap`·`important`, 기하 쌍마다 Spearman (점추정 + 부트스트랩 CI), 요인·기하 쌍마다 μ* 차이 CI 와 "다르다" 판정 |
+| `step_diffs(games_df, design_path, scenario=None) -> list` | games.csv DataFrame (`read_games`, wall_clock 뺀 것), 설계 파일. `scenario` 를 주면 그 기하 셀 16개만 | Morris 단계마다 `(trajectory, param, d, delta)`: `d` = 셀별 짝 차이 배열 y(다음 θ, c) − y(이전 θ, c) (셀 = 기하·상대·시드, 두 θ 에 같은 셀 순서), `delta` = 정규화 단위 변화량. `mean(d)/delta` 가 `elementary_effects` 의 EE 와 같아야 한다 |
+| `noise_floor(steps, n_null=2000, seed=20261108) -> dict[str, float]` | `step_diffs` 결과 | 파라미터 → 잡음 기준선. 반복마다 각 단계의 d_c 부호를 서로 독립적으로 무작위로 뒤집어 (`rng = numpy.random.default_rng(seed)`) EE 와 μ* 를 다시 계산하고, 그 μ* 의 95백분위 |
+| `important(boot, floor) -> dict[str, bool]` | `bootstrap` 결과, `noise_floor` 결과 | 요인 → 관측 μ* 의 부트스트랩 95% CI 하한 (`mu_star_lo`) > 그 요인의 잡음 기준선 |
+| `geometry_compare(games_df, design_path, n_boot=2000, seed=20261108) -> dict` | | 기하별 `bootstrap`·`noise_floor` (셀 16개)·`important`, 기하 쌍마다 Spearman (점추정 + 부트스트랩 CI), 요인·기하 쌍마다 μ* 차이 CI 와 "다르다" 판정 |
 | `plot_mu_sigma(boot, path)`, `plot_geometry_rank(result, path)` | | μ*–σ 산점도 (dummy 표시, CI 막대), 기하별 μ* 순위 그림 (png) |
 | CLI: `python bt/analysis/morris.py <games.csv> --design bt/thetas/main_morris_r16.csv --out <폴더>` | | `morris.csv`, `morris.md`, `morris_geometry.md`, 그림 2개 |
 
@@ -103,6 +131,8 @@ pandas 를 쓴다. games.csv 에는 궤적 정보가 없다. **θ ↔ 궤적은 
   대리모델 시험은 `synth.surrogate(path)` (본실험과 같은 θ 256개 × 48경기) 와 정답 `synth.TRUTH_SURROGATE` (떼어 둘 θ 49개, 뽑히는 궤적 {0, 5, 12},
   참고 R² 0.954, 순수 잡음 −0.502) 를 쓴다. `synth.holdout_ids(...)` 는 정답 비교용 떼어 두기 계산이다 (구현에 복사해 쓰지 말고 테스트에서 비교만).
   정답은 `synth.TRUTH_MORRIS` (중요 파라미터 3개, 더미 포함 나머지 8개 중요 아님, 비선형 1개, floor_ft 는 neutral 에서만 효과 0 → 기하별로 다름).
+  **새 중요 판정 시험은 `synth.morris_null(path)`** (같은 θ 192개 × 48경기, 더미만 다른 θ 는 결과가 완전히 같음 → 더미 단계 d_c 정확히 0,
+  효과 없는 파라미터는 평균 0 잡음만, 효과 있는 3개는 뚜렷한 평균 이동) 와 정답 `synth.TRUTH_MORRIS_NULL`.
   합성 CSV 는 커밋하지 않는다 (테스트 안에서 임시 폴더에 만든다). 엔진을 import 하므로 `cadet_research/kit/` 에서 실행한다.
 - `kit/bt/analysis/fixtures/pilot2_sample.csv`: 실측 일부 (예비 실험, LHS θ 50개). Morris 형식이 아니다 → `surrogate.theta_table` / `fit_holdout` 이
   실측 형식에서 돌아가는지 확인용으로만 쓴다 (설계 파일 대신 이 CSV 의 θ 열을 쓰는 경로가 필요하면 "질문").
@@ -112,12 +142,17 @@ pandas 를 쓴다. games.csv 에는 궤적 정보가 없다. **θ ↔ 궤적은 
 `cadet_research/kit/` 에서 `python -m pytest bt/analysis/test_morris.py bt/analysis/test_surrogate.py` 가 모두 통과 (pytest 가 없으면
 각 파일을 직접 실행해도 되게 `if __name__ == "__main__":` 를 둔다). 테스트에 최소한 아래가 있어야 한다.
 
-1. `test_morris.py` (합성 데이터 `synth.morris`)
-   - `important()` 가 `TRUTH_MORRIS["important"]` 3개를 모두 True, `not_important` 8개 (dummy 포함) 를 모두 False 로 판정.
+1. `test_morris.py`
+   - **새 중요 판정 (`synth.morris_null`):** `important(bootstrap(...), noise_floor(step_diffs(...)))` 가 `TRUTH_MORRIS_NULL["important"]` 3개를 모두 True,
+     `not_important` 8개 (효과 없는 7개 + dummy) 를 모두 False 로 판정 (셀 48개, 2,000회, seed 20261108).
+   - **더미 정확히 0 (`synth.morris_null`):** 더미 단계의 d_c 가 모두 정확히 0, 더미의 μ*·μ·σ·CI·잡음 기준선이 모두 0.
+   - **기하별 (`synth.morris_null`, 셀 16개):** `floor_ft` 가 "기하별로 다르다" (공세·수세 중요, neutral 중요 아님), `fight_kcas` 는 다르지 않다.
+     (threat_aspect_deg 는 셀 16개에서 기준선 근처라 기하별 판정을 정답으로 쓰지 않는다)
+   - `step_diffs` 의 `mean(d)/delta` 가 `elementary_effects` 의 EE 와 같다 (같은 데이터, 부동소수 오차 안).
+   - `synth.morris` (예전 데이터) 로도 μ*·σ 계산이 맞는지 아래 두 항목을 확인한다.
    - 전체 μ* 가 `TRUTH_MORRIS["mu_star"]` 와 0.4 안에서 같다 (잡음 때문에 정확히 같지 않다).
    - `threat_aspect_deg` 의 σ 가 `fight_kcas` 의 σ 보다 크다 (비선형).
-   - `geometry_compare` 가 `floor_ft` 를 "기하별로 다르다" 로 판정하고 (공세·수세 중요, neutral 중요 아님), `fight_kcas` 는 다르지 않다고 판정.
-   - seed 가 같으면 부트스트랩 결과가 같다.
+   - seed 가 같으면 부트스트랩과 잡음 기준선 결과가 같다.
 2. `test_surrogate.py` (합성 데이터 `synth.surrogate`, θ 256개)
    - **떼어 둔 θ 수:** 정확히 49개 (Morris 36 = 궤적 3개 × 12, LHS 13). 학습 207개.
    - **궤적이 나뉘지 않음:** Morris 궤적 16개 각각에 대해 그 궤적의 θ 12개가 모두 학습 쪽이거나 모두 떼어 둔 쪽이다. 떼어 둔 궤적이 `TRUTH_SURROGATE["holdout_trajectory_ids"]` 와 같다.

@@ -1,6 +1,6 @@
 """정답을 아는 합성 데이터 생성기 (분석 코드 시험용). 열 이름은 CONTRACT.md §2 의 games.csv 그대로 (pilot2_sample.csv 와 같은 열).
 
-  python bt/analysis/fixtures/synth.py <출력 폴더>      # synth_rq1.csv, synth_morris.csv, synth_confirm.csv, synth_surrogate.csv
+  python bt/analysis/fixtures/synth.py <출력 폴더>      # synth_rq1.csv, synth_morris.csv, synth_morris_null.csv, synth_confirm.csv, synth_surrogate.csv
   from fixtures import synth; synth.rq1(path); synth.TRUTH_RQ1 ...    # 테스트에서
 
 정답은 이 파일의 TRUTH_* 에 있다. 엔진은 돌리지 않는다. seed 고정 (SEED).
@@ -174,6 +174,35 @@ def surrogate(path):
     _write(path, rows)
 
 
+# ── (b3) Morris 잡음 기준선 (PREREG_BT_DEVIATIONS.md #3 의 새 중요 판정 시험용) ──────────────────────────────────────
+# main_morris_r16.csv 의 θ 192개 × 48경기. 실제 엔진처럼 **더미만 다른 θ 는 결과가 완전히 같다**: 경기 잡음은 (더미를 뺀 θ, 셀) 로 정한 난수라
+# 더미 단계의 셀별 짝 차이 d_c 는 정확히 0. 효과 없는 파라미터 단계는 d_c 가 평균 0 인 잡음뿐 (θ 가 바뀌면 잡음 실현값이 바뀐다).
+# 효과 있는 파라미터는 morris_f 와 같은 뚜렷한 평균 이동 (fight_kcas −3.0, floor_ft −3.0 은 공세·수세만, threat_aspect_deg 비선형).
+#   y(θ, c) = morris_f(θ, 기하) + 셀 효과 + N(0, 1.5²),   N 은 (더미 뺀 θ, 셀) 로 seed 를 정한 난수.
+# 정답 (새 규칙: 관측 μ* 의 부트스트랩 95% CI 하한 > 그 파라미터의 부호 뒤집기 잡음 기준선 (μ* 귀무 분포 95백분위), 2,000회, seed 20261108):
+TRUTH_MORRIS_NULL = {
+    "design_file": "bt/thetas/main_morris_r16.csv", "noise_sd": 1.5,
+    "important": {"fight_kcas", "floor_ft", "threat_aspect_deg"},
+    "not_important": {"merge_range_ft", "gun_range_ft", "gun_ata_deg", "energy_min_ft", "lead_time_s",
+                      "break_g_burst", "closing_min_fps", "dummy"},
+    "dummy_exact_zero": True,               # 더미 단계의 d_c 가 모두 정확히 0 → 더미 μ*·μ·σ·CI·잡음 기준선 모두 0
+    "geometry_differs": {"floor_ft"},       # 공세·수세에서 중요, neutral 에서 중요 아님 (셀 16개)
+}
+
+
+def _null_noise(th, scen, opp, i):
+    import hashlib
+    key = repr(tuple(th[k] for k in mt.NAMES)) + f"|{scen}|{opp}|{i}"        # 더미를 뺀 θ 와 셀
+    return np.random.default_rng(int(hashlib.sha256(key.encode()).hexdigest()[:16], 16)).normal(0, TRUTH_MORRIS_NULL["noise_sd"])
+
+
+def morris_null(path):
+    import run_bt
+    ths = run_bt.read_thetas(os.path.join(BT, "thetas", "main_morris_r16.csv"))
+    _write(path, [_rows("synth-morris-null", th, s, o, i, morris_f(th, s) + _CELL[(s, o)] + _null_noise(th, s, o, i))
+                  for th in ths for s in SCENARIOS for o in OPPONENTS for i in range(4)])
+
+
 # ── (c) 확인 단계: 기준 θ + 후보 θ 3개, θ 마다 432경기 (기하 3 × 상대 4 × 시드 36), 같은 셀끼리 짝 ──────────────────
 # 후보 − 기준 짝 차이 Δwez 의 표본 평균과 표본 표준편차 (ddof=1) 를 정확히 맞췄다: 평균 = delta, sd = 2.0 (432쌍).
 # 기대 판정 (PREREG_BT.md §6.4: "낫다" = Holm 보정 후 단측 유의 (α 0.05) 이고 95% CI 하한 > 0, "실질적으로 낫다" = 여기에
@@ -215,11 +244,12 @@ def confirm(path):
 
 def write_all(out_dir):
     os.makedirs(out_dir, exist_ok=True)
-    out = {k: os.path.join(out_dir, f"synth_{k}.csv") for k in ("rq1", "morris", "confirm", "surrogate")}
+    out = {k: os.path.join(out_dir, f"synth_{k}.csv") for k in ("rq1", "morris", "morris_null", "confirm", "surrogate")}
     rq1(out["rq1"])
     morris(out["morris"])
     confirm(out["confirm"])
     surrogate(out["surrogate"])
+    morris_null(out["morris_null"])
     return out
 
 
