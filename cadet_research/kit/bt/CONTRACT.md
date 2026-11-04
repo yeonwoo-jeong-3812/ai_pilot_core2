@@ -174,7 +174,8 @@ engine_sha `1e0101026959` 를 `inf` 로 바꾼다 (본실험 θ 256개 중 숫�
 | `bt/params.yaml`, `bt/tree_template.yaml`, `bt/make_tree.py` | θ 정의와 트리 생성 |
 | `bt/run_bt.py`, `bt/monitor.py`, `bt/trace_match.py` | 실행, 관측, 노드 추적 |
 | `bt/test_bt.py`, `bt/validate.py`, `bt/crosscheck.py` | 자가점검, 검증 표, PC 간 재현 점검 |
-| `bt/merge.py`, `bt/RUNBOOK.md` | 여러 PC 결과 검사·합치기, 팀원 실행 순서 |
+| `bt/merge.py`, `bt/RUNBOOK.md` | 여러 PC 결과 검사·합치기, 팀원 실행 순서. 태그 커밋과 다른 code_commit 은 `--equivalent-commits` (시뮬레이션 영향 파일을 안 건드린 커밋만 통과) |
+| `bt/verify_shard.py` | 다른 커밋·PC 의 shard 에서 무작위 20경기 (seed 20261108) 를 이 PC 에서 다시 돌려 실행 환경 열 밖 모든 열 비교 |
 | `bt/requirements-analysis.txt` | 분석 패키지 버전 고정 (`kit/requirements.txt` 를 불러온 뒤 추가) |
 | `bt/thetas/main_lhs64.csv`, `bt/thetas/main_morris_r16.csv` | 본실험 설계 파일 (PREREG_BT.md §5, SHA-256 고정). `.gitattributes` 로 줄끝 LF |
 | `bt/analysis/fixtures/` | 분석 시험 데이터: `pilot2_sample.csv` (실측 일부), `synth.py` (정답을 아는 합성 데이터와 정답값) |

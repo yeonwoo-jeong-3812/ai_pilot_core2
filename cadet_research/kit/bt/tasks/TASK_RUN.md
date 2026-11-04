@@ -1,5 +1,14 @@
 # TASK RUN — 본실험 계산 분담 (PC 를 내는 팀원 모두)
 
+> ### ⚠ 2026-11-04 추가 사항 (코드 버전)
+>
+> **아직 시작 전이면 `git checkout prereg-bt-v1` 에서 실행한다.** (태그 커밋 `a7bbb5f`. PC1 이 이 커밋으로 돌았다.)
+> `git fetch --tags origin` → `git checkout prereg-bt-v1` → 아래 1번 준비부터 그대로. 실행 전 점검이 태그 커밋에서도 통과한다.
+>
+> **이미 최신 bt-study 로 돌렸으면 그대로 두고 code_commit 값을 연우에게 알린다.** (다시 돌리지 않는다.)
+> code_commit 은 결과 CSV 의 `code_commit` 열 값이다 (예: `python -c "import csv; print({r['code_commit'] for r in csv.DictReader(open('bt/out/bt-main/games_main_lhs64_shard2of3.csv', encoding='utf-8'))})"`).
+> 연우가 `bt/merge.py --equivalent-commits` (영향 파일을 안 건드린 커밋만 통과) 와 `bt/verify_shard.py` (표본 20경기 재현 점검) 로 확인한 뒤 합친다.
+
 ## Claude Code에게
 
 이 파일 하나로 내 PC 몫의 본실험을 준비하고 돌릴 수 있게 썼다. **코드는 고치지 않는다.** 사용자가 자기 PC 번호 (PC1/PC2/PC3) 를 알려 준다.

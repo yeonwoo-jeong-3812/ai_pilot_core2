@@ -238,6 +238,48 @@ def test_out_dir_by_opponent_set():
     assert not key(run_bt.build_jobs(th, "bt-main")) & key(run_bt.build_jobs(th, "bt-main", opponent_set="original"))
 
 
+def test_merge_equivalent_commits():
+    """--equivalent-commits: 영향 파일을 안 건드린 커밋만 태그 커밋과 같은 것으로 본다 (정상·거부)."""
+    import csv
+    import shutil
+    import tempfile
+    import merge
+    res = {c: ok for c, ok, _ in merge.equivalence_check(["d4129d0", "a460b48", "de142b2", "zzzzzzz"])}
+    assert res == {"d4129d0": True, "a460b48": True, "de142b2": False, "zzzzzzz": False}, res
+    # run_bt.py 정규화: out_dir_for 만 바뀌면 같고, 경기 생성 쪽이 바뀌면 다르다
+    base = merge._git("show", f"{merge.TAG}:cadet_research/kit/bt/run_bt.py")
+    only_dir = base.replace("    out_dir = os.path.join(", "    out_dir = out_dir_for_x(", 1) + "\n\ndef out_dir_for(a):\n    return a\n"
+    assert merge._normalize_run_bt(base) == merge._normalize_run_bt(only_dir)
+    assert merge._normalize_run_bt(base) != merge._normalize_run_bt(base.replace("for i in range(nseeds):", "for i in range(nseeds + 1):"))
+    # check(): 태그 커밋 shard + a460b48 shard → 옵션 없으면 거부, a460b48 지정하면 통과, de142b2 지정하면 거부
+    tmp = tempfile.mkdtemp()
+    try:
+        th = os.path.join(tmp, "th.csv")
+        with open(th, "w", encoding="utf-8", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=mt.NAMES + ["dummy"])
+            w.writeheader()
+            w.writerow(BASE)
+        jobs = run_bt.build_jobs(run_bt.read_thetas(th), "bt-smoke")
+        tag12 = merge._git("rev-parse", f"{merge.TAG}^{{commit}}").strip()[:12]
+        other12 = merge._git("rev-parse", "a460b48^{commit}").strip()[:12]
+        paths = []
+        for i, commit in ((1, tag12), (2, other12)):
+            paths.append(os.path.join(tmp, f"games_th_shard{i}of2.csv"))
+            with open(paths[-1], "w", encoding="utf-8", newline="") as f:
+                w = csv.DictWriter(f, fieldnames=run_bt.FIELDS)
+                w.writeheader()
+                for j in run_bt.shard(jobs, f"{i}/2"):
+                    w.writerow({**{k: "" for k in run_bt.FIELDS}, **{k: j[k] for k in run_bt.KEY}, "seed": j["seed"],
+                                "winner": "draw", "end_reason": "timeout", "engine_sha": "1e0101026959", "code_commit": commit})
+        assert merge.check(paths, th, "bt-smoke")[2] == 1                                  # code_commit 2종류
+        rows, L, n = merge.check(paths, th, "bt-smoke", equivalent=["a460b48"])
+        assert n == 0 and len(rows) == 48 and any("--equivalent-commits 사용" in l for l in L)
+        assert {r["code_commit"] for r in rows} == {tag12, other12}                          # 원래 값 그대로 남김
+        assert merge.check(paths, th, "bt-smoke", equivalent=["de142b2"])[2] >= 1            # 영향 파일 변경 → 거부
+    finally:
+        shutil.rmtree(tmp)
+
+
 def _job(tree):
     j = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke")
     j = next(x for x in j if x["scenario"] == "neutral" and x["opponent"] == "B2_Extender_00")
