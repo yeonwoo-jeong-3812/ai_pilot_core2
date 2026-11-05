@@ -1,9 +1,10 @@
-"""튜닝 BT 비교 변형 7개 → bt/thetas/tuned7.csv (cadet_research/PREREG_BT_ADDENDUM_TUNING.md). 같은 입력이면 같은 파일.
+"""튜닝 BT 비교 변형 6개 → bt/thetas/tuned6.csv (cadet_research/PREREG_BT_ADDENDUM_TUNING.md). 같은 입력이면 같은 파일.
 
-  python bt/make_tuned7.py
+  python bt/make_tuned6.py
 
 V0 기준 / V1 교범값 (근거 있는 것만, 아래 DOCTRINE) / V2 fight_kcas 만 유리한 방향 / V3 중요 3개만 유리한 방향 /
-V4 중요하지 않은 7개만 무작위 (seed 20261106, 범위 안 균등), 중요 3개는 기준값 / V5 V1 에 V3 조정을 얹음 / V6 RQ3 대리모델 1위 θ 그대로.
+V4 중요하지 않은 7개만 무작위 (seed 20261106, 범위 안 균등), 중요 3개는 기준값 / V6 RQ3 대리모델 1위 θ 그대로.
+V5 (V1 + V3) 는 V1 의 변경값이 V3 조정에 모두 덮여 V3 와 같은 θ 가 되므로 제외했다 (결과 보기 전 결정). 이름 V6 은 그대로 둔다.
 "유리한 방향" = RQ2 Morris μ 의 부호 (bt/out/analysis/morris.md), 크기 = 범위의 유리한 쪽 끝에서 범위 폭의 10% 안쪽 값.
 """
 from __future__ import annotations
@@ -19,7 +20,7 @@ sys.path.insert(0, BT)
 import make_tree as mt  # noqa: E402
 import run_bt  # noqa: E402
 
-OUT = os.path.join(BT, "thetas", "tuned7.csv")
+OUT = os.path.join(BT, "thetas", "tuned6.csv")
 IMPORTANT = {"fight_kcas": -1, "threat_aspect_deg": +1, "floor_ft": -1}      # RQ2 중요 3개와 μ 부호 (−2.73, +1.29, −1.25)
 # 교범 근거가 있는 파라미터만 (aircombat/guidance/doctrine.py 의 절 번호 표기). 근거 표는 PREREG_BT_ADDENDUM_TUNING.md §2
 DOCTRINE = {"fight_kcas": 325.0,          # below_fighting_speed 기본값 = DoctrineParams.fighting_kts_lo 325 (4.4.6.2.2 파이팅 속도 325–375kt)
@@ -42,7 +43,7 @@ def variants() -> list[dict]:
     v4 = {p["name"]: float(rng.uniform(float(p["lo"]), float(p["hi"]))) for p in mt.PARAMS if p["name"] not in IMPORTANT}
     v6 = next(t for t in run_bt.read_thetas(os.path.join(BT, "thetas", "confirm_candidates.csv")) if mt.theta_id(t) == V6_ID)
     out = [("V0", base), ("V1", {**base, **DOCTRINE}), ("V2", {**base, "fight_kcas": v3["fight_kcas"]}), ("V3", {**base, **v3}),
-           ("V4", {**base, **v4}), ("V5", {**base, **DOCTRINE, **v3}), ("V6", dict(v6))]
+           ("V4", {**base, **v4}), ("V6", dict(v6))]
     for name, th in out:
         mt.normalize(th)                       # 모두 params.yaml 범위 안
     return [dict(variant=n, **th) for n, th in out]

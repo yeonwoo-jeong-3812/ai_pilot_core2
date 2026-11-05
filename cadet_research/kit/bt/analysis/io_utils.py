@@ -38,11 +38,11 @@ def read_games(path: str) -> pd.DataFrame:
 
 
 def read_design(path: str) -> pd.DataFrame:
-    """설계 파일 (bt/thetas/*.csv) → DataFrame. 파라미터 11개는 float, trajectory·step 은 int (있으면).
+    """설계 파일 (bt/thetas/*.csv) → DataFrame. 파라미터 11개는 float, trajectory·step 은 int, variant 는 문자열 (있으면).
     theta_id 열을 붙인다: run_bt.read_thetas 와 같은 값 정규화로 make_tree.theta_id 를 계산하므로 games.csv 의 theta_id 와 같다."""
     import make_tree as mt
     import run_bt
-    df = _read(path, ())
+    df = _read(path, ("variant",))
     for c in ("trajectory", "step"):
         if c in df.columns:
             df[c] = df[c].astype(int)

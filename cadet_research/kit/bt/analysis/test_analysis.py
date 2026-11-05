@@ -125,6 +125,49 @@ def test_surrogate_holdout():
     assert f2["r2_holdout"] < 0.5 and not surrogate.shap_report(f2, tt2, out2) and not os.listdir(out2)
 
 
+def test_tuning_report():
+    """win_test 의 McNemar·CI·TOST 와 tuning.py 끝까지 실행 (합성 승패, 정답: V2 만 V0 보다 높고 나머지는 V0 와 같다)."""
+    import pandas as pd
+    import tuning
+    d = np.array([1] * 30 + [-1] * 10 + [0] * 60)
+    r = tuning.win_test(d)
+    assert np.isclose(r["diff"], 0.2) and (r["b"], r["c"]) == (30, 10)
+    from math import comb
+    assert np.isclose(r["p_mcnemar"], 2 * sum(comb(40, k) for k in range(30, 41)) / 2 ** 40)     # 양측 정확 이항
+    assert tuning.win_test(np.zeros(100))["p_tost"] == 0.0
+    var = tuning.read_design(tuning.VARIANTS)
+    paths = {}
+    for s, opps in (("patched", ["A", "B", "C", "D"]), ("heldout", ["E", "F", "G", "H"])):
+        rows = []
+        for v, tid in zip(var.variant, var.theta_id):
+            for sc in ("g1", "g2", "g3"):
+                for o in opps:
+                    for k in range(36):
+                        u = ((37 * k + 11 * ord(o) + 7 * int(sc[1])) % 100) / 100     # 셀마다 같은 값 → V2 외 변형은 V0 와 똑같다
+                        p = 0.0 if o in ("D", "H") else 0.4 + (0.25 if v == "V2" else 0.0)
+                        win = u < p
+                        rows.append(dict(theta_id=tid, scenario=sc, opponent=o, opponent_set=s, seed_salt=f"x-{k}",
+                                         winner="blue" if win else "red", end_reason="health_zero", win_mode="shootdown" if win else "",
+                                         wez_blue=1.0 * win, wez_red=1.0 - win, hp_blue_raw=100.0, hp_red_raw=100.0 - 50 * win,
+                                         e_adv_ft=0.0, node_frac='{"energy_recover": 0.5, "break_defense": 0.5}',
+                                         code_commit="abc", engine_sha="1e0101026959"))
+        paths[s] = os.path.join(TMP, f"tuning_{s}.csv")
+        pd.DataFrame(rows).to_csv(paths[s], index=False)
+    out = tempfile.mkdtemp(dir=TMP)
+    argv = sys.argv
+    sys.argv = ["tuning.py", "--patched", paths["patched"], "--heldout", paths["heldout"], "--out", out]
+    try:
+        tuning.main()
+    finally:
+        sys.argv = argv
+    rep = open(os.path.join(out, "tuning_report.md"), encoding="utf-8").read()
+    main_rows = [x for x in rep.split("## 2.")[0].splitlines() if x.startswith(("| patched |", "| heldout |"))]
+    assert [x.split(" | ")[1] for x in main_rows if "**예**" in x] == ["V2", "V2"], main_rows
+    assert "patched **동등**" in rep and "heldout **동등**" in rep
+    assert "D †" in rep and "H †" in rep and "| patched | 2592 | 2592 | 0 | 0 | 0 | abc |" in rep
+    assert os.path.exists(os.path.join(out, "tuning_winrate.png")) and os.path.exists(os.path.join(out, "tuning_nodefrac.png"))
+
+
 if __name__ == "__main__":
     try:
         for name, fn in list(globals().items()):
