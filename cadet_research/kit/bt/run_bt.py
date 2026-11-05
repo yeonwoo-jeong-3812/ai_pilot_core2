@@ -55,19 +55,25 @@ OPPONENTS = {   # 이름 -> kit 기준 경로. 상대를 바꿀 때는 여기만
 #   original    kit/agents/main 원본 (고치지 않는다)
 #   patched     bt/opponents_patched: 최우선 low_altitude → climb 노드만 청 recover 와 같게 (bt/analysis/opponent_patch_rules.md)
 #   diag-f4000  bt/diag_opponents: floor_ft 만 1200 → 4000 (하드덱 진단 전용, bt-diag 에서만)
+#   heldout     bt/opponents_heldout: 본실험에 쓰지 않은 kit 상대 4종 (A1·A3·B1 은 patched 와 같은 보정, red_prime 은 보정 대상 노드가
+#               없어 원본 그대로). 튜닝 BT 비교 추가 실험용 (cadet_research/PREREG_BT_ADDENDUM_TUNING.md)
 OPPONENT_SETS = {
     "original": OPPONENTS,
     "patched": {k: "bt/opponents_patched/" + os.path.basename(v) for k, v in OPPONENTS.items()},
     "diag-f4000": {k: "bt/diag_opponents/" + os.path.basename(v) for k, v in OPPONENTS.items()},
+    "heldout": {k: f"bt/opponents_heldout/{k}.yaml" for k in ("A1_PurePursuer_00", "A3_LagAngler_00", "B1_EnergyFighter_00", "red_prime")},
 }
+HELDOUT_ORIGINAL = {k: f"agents/main/{k}.yaml" for k in OPPONENT_SETS["heldout"]}
 DEFAULT_SET = "patched"
 # 옛 CSV (opponent_set 열 없음) 재실행용: 원본 이름 = original, "<이름>_f4000" = diag-f4000
 OPP_PATHS = {**OPPONENTS, **{f"{k}_f4000": v for k, v in OPPONENT_SETS["diag-f4000"].items()}}
 SEEDS = 4                     # 셀당 시드 수 기본값 (--nseeds). 시드 i 의 salt = "<접두어>-<i>"
 PREREG_TAG = "prereg-bt-v1"   # bt-main·bt-confirm 은 이 git 태그가 있어야 돈다 (사전등록 고정 뒤)
-META_COLS = ("trajectory", "step")   # θ 목록의 설명 열 (Morris 궤적 번호·궤적 안 순서). θ 에는 안 들어간다
-PREFIXES = ("bt-smoke", "bt-pilot", "bt-cal", "bt-cal-a", "bt-cal-b", "bt-diag", "bt-main", "bt-confirm")
-LOCKED = ("bt-main", "bt-confirm")
+META_COLS = ("trajectory", "step", "variant")   # θ 목록의 설명 열 (Morris 궤적·순서, 튜닝 변형 이름). θ 에는 안 들어간다
+PREFIXES = ("bt-smoke", "bt-pilot", "bt-cal", "bt-cal-a", "bt-cal-b", "bt-diag", "bt-main", "bt-confirm", "bt-confirm2")
+LOCKED = ("bt-main", "bt-confirm", "bt-confirm2")
+# 잠긴 접두어마다 있어야 하는 사전등록 태그. bt-confirm2 = 튜닝 BT 비교 추가 실험 (PREREG_BT_ADDENDUM_TUNING.md)
+TAG_FOR = {"bt-main": PREREG_TAG, "bt-confirm": PREREG_TAG, "bt-confirm2": "prereg-bt-tuning-v1"}
 ENGINE_PARTS = ("aircombat", "jsbsim_data", "config")
 
 FIELDS = (["stage", "theta_id"] + mt.NAMES +
@@ -121,10 +127,10 @@ def shard(jobs: list[dict], spec: str | None) -> list[dict]:
     return [j for k, j in enumerate(jobs) if k % n == i - 1]
 
 
-def has_prereg_tag() -> bool:
+def has_prereg_tag(tag: str = PREREG_TAG) -> bool:
     try:
-        out = subprocess.run(["git", "tag", "-l", PREREG_TAG], cwd=BT, capture_output=True, text=True, check=True).stdout
-        return out.strip() == PREREG_TAG
+        out = subprocess.run(["git", "tag", "-l", tag], cwd=BT, capture_output=True, text=True, check=True).stdout
+        return out.strip() == tag
     except (OSError, subprocess.CalledProcessError):
         return False
 
@@ -276,8 +282,8 @@ def main():
     todo = todo[:args.limit]
     if args.dry or not todo:
         return
-    if args.prefix in LOCKED and not has_prereg_tag():     # --force-dev 로도 건너뛰지 않는다
-        sys.exit(f"실행 거부: {args.prefix} 는 사전등록 고정 태그 {PREREG_TAG} 가 있어야 돈다 (PREREG_BT.md)")
+    if args.prefix in LOCKED and not has_prereg_tag(TAG_FOR[args.prefix]):     # --force-dev 로도 건너뛰지 않는다
+        sys.exit(f"실행 거부: {args.prefix} 는 사전등록 고정 태그 {TAG_FOR[args.prefix]} 가 있어야 돈다")
     if args.force_dev:
         print("⚠ --force-dev: 실행 전 점검을 건너뛴다 (진단용. 본실험 결과에 쓰지 않는다)")
     else:

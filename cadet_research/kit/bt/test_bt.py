@@ -280,6 +280,26 @@ def test_merge_equivalent_commits():
         shutil.rmtree(tmp)
 
 
+def test_heldout_opponents():
+    """heldout: A1·A3·B1 은 patched 와 같은 바이트 보정 (최우선 climb 노드만), red_prime 은 원본 그대로. 결과 폴더 분리."""
+    for name, rel in run_bt.HELDOUT_ORIGINAL.items():
+        src = open(os.path.join(run_bt.KIT, rel), "rb").read()
+        dst = open(os.path.join(run_bt.KIT, run_bt.OPPONENT_SETS["heldout"][name]), "rb").read()
+        nl = b"\r\n" if b"\r\n" in src else b"\n"
+        old = nl.join([b"      floor_ft: 1200.0", b"  - action:", b"      pursuit: pure", b"      aim_above_ft: 4000.0"])
+        new = nl.join([b"      floor_ft: 4500.0", b"  - action:", b"      pursuit: pure", b"      g_burst: 0.8",
+                       b"      aim_above_ft: 4000.0"])
+        if name == "red_prime":
+            assert src.count(old) == 0 and dst == src, name
+        else:
+            assert src.count(old) == 1 and dst == src.replace(old, new), name
+    assert set(run_bt.OPPONENT_SETS["heldout"]).isdisjoint(run_bt.OPPONENTS)
+    assert run_bt.out_dir_for("bt-confirm2", opponent_set="heldout").endswith(os.path.join("out", "bt-confirm2-heldout"))
+    assert run_bt.out_dir_for("bt-main") .endswith(os.path.join("out", "bt-main"))                  # 기존 동작 불변
+    jobs = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke", opponent_set="heldout")
+    assert len(jobs) == 48 and {j["opponent"] for j in jobs} == set(run_bt.OPPONENT_SETS["heldout"])
+
+
 def _job(tree):
     j = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke")
     j = next(x for x in j if x["scenario"] == "neutral" and x["opponent"] == "B2_Extender_00")
