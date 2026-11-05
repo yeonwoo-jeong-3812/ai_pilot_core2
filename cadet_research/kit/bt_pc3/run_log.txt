@@ -1,0 +1,37 @@
+[2026-11-03 10:23:34] === 시작 (test=False, prefix=bt-main, shard=3/3, procs=14) ===
+[2026-11-03 10:23:34] STATUS: 태그 prereg-bt-v1 기다리는 중 (10분마다 확인)
+[2026-11-03 10:23:35] 태그 prereg-bt-v1 발견
+[2026-11-03 10:23:36] git pull: Updating 8f1d4f4..a7bbb5f
+Fast-forward
+ cadet_research/PREREG_BT.md | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+From https://github.com/yeonwoo-jeong-3812/ai_pilot_core2
+ * branch            bt-study   -> FETCH_HEAD
+[2026-11-03 10:23:36] HEAD a7bbb5f88b9d  태그 커밋 a7bbb5f88b9d
+[2026-11-03 10:23:36] STATUS: 자가점검·--dry 확인 중
+[2026-11-03 10:24:36] test_bt 마지막 줄: bt 자가점검 통과
+[2026-11-03 10:24:37] --dry main_lhs64: bt-main: 전체 1024경기, 기록됨 0, 남음 1024
+[2026-11-03 10:24:37] --dry main_morris_r16: bt-main: 전체 3072경기, 기록됨 0, 남음 3072
+[2026-11-03 10:24:37] STATUS: main_lhs64 실행 중 (--procs 14) 시작 2026-11-03 10:24:37
+[2026-11-03 10:24:37] 명령: bt/run_bt.py bt/thetas/main_lhs64.csv --prefix bt-main --unlock-confirm --shard 3/3 --procs 14
+[2026-11-03 11:16:11] main_lhs64 끝 (종료코드 0): 기록 1024경기, wall_clock 0, disqualified 0
+[2026-11-03 11:16:11] STATUS: main_morris_r16 실행 중 (--procs 14) 시작 2026-11-03 11:16:11
+[2026-11-03 11:16:11] 명령: bt/run_bt.py bt/thetas/main_morris_r16.csv --prefix bt-main --unlock-confirm --shard 3/3 --procs 14
+[2026-11-03 11:56:28] === 시작 (test=False, prefix=bt-main, shard=3/3, procs=14) ===
+[2026-11-03 11:56:28] STATUS: 태그 prereg-bt-v1 기다리는 중 (10분마다 확인)
+[2026-11-03 11:56:29] 태그 prereg-bt-v1 발견
+[2026-11-03 11:56:30] git pull: Already up to date.
+From https://github.com/yeonwoo-jeong-3812/ai_pilot_core2
+ * branch            bt-study   -> FETCH_HEAD
+[2026-11-03 11:56:30] HEAD a7bbb5f88b9d  태그 커밋 a7bbb5f88b9d
+[2026-11-03 11:56:30] STATUS: 자가점검·--dry 확인 중
+[2026-11-03 11:57:40] test_bt 마지막 줄: bt 자가점검 통과
+[2026-11-03 11:57:40] --dry main_lhs64: bt-main: 전체 1024경기, 기록됨 1024, 남음 0
+[2026-11-03 11:57:41] --dry main_morris_r16: bt-main: 전체 3072경기, 기록됨 0, 남음 3072
+[2026-11-03 11:57:41] STATUS: main_lhs64 실행 중 (--procs 14) 시작 2026-11-03 11:57:41
+[2026-11-03 11:57:41] 명령: bt/run_bt.py bt/thetas/main_lhs64.csv --prefix bt-main --unlock-confirm --shard 3/3 --procs 14
+[2026-11-03 11:58:11] main_lhs64 끝 (종료코드 0): 기록 1024경기, wall_clock 0, disqualified 0
+[2026-11-03 11:58:11] STATUS: main_morris_r16 실행 중 (--procs 14) 시작 2026-11-03 11:58:11
+[2026-11-03 11:58:11] 명령: bt/run_bt.py bt/thetas/main_morris_r16.csv --prefix bt-main --unlock-confirm --shard 3/3 --procs 14
+[2026-11-03 14:21:26] main_morris_r16 끝 (종료코드 0): 기록 3072경기, wall_clock 0, disqualified 0
+[2026-11-03 14:22:15] STATUS: 완료. 결과 2개를 구글 드라이브 'BT논문/bt-main' 에 올릴 것.

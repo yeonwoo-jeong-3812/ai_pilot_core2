@@ -1,0 +1,12 @@
+[2026-11-03 10:17:58] === 시작 (test=True, prefix=bt-smoke, shard=3/3, procs=14) ===
+[2026-11-03 10:17:58] STATUS: 자가점검·--dry 확인 중
+[2026-11-03 10:19:01] test_bt 마지막 줄: bt 자가점검 통과
+[2026-11-03 10:19:02] --dry main_lhs64: bt-smoke: 전체 1024경기, 기록됨 0, 남음 1024
+[2026-11-03 10:19:02] --dry main_morris_r16: bt-smoke: 전체 3072경기, 기록됨 0, 남음 3072
+[2026-11-03 10:19:02] STATUS: main_lhs64 실행 중 (--procs 14) 시작 2026-11-03 10:19:02
+[2026-11-03 10:19:02] 명령: bt/run_bt.py bt/thetas/main_lhs64.csv --prefix bt-smoke --unlock-confirm --shard 3/3 --procs 14 --limit 14
+[2026-11-03 10:21:02] main_lhs64 끝 (종료코드 0): 기록 14경기, wall_clock 0, disqualified 0
+[2026-11-03 10:21:02] STATUS: main_morris_r16 실행 중 (--procs 14) 시작 2026-11-03 10:21:02
+[2026-11-03 10:21:02] 명령: bt/run_bt.py bt/thetas/main_morris_r16.csv --prefix bt-smoke --unlock-confirm --shard 3/3 --procs 14 --limit 14
+[2026-11-03 10:22:32] main_morris_r16 끝 (종료코드 0): 기록 14경기, wall_clock 0, disqualified 0
+[2026-11-03 10:23:21] STATUS: 완료. 결과 2개를 구글 드라이브 'BT논문/bt-main' 에 올릴 것.
