@@ -168,6 +168,45 @@ def test_tuning_report():
     assert os.path.exists(os.path.join(out, "tuning_winrate.png")) and os.path.exists(os.path.join(out, "tuning_nodefrac.png"))
 
 
+def test_generalize_report():
+    """판정 문장 4가지와 generalize.py 끝까지 실행 (합성: V2 승 증가, V3 패 → 무접촉, V6 은 V0 와 같다)."""
+    import pandas as pd
+    import generalize as g
+    assert g.verdict(0.1, 0.01, -0.1, 0.01) == "일반화됨" and g.verdict(0.1, 0.01, 0.1, 0.01) == "일반화됨"
+    assert g.verdict(-0.1, 0.01, -0.1, 0.01) == "악화" and g.verdict(0.0, 0.5, 0.1, 0.01) == "악화"
+    assert g.verdict(0.01, 0.5, -0.1, 0.01) == "생존만 일반화됨" and g.verdict(0.01, 0.5, -0.01, 0.5) == "일반화 안 됨"
+    var = g.read_design(g.VARIANTS)
+    paths = {}
+    for s, opps in (("patched", "ABCD"), ("heldout", "EFGH"), ("newtypes", "IJKLMN")):
+        rows = []
+        for v, tid in zip(var.variant, var.theta_id):
+            for sc in ("g1", "g2", "g3"):
+                for o in opps:
+                    for k in range(36):
+                        u = ((37 * k + 11 * ord(o) + 7 * int(sc[1])) % 100) / 100
+                        win = u < (0.0 if o == "N" else 0.3 + (0.3 if v == "V2" else 0.0))
+                        nc = (not win) and v == "V3" and u > 0.6
+                        rows.append(dict(theta_id=tid, scenario=sc, opponent=o, opponent_set=s, seed_salt=f"x-{k}",
+                                         winner="blue" if win else "draw" if nc else "red",
+                                         end_reason="no_contact" if nc else "health_zero", win_mode="shootdown" if win else "",
+                                         wez_blue=1.0 * win, wez_red=1.0 - win, hp_blue_raw=100.0, hp_red_raw=100.0 - 50 * win,
+                                         e_adv_ft=0.0, node_frac='{"energy_recover": 0.5, "break_defense": 0.5}',
+                                         code_commit="abc", engine_sha="1e0101026959"))
+        paths[s] = os.path.join(TMP, f"gen_{s}.csv")
+        pd.DataFrame(rows).to_csv(paths[s], index=False)
+    out = tempfile.mkdtemp(dir=TMP)
+    argv = sys.argv
+    sys.argv = ["generalize.py", *[x for k, v in paths.items() for x in ("--" + k, v)], "--out", out]
+    try:
+        g.main()
+    finally:
+        sys.argv = argv
+    rep = open(os.path.join(out, "generalize_report.md"), encoding="utf-8").read()
+    assert "| V2 | **일반화됨** |" in rep and "| V3 | **생존만 일반화됨** |" in rep and "| V6 | **일반화 안 됨** |" in rep, rep[:1500]
+    assert "N †" in rep and "| 2592 | 2592 | 0 | 0 | 0 | abc |" in rep
+    assert os.path.exists(os.path.join(out, "generalize_diffs.png")) and os.path.exists(os.path.join(out, "generalize_outcomes.png"))
+
+
 if __name__ == "__main__":
     try:
         for name, fn in list(globals().items()):

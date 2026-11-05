@@ -300,6 +300,25 @@ def test_heldout_opponents():
     assert len(jobs) == 48 and {j["opponent"] for j in jobs} == set(run_bt.OPPONENT_SETS["heldout"])
 
 
+def test_newtypes_opponents():
+    """newtypes: C2·C3·D2·E1 은 같은 바이트 보정, red_energy·red_tracker 는 원본 그대로. 앞선 묶음과 겹치지 않는다. θ 는 tuned6 의 부분집합."""
+    for name, rel in run_bt.NEWTYPES_ORIGINAL.items():
+        src = open(os.path.join(run_bt.KIT, rel), "rb").read()
+        dst = open(os.path.join(run_bt.KIT, run_bt.OPPONENT_SETS["newtypes"][name]), "rb").read()
+        nl = b"\r\n" if b"\r\n" in src else b"\n"
+        old = nl.join([b"      floor_ft: 1200.0", b"  - action:", b"      pursuit: pure", b"      aim_above_ft: 4000.0"])
+        new = nl.join([b"      floor_ft: 4500.0", b"  - action:", b"      pursuit: pure", b"      g_burst: 0.8",
+                       b"      aim_above_ft: 4000.0"])
+        assert dst == (src if name.startswith("red_") else src.replace(old, new)) and src.count(old) == (0 if name.startswith("red_") else 1), name
+    assert set(run_bt.OPPONENT_SETS["newtypes"]).isdisjoint(set(run_bt.OPPONENTS) | set(run_bt.OPPONENT_SETS["heldout"]))
+    a = open(os.path.join(run_bt.BT, "thetas", "generalize4.csv"), "rb").read().splitlines()
+    b = open(os.path.join(run_bt.BT, "thetas", "tuned6.csv"), "rb").read().splitlines()
+    assert [x[:2] for x in a[1:]] == [b"V0", b"V2", b"V3", b"V6"] and set(a) <= set(b)
+    assert run_bt.TAG_FOR["bt-confirm3"] == "prereg-bt-generalize-v1" and "bt-confirm3" in run_bt.LOCKED
+    jobs = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke", opponent_set="newtypes")
+    assert len(jobs) == 72 and {j["opponent"] for j in jobs} == set(run_bt.OPPONENT_SETS["newtypes"])
+
+
 def _job(tree):
     j = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke")
     j = next(x for x in j if x["scenario"] == "neutral" and x["opponent"] == "B2_Extender_00")

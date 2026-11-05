@@ -57,23 +57,28 @@ OPPONENTS = {   # 이름 -> kit 기준 경로. 상대를 바꿀 때는 여기만
 #   diag-f4000  bt/diag_opponents: floor_ft 만 1200 → 4000 (하드덱 진단 전용, bt-diag 에서만)
 #   heldout     bt/opponents_heldout: 본실험에 쓰지 않은 kit 상대 4종 (A1·A3·B1 은 patched 와 같은 보정, red_prime 은 보정 대상 노드가
 #               없어 원본 그대로). 튜닝 BT 비교 추가 실험용 (cadet_research/PREREG_BT_ADDENDUM_TUNING.md)
+#   newtypes    bt/opponents_newtypes: kit/agents/e4 의 새 유형 6종 (C2·C3·D2·E1 은 같은 보정, red_energy·red_tracker 는 원본 그대로).
+#               일반화 재검증용 (cadet_research/PREREG_BT_ADDENDUM_GENERALIZE.md)
 OPPONENT_SETS = {
     "original": OPPONENTS,
     "patched": {k: "bt/opponents_patched/" + os.path.basename(v) for k, v in OPPONENTS.items()},
     "diag-f4000": {k: "bt/diag_opponents/" + os.path.basename(v) for k, v in OPPONENTS.items()},
     "heldout": {k: f"bt/opponents_heldout/{k}.yaml" for k in ("A1_PurePursuer_00", "A3_LagAngler_00", "B1_EnergyFighter_00", "red_prime")},
+    "newtypes": {k: f"bt/opponents_newtypes/{k}.yaml" for k in ("C2_OneCircleRad_00", "C3_Lufbery_00", "D2_LastDitch_00", "E1_AdaptiveAce_00", "red_energy", "red_tracker")},
 }
 HELDOUT_ORIGINAL = {k: f"agents/main/{k}.yaml" for k in OPPONENT_SETS["heldout"]}
+NEWTYPES_ORIGINAL = {k: f"agents/e4/{k}.yaml" for k in OPPONENT_SETS["newtypes"]}
 DEFAULT_SET = "patched"
 # 옛 CSV (opponent_set 열 없음) 재실행용: 원본 이름 = original, "<이름>_f4000" = diag-f4000
 OPP_PATHS = {**OPPONENTS, **{f"{k}_f4000": v for k, v in OPPONENT_SETS["diag-f4000"].items()}}
 SEEDS = 4                     # 셀당 시드 수 기본값 (--nseeds). 시드 i 의 salt = "<접두어>-<i>"
 PREREG_TAG = "prereg-bt-v1"   # bt-main·bt-confirm 은 이 git 태그가 있어야 돈다 (사전등록 고정 뒤)
 META_COLS = ("trajectory", "step", "variant")   # θ 목록의 설명 열 (Morris 궤적·순서, 튜닝 변형 이름). θ 에는 안 들어간다
-PREFIXES = ("bt-smoke", "bt-pilot", "bt-cal", "bt-cal-a", "bt-cal-b", "bt-diag", "bt-main", "bt-confirm", "bt-confirm2")
-LOCKED = ("bt-main", "bt-confirm", "bt-confirm2")
+PREFIXES = ("bt-smoke", "bt-pilot", "bt-cal", "bt-cal-a", "bt-cal-b", "bt-diag", "bt-main", "bt-confirm", "bt-confirm2", "bt-confirm3")
+LOCKED = ("bt-main", "bt-confirm", "bt-confirm2", "bt-confirm3")
 # 잠긴 접두어마다 있어야 하는 사전등록 태그. bt-confirm2 = 튜닝 BT 비교 추가 실험 (PREREG_BT_ADDENDUM_TUNING.md)
-TAG_FOR = {"bt-main": PREREG_TAG, "bt-confirm": PREREG_TAG, "bt-confirm2": "prereg-bt-tuning-v1"}
+TAG_FOR = {"bt-main": PREREG_TAG, "bt-confirm": PREREG_TAG, "bt-confirm2": "prereg-bt-tuning-v1",
+           "bt-confirm3": "prereg-bt-generalize-v1"}
 ENGINE_PARTS = ("aircombat", "jsbsim_data", "config")
 
 FIELDS = (["stage", "theta_id"] + mt.NAMES +

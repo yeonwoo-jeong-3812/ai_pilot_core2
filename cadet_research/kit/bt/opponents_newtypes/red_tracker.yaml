@@ -1,0 +1,51 @@
+# Red Team 대항군 — TRACKER (리드 추격 건 트래커). 비배포.
+# 2026-09-21 agents/maverick_JesterL.yaml(운영진 계정 제출물)에서 채택 — 변별력이 무너진 red_reactive·
+# red_extender 를 대체한다. 그 둘은 관리되지 않는 roster/ zoo 출신이고, 45팀 실측에서
+# ICC 0.126·0.216, 승리의 10%가 상대 자멸(hard_deck)이었다 — 실력이 아니라 운을 쟀다.
+#
+# 측정(패널 22팀 × 시나리오 4 × 소금 2 = 176경기): 참가자 승점 1.21/3(승률 40%)
+#   단독 rho +0.807 · ICC 0.855 · 자멸승 0% · 무접촉 0% · 4전 전승 팀 0개.
+#
+# ⚠ agent_name 은 시드 유도 키다(derive_seed) — 바꾸면 이 대항군 칸의 초기조건이 전부
+#   바뀌어 기존 매치를 재실행해야 한다. 출처 이름을 그대로 쓰지 않는 이유는 ACMI
+#   CallSign 으로 흘러 참가자에게 대조 상대가 드러나기 때문이다(red_prime 선례).
+# ⚠ 트리 본체는 원본과 바이트 동일하다 — 손대면 위 측정값이 무효다.
+#
+# 성향:
+# 리드 추격으로 조준선을 먼저 세우고 사거리 안에서는 놓지 않는다. 분기가 5개뿐이라
+# 거동이 일관되고, 하드덱 회복과 저에너지 재충전이 "첫 교환 이후"로 게이트돼 있어
+# 스스로 떨어지지 않는다 — 참가자가 조준을 끊어내지 못하면 그대로 깎인다.
+#
+# 우선순위(selector, 위가 먼저): 하드덱 회복 > 사거리 내 건 트래킹 > 리드 추격 > 재충전
+#
+# 사용: python scripts/run_match.py --blue redteams/red_tracker.yaml ...
+
+agent_name: RedTracker
+
+selector:
+  # 0) 하드덱 회복 — 예측 발동
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500, lookahead_s: 3.5}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+
+  # 1) 최종 사격권
+  - sequence:
+      - condition: {name: in_gun_envelope}
+      - inverter:
+          condition: {name: nose_far, ata_deg: 12}
+      - action: {pursuit: pure, g_burst: 0.8, name: pure_cone_track}
+
+  # 2) 실속 가드 — 저속 + 이미 피격(교전 개시 래치)일 때만 재충전
+  - sequence:
+      - condition: {name: below_fighting_speed, kcas: 280}
+      - condition: {name: low_health, hp: 95}
+      - action: {pursuit: lead, lead_time_s: 0.5, g_burst: 0.0, name: energy_regain}
+
+  # 3) 조준선 정렬
+  - sequence:
+      - inverter:
+          condition: {name: nose_far, ata_deg: 12}
+      - action: {pursuit: lead, lead_time_s: 0.2, g_burst: 0.8, name: weak_lead_track}
+
+  # 4) 기본 추격
+  - action: {pursuit: lead, g_burst: 0.8, name: lead_chase}
