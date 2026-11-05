@@ -1,0 +1,15 @@
+[PC2 실행 기록]
+- PC2 (shard 2/3), 코드 prereg-bt-v1 (a7bbb5f), python --version: Python 3.11.9
+- crosscheck 마지막 3줄:
+    python_version 3.11.9
+    engine_sha     1e0101026959
+    전체 해시      fc6501b873df43e1
+- 시작 2026-11-04 11:02, 끝 2026-11-05 02:03 (중간 재개 3회: 메모리로 인한 강제 종료, procs 변경, 노트북 비정상 종료)
+- --procs: 6 → 13:45부터 5 (RAM 7.7GB, procs 6에서 경기당 wall_s가 66초에서 110~120초로 늘어남)
+- 경기 수: LHS 1024 / Morris 3072, disqualified 0, 중복 0
+- code_commit a7bbb5f88b9d, engine_sha 1e0101026959, opponent_set patched (전 경기 동일)
+- wall_clock 33경기 (LHS 21, Morris 12):
+    · procs 6 메모리 부족: 4c75c560a106 (6)
+    · 노트북 대기 모드: 8759b075487f (7), 3b5d3beba9e4 (8), 3204c36d1fbd (5), 0a4bcc194b1a (5)
+    · 120초를 조금 넘음 (120.1·120.7초): 1fa9f840bafa (1), 8f2a3bf5a99f (1)
+  → wall_clock 행 처리와 재실행 지시 부탁드립니다.
