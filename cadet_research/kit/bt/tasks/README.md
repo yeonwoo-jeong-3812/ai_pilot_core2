@@ -3,6 +3,9 @@
 각 TASK 파일은 **그 파일 하나만 읽고** 팀원의 Claude Code 가 바로 작업을 시작할 수 있게 썼다.
 사양의 원본은 `cadet_research/PREREG_BT.md` 와 `cadet_research/kit/bt/CONTRACT.md` 다. 지시서와 둘이 어긋나면 PREREG_BT.md 가 맞다.
 
+> **2026-11-05:** 분석 코드 (`analysis/anova.py`, `confirm.py`, `morris.py`, `surrogate.py`, `test_analysis.py`) 는 TASK_A·B 사양대로 연우가 구현했다
+> (팀원 브랜치에 분석 코드가 오지 않아서). 본실험 결과를 보기 전에 커밋했다.
+
 ## 지시서 목록
 
 | 파일 | 맡는 사람 | 작업 | 브랜치 | 마감 |
