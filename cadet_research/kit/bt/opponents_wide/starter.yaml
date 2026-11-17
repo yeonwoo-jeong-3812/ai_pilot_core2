@@ -1,0 +1,24 @@
+# 예시(초급): Starter — 가장 단순한 트리로 문법을 익히는 출발점.
+#
+# selector 는 위에서부터 "먼저 참인 분기"를 실행한다. 규칙 4개:
+#   1) 하드덱 회피 — 고도가 위험(4,500ft 이하)하면 상승 회복
+#      (하드덱 1,000ft 위반은 즉시 패이므로 어떤 공격보다 먼저 산다)
+#   2) 건 사거리 + 조준각에 들면 pure 로 조준 사격
+#   3) 기수가 적에서 크게 벗어나면 lead 로 당겨 재조준
+#   4) 그 외에는 pure 로 적을 향해 추격
+#
+# 실력: 방어·오버슈트 처리가 없어 노련한 상대에겐 약하다 — 문법 학습·베이스라인용.
+# 어휘 전체는 docs/REFERENCE.md 참조.
+# 사용: python scripts/run_match.py --blue examples/starter.yaml --red scripted:turn
+agent_name: Starter
+selector:
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 30}
+      - action: {pursuit: pure, name: gun_track}
+  - sequence:
+      - condition: nose_far
+      - action: {pursuit: lead, name: lead_pull}
+  - action: {pursuit: pure, name: chase}

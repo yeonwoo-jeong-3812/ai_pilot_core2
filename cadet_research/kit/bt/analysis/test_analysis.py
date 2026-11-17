@@ -245,6 +245,44 @@ def test_v1split_report():
     assert os.path.exists(os.path.join(out, "v1split_diffs.png"))
 
 
+def test_wide_report():
+    """wide.py 끝까지 실행 (합성: 상대 10종, V2 는 모든 상대에서 승률 상승, V3 는 V0 와 같음, V6 은 승을 무접촉으로 바꿔 패만 감소)."""
+    import pandas as pd
+    import wide as g
+    var = g.read_design(g.VARIANTS)
+    opps = [f"O{i}" for i in range(10)]
+    man = os.path.join(TMP, "wide_manifest.csv")
+    pd.DataFrame(dict(name=opps, kind=["near"] * 4 + ["far"] * 6, blue_overlap=[0] * 9 + [5])).to_csv(man, index=False)
+    rows = []
+    for v, tid in zip(var.variant, var.theta_id):
+        for sc in ("g1", "g2", "g3"):
+            for i, o in enumerate(opps):
+                for k in range(8):
+                    u = ((37 * k + 11 * i + 7 * int(sc[1])) % 100) / 100
+                    base = 0.0 if i == 0 else 0.3
+                    win = u < base + (0.2 if v == "V2" else 0.0)
+                    nc = v == "V6" and not win and u > 0.6
+                    rows.append(dict(theta_id=tid, scenario=sc, opponent=o, opponent_set="wide", seed_salt=f"x-{k}",
+                                     winner="blue" if win else "draw" if nc else "red", end_reason="no_contact" if nc else "health_zero",
+                                     win_mode="shootdown" if win else "", wez_blue=1.0 * win, wez_red=1.0 - win, hp_blue_raw=100.0,
+                                     hp_red_raw=100.0 - 50 * win, e_adv_ft=0.0, node_frac='{"pure_default": 1.0}', code_commit="abc",
+                                     engine_sha="1e0101026959"))
+    games = os.path.join(TMP, "wide_games.csv")
+    pd.DataFrame(rows).to_csv(games, index=False)
+    out = tempfile.mkdtemp(dir=TMP)
+    none = os.path.join(TMP, "none.csv")
+    argv = sys.argv
+    sys.argv = ["wide.py", "--games", games, "--manifest", man, "--patched", none, "--heldout", none, "--newtypes", none, "--out", out]
+    try:
+        g.main()
+    finally:
+        sys.argv = argv
+    rep = open(os.path.join(out, "wide_report.md"), encoding="utf-8").read()
+    assert "| V2 | **일반화됨** |" in rep and "| V3 | **일반화 안 됨** |" in rep and "| V6 | **생존만 일반화됨** |" in rep, rep[:2000]
+    assert "O0 †" in rep and "노드 이름 겹침 ≥ 4: O9" in rep and "| 960 | 960 | 0 | 0 | 0 | abc |" in rep
+    assert os.path.exists(os.path.join(out, "wide_opponents.png"))
+
+
 if __name__ == "__main__":
     try:
         for name, fn in list(globals().items()):

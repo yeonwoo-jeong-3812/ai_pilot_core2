@@ -1,0 +1,39 @@
+# Red Team 대항군 — TEXTBOOK (교범 기본형). 비배포.
+# 2026-08-01 examples/textbook.yaml 에서 이동. 구 red_textbook(= textbook_headon
+# 복사본)은 같은 날 폐기했다 — 공개물 복사본이라 비공개 상대 구실을 못 했다.
+#
+# Starter 에 방어·오버슈트·연장 처리를 더한 표준 우선순위(위가 먼저):
+#   하드덱 회피 > 방어 브레이크 > 오버슈트 회피(lag) > 연장 추격 > 건 조준 > 기수 당김 > 기본 pure
+# 한 파일로 완결 — 각 분기의 condition/action 을 그대로 읽어 배운다.
+#
+# 실력: 기본기는 갖췄으나 요요·control zone·에너지 관리가 없어 상급 상대엔 열세 — 중급 베이스라인.
+# 사용: python scripts/run_match.py --blue redteams/red_textbook.yaml --red examples/starter.yaml
+agent_name: RedTextbook
+selector:
+  # 1) 하드덱 회피 — 최우선
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+  # 2) 방어: 적이 내 후미를 조준(aspect 높음) + 근접 → max-G lag 브레이크
+  - sequence:
+      - condition: {name: is_defensive, aspect_deg: 150}
+      - condition: {name: merged, range_ft: 6000}
+      - action: {pursuit: lag, g_burst: 0.8, name: break_defense}
+  # 3) 오버슈트 위험(빠른 접근 + 근거리) → lag 로 감속·물러섬
+  - sequence:
+      - condition: overshoot_risk
+      - action: {pursuit: lag, name: lag_reposition}
+  # 4) 적이 거리 벌림 → max-G lead 로 따라붙기
+  - sequence:
+      - condition: foe_extending
+      - action: {pursuit: lead, g_burst: 0.8, name: lead_rundown}
+  # 5) 건 사거리 → pure 조준 사격
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 30}
+      - action: {pursuit: pure, name: gun_track}
+  # 6) 기수 이탈 → lead 로 당겨 회수
+  - sequence:
+      - condition: nose_far
+      - action: {pursuit: lead, name: lead_pull}
+  # 7) 기본: pure
+  - action: {pursuit: pure, name: pure_default}

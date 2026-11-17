@@ -1,0 +1,35 @@
+# Red Team 대항군 — PRESSURE (정면 압박형). 비배포(참가자 미공개).
+#
+# pure 일변도: 항상 적을 조준해 압박한다. headon 은 stable 모드로 조준 안정,
+# 패스 후 기수 이탈은 lead+max_g 로 즉시 회복(진자 억제 — perch 교전 생성).
+# 에너지 관리는 없다 — 저속 국면 실속이 스타일 약점(의도된 구멍).
+# 2026-07-17 재튜닝: D7 종축 기하·DPS 50·perch 6kft 반영.
+# 2026-07-19: 최후 회복만 추가. 구멍은 유지하되 **자멸**은 막는다 —
+#   perch_offense 에서 참가자 7종 중 6종(최소 트리 starter 포함)에게 실속 자멸해
+#   실력과 무관한 공짜 승점을 주고 있었다(변별력 0). 임계 160kt 는 파이팅 속도
+#   하한(280)보다 한참 아래라, 참가자가 능동적으로 저속으로 끌고 가면 여전히
+#   약점이 열린다. 스스로 걸어들어가는 경우만 차단하는 게 목적이다.
+agent_name: RedPressure
+selector:
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+  # 최후 에너지 회복 — 실속(<100kt 누적 10s) 자멸 방지용. 파이팅 속도(280)가 아니라
+  # 160kt 임계라 평상시엔 절대 걸리지 않는다(= 압박 일변도 성격 유지).
+  - cooldown:
+      name: last_ditch_recover
+      wait_s: 5.0
+      child:
+        sequence:
+          - condition: {name: below_fighting_speed, kcas: 160}
+          - action: {pursuit: lag, name: last_ditch_recover, lag_dist_ft: 4000,
+                     aim_above_ft: -300}
+  # 헤드온 → 배면·롤 없이 조준 안정 (압박형의 정면 승부)
+  - sequence:
+      - condition: {name: is_head_on, hca_deg: 150}
+      - action: {pursuit: pure, mode: stable, name: headon_stable}
+  # 기수 크게 이탈 → lead+max_g 로 재조준 (거리 풍선 억제)
+  - sequence:
+      - condition: {name: nose_far, ata_deg: 60}
+      - action: {pursuit: lead, g_burst: 0.8, name: regain_nose}
+  - action: {pursuit: pure, name: pure_pressure}

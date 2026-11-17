@@ -1,0 +1,85 @@
+# Red Team 대항군 — KNIFE (근접 반경 싸움형 / **홀드아웃**). 비배포·DB 미등록.
+#
+# 2026-08-01 신설. 구 홀드아웃 red_textbook 은 examples/textbook_headon 의 agent_name
+# 한 줄만 바꾼 복사본이었고, examples/ 는 build_sdk 가 SDK 에 실어 배포한다 —
+# 즉 "미공개 검증"이 성립하지 않았다. 이 트리는 공개 트리와 구조를 겹치지 않게 짰다.
+#
+# 아키타입: One-Circle Knife Fighter. 공개 two_circle(레이트파이터)의 **정반대 선호** —
+# 1-서클 반경 싸움을 수락하고, 2-서클은 에너지를 아끼며 따라만 간다.
+#
+# 차별점(전 트리 파싱으로 확인, 2026-08-01):
+#   · foe_above + above_fighting_speed 수직 추격 — 이 두 조건은 공개·레드팀 어느
+#     트리에도 없다.
+#   · 헤드온을 stable(공개 3종·레드팀 3종이 쓰는 방식)이나 pure(attacker) 가 아니라
+#     **하이사이드 리드 진입**으로 처리한다.
+#   · one_circle 을 수락한다 — 공개 two_circle 은 lag 으로 거부한다.
+#   · 본체 구조 유사도는 기존 13종 중 최대 0.467(red_pressure). 복사본 3쌍이 0.99,
+#     서로 구분되는 쌍이 0.75 이하인 척도 기준.
+#   ※ foe_extending 추격은 차별점이 **아니다** — examples/textbook 이 거의 같은
+#     분기(lead+max_g rundown)를 이미 쓴다. 여기선 봉쇄 임계만 좁혔다.
+#
+# 우선순위(selector, 위가 먼저):
+#   하드덱 회피 > 실속 자멸 차단 > 건 사격 > 헤드온 하이사이드 > 방어 브레이크 >
+#   익스텐드 추격 > 수직 추격 > 1-서클 수락 > 2-서클 추종 > 기본 pure
+#
+# 설계 주:
+#   · 방어 분기를 **헤드온 분기 뒤**에 둔다. AA≈180 인 헤드온 접근은 is_defensive
+#     (aspect>150)에도 걸리므로, 앞에 두면 머지마다 브레이크로 빠져 조준을 포기한다.
+#     (같은 취지의 경고가 red_allround 주석에도 있으나 그 수치는 미검증이다.)
+#   · 실속 임계 170kt 는 파이팅 하한(280)보다 한참 아래라 평상시엔 안 걸린다.
+#     스스로 저속에 걸어들어가는 자멸만 막는 게 목적이고, 상대가 능동적으로
+#     저속으로 끌고 가면 약점은 열려 있다(의도된 구멍).
+#   · 하드덱 회복에 g_burst: 0.8 — 없으면 ATA≈0 강하에서 1G 회복이 나온다(2026-08-01).
+agent_name: RedKnife
+selector:
+  # 0) 하드덱 회피 — 최우선(1,000ft 위반 = 즉시 패)
+  - sequence:
+      - condition: {name: low_altitude, floor_ft: 4500}
+      - action: {pursuit: pure, g_burst: 0.8, aim_above_ft: 4000, name: recover_altitude}
+  # 1) 최후 에너지 회복 — 실속(<100kt 누적 10s) 자멸만 차단
+  - cooldown:
+      name: last_ditch_recover
+      wait_s: 5.0
+      child:
+        sequence:
+          - condition: {name: below_fighting_speed, kcas: 170}
+          - action: {pursuit: lag, name: last_ditch_recover, lag_dist_ft: 4000,
+                     aim_above_ft: -300}
+  # 2) 건 솔루션 → 리드 스냅샷. 과속 접근(오버슈트 예정)에서는 쏘지 않는다.
+  #    가드 임계 400fps 는 실측으로 정했다 — 250fps 로는 47,345 tick 중 57번(0.1%)만
+  #    발화해 분기가 사실상 죽어 있었다. 건 사거리 진입 국면이 대부분 고접근율
+  #    교차라 250 은 전부 걸러낸다.
+  - sequence:
+      - condition: {name: in_gun_envelope, range_ft: 3000, ata_deg: 40}
+      - inverter: {condition: {name: closing, min_fps: 400}}
+      - action: {pursuit: lead, g_burst: 0.8, lead_time_s: 0.6, name: gun_snap}
+  # 3) 헤드온 — 하이사이드 리드 진입(리프트벡터 위로 넘겨 1-서클 진입권 확보)
+  - sequence:
+      - condition: {name: is_head_on, hca_deg: 150}
+      - action: {pursuit: lead, aim_above_ft: 600, lead_time_s: 0.8, name: high_side_merge}
+  # 4) 방어(DBFM): 적 기수가 나를 조준 + 근접 → 브레이크
+  - sequence:
+      - condition: {name: is_defensive, aspect_deg: 150}
+      - condition: {name: merged, range_ft: 4000}
+      - action: {pursuit: lag, g_burst: 0.8, name: break_defense}
+  # 5) 익스텐드 추격 — 상대가 거리를 벌리면 놓지 않는다(무교전 만료 봉쇄)
+  - sequence:
+      - condition: {name: foe_extending, closure_fps: -20, range_ft: 5000}
+      - action: {pursuit: lead, g_burst: 0.8, lead_time_s: 1.2, name: run_down}
+  # 6) 수직 추격 — 상대가 위 + 내 속도 여유 → 따라 올라간다
+  - sequence:
+      - condition: {name: foe_above, min_ft: 1200}
+      - condition: {name: above_fighting_speed, kcas: 380}
+      - action: {pursuit: lead, aim_above_ft: 900, name: climb_after}
+  # 7) 1-서클(반경 싸움) 수락 — 이 아키타입의 본령.
+  #    max_g 없음: 상시 리미터 당김은 에너지만 태우고(스틱 포화) 지령 G 는 로그에만
+  #    남는다. 예선 상대는 참가자를 전멸시키는 게 아니라 서열을 드러내야 한다.
+  - sequence:
+      - condition: one_circle
+      - action: {pursuit: lead, name: knife_fight}
+  # 8) 2-서클(선회율 싸움) — 거부하지 않고 에너지를 아끼며 따라간다(max_g 없음)
+  - sequence:
+      - condition: two_circle
+      - action: {pursuit: lead, name: rate_follow}
+  # 9) 기본: pure
+  - action: {pursuit: pure, name: pure_default}

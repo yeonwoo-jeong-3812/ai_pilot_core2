@@ -315,6 +315,22 @@ def test_v1split_design():
     assert len(run_bt.build_jobs(th, "bt-confirm4", opponent_set="heldout", nseeds=36)) == 4 * 432
 
 
+def test_wide_opponents():
+    """wide-cand: make_wide.py 로 다시 만들면 바이트가 같고, 고도 보정은 같은 규칙, 앞서 쓴 상대와 이름이 겹치지 않는다. bt-confirm5 는 새 태그로 잠근다."""
+    import make_wide
+    rows = make_wide.build()
+    assert len(rows) == 31 and len({r["name"] for r in rows}) == 31
+    for r in rows:
+        dst = open(os.path.join(run_bt.BT, "opponents_wide", r["name"] + ".yaml"), "rb").read()
+        folder = {n: f for n, f, _, _ in make_wide.CANDIDATES}[r["name"]]
+        src = open(make_wide.source(folder, r["name"]), "rb").read()
+        assert dst == r["bytes"] and (dst != src) == bool(r["patched"]), r["name"]
+    assert set(run_bt.OPPONENT_SETS["wide-cand"]) == {r["name"] for r in rows}
+    earlier = set(run_bt.OPPONENTS) | set(run_bt.OPPONENT_SETS["heldout"]) | set(run_bt.OPPONENT_SETS["newtypes"])
+    assert earlier.isdisjoint(run_bt.OPPONENT_SETS["wide-cand"]) and set(run_bt.OPPONENT_SETS["wide"]) <= set(run_bt.OPPONENT_SETS["wide-cand"])
+    assert run_bt.TAG_FOR["bt-confirm5"] == "prereg-bt-wide-v1" and "bt-confirm5" in run_bt.LOCKED
+
+
 def test_newtypes_opponents():
     """newtypes: C2·C3·D2·E1 은 같은 바이트 보정, red_energy·red_tracker 는 원본 그대로. 앞선 묶음과 겹치지 않는다. θ 는 tuned6 의 부분집합."""
     for name, rel in run_bt.NEWTYPES_ORIGINAL.items():
