@@ -6,6 +6,7 @@
 4. 원본 트리와 기준 θ 트리로 같은 경기를 돌리면 결과가 같다 (의미상 동일)
 5. 같은 경기 두 번 = 모든 열이 같다 (wall_s, host 제외)
 """
+import csv
 import json
 import os
 import sys
@@ -298,6 +299,20 @@ def test_heldout_opponents():
     assert run_bt.out_dir_for("bt-main") .endswith(os.path.join("out", "bt-main"))                  # 기존 동작 불변
     jobs = run_bt.build_jobs([mt.normalize(BASE)], "bt-smoke", opponent_set="heldout")
     assert len(jobs) == 48 and {j["opponent"] for j in jobs} == set(run_bt.OPPONENT_SETS["heldout"])
+
+
+def test_v1split_design():
+    """V1 분해: V0·V1 은 tuned6 행 그대로, V1a = V0 + fight_kcas 325, V1b = V0 + threat_aspect_deg 120. bt-confirm4 는 새 태그로 잠근다."""
+    a = open(os.path.join(run_bt.BT, "thetas", "v1split4.csv"), "rb").read().splitlines()
+    b = open(os.path.join(run_bt.BT, "thetas", "tuned6.csv"), "rb").read().splitlines()
+    assert a[0] == b[0] and a[1:3] == [x for x in b if x[:3] in (b"V0,", b"V1,")]
+    rows = {r["variant"]: r for r in csv.DictReader(open(os.path.join(run_bt.BT, "thetas", "v1split4.csv"), encoding="utf-8"))}
+    v0 = rows["V0"]
+    for name, key, val in (("V1a", "fight_kcas", "325.0"), ("V1b", "threat_aspect_deg", "120.0")):
+        assert {k: v for k, v in rows[name].items() if v != v0[k]} == {"variant": name, key: val}, name
+    assert run_bt.TAG_FOR["bt-confirm4"] == "prereg-bt-v1split-v1" and "bt-confirm4" in run_bt.LOCKED
+    th = run_bt.read_thetas(os.path.join(run_bt.BT, "thetas", "v1split4.csv"))
+    assert len(run_bt.build_jobs(th, "bt-confirm4", opponent_set="heldout", nseeds=36)) == 4 * 432
 
 
 def test_newtypes_opponents():

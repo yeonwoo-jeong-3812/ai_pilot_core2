@@ -207,6 +207,44 @@ def test_generalize_report():
     assert os.path.exists(os.path.join(out, "generalize_diffs.png")) and os.path.exists(os.path.join(out, "generalize_outcomes.png"))
 
 
+def test_v1split_report():
+    """판정 문장과 v1split.py 끝까지 실행 (합성: V1b 와 V1 은 V0 보다 승률이 낮고, V1a 는 V0 와 같다)."""
+    import pandas as pd
+    import v1split as g
+    assert g.verdict(-0.1, 0.01, 0.1, 0.01) == "나빠짐" and g.verdict(0.1, 0.01, -0.1, 0.01) == "좋아짐"
+    assert g.verdict(0.1, 0.01, 0.1, 0.01) == "엇갈림" and g.verdict(0.01, 0.5, 0.01, 0.5) == "차이 확인 못 함"
+    var = g.read_design(g.VARIANTS)
+    paths = {}
+    for s, opps in (("patched", "ABCD"), ("heldout", "EFGH")):
+        rows = []
+        for v, tid in zip(var.variant, var.theta_id):
+            for sc in ("g1", "g2", "g3"):
+                for o in opps:
+                    for k in range(36):
+                        u = ((37 * k + 11 * ord(o) + 7 * int(sc[1])) % 100) / 100
+                        win = u < (0.1 if v in ("V1b", "V1") else 0.4)
+                        rows.append(dict(theta_id=tid, scenario=sc, opponent=o, opponent_set=s, seed_salt=f"x-{k}",
+                                         winner="blue" if win else "red", end_reason="health_zero", win_mode="shootdown" if win else "",
+                                         wez_blue=1.0 * win, wez_red=1.0 - win, hp_blue_raw=100.0, hp_red_raw=100.0 - 50 * win,
+                                         e_adv_ft=0.0, node_frac='{"energy_recover": 0.5, "break_defense": 0.5}',
+                                         code_commit="abc", engine_sha="1e0101026959"))
+        paths[s] = os.path.join(TMP, f"v1s_{s}.csv")
+        pd.DataFrame(rows).to_csv(paths[s], index=False)
+    out = tempfile.mkdtemp(dir=TMP)
+    argv = sys.argv
+    sys.argv = ["v1split.py", "--patched", paths["patched"], "--heldout", paths["heldout"],
+                "--earlier-patched", os.path.join(TMP, "none.csv"), "--earlier-heldout", os.path.join(TMP, "none.csv"), "--out", out]
+    try:
+        g.main()
+    finally:
+        sys.argv = argv
+    rep = open(os.path.join(out, "v1split_report.md"), encoding="utf-8").read()
+    for s in ("patched", "heldout"):
+        assert f"| {s} | V1a | **차이 확인 못 함** |" in rep and f"| {s} | V1b | **나빠짐** |" in rep and f"| {s} | V1 | **나빠짐** |" in rep, rep[:1500]
+    assert "| patched | 1728 | 1728 | 0 | 0 | 0 | abc |" in rep and "파일 없음" in rep
+    assert os.path.exists(os.path.join(out, "v1split_diffs.png"))
+
+
 if __name__ == "__main__":
     try:
         for name, fn in list(globals().items()):
